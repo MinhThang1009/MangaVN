@@ -1,57 +1,47 @@
-# ĐẶC TẢ YÊU CẦU ỨNG DỤNG ĐỌC TRUYỆN (LOCAL-FIRST)
+# ĐẶC TẢ YÊU CẦU: MYBOOKSLIBRARY (LOCAL-FIRST)
 
-## 1. Tổng quan Kiến trúc (Tech Stack)
+## 1. Tổng quan Kiến trúc
 - **UI Framework:** Kotlin + Jetpack Compose.
 - **Navigation:** Jetpack Navigation Compose.
-- **Local Database:** Room Database (Lưu trữ User profile ảo, Lịch sử đọc, Yêu thích, Cài đặt).
+- **Local Database:** Room DB (Lưu user profile ảo, lịch sử đọc, yêu thích).
 - **Local Preferences:** Jetpack DataStore (Lưu trạng thái đăng nhập, theme).
 - **Network/API:** Retrofit + OkHttp (Call MangaDex API).
 - **Image Loading:** Coil.
-- **Architecture:** MVVM (Model-View-ViewModel) + Clean Architecture cơ bản (chia layer UI - Domain - Data).
+- **Architecture:** MVVM + Clean Architecture (UI - Domain - Data).
 
-## 2. Thực thể Dữ liệu (Data Entities)
+## 2. Thực thể Dữ liệu (Entities & Models)
 
 ### 2.1. Local Entities (Room Database)
 * **UserEntity:** `id` (PK), `username`, `password` (mô phỏng), `avatar_path`, `created_at`.
-* **LibraryItemEntity:** (Lưu sách người dùng tương tác)
-    * `manga_id` (PK - Lấy từ MangaDex).
-    * `title`, `cover_url` (Lưu đệm để hiển thị nhanh không cần call API).
+* **LibraryItemEntity** (Quản lý sách user tương tác):
+    * `manga_id` (PK - map với ID từ MangaDex).
+    * `title`, `cover_url` (Lưu đệm để hiển thị nhanh không cần gọi lại API).
     * `status` (Enum: READING, COMPLETED, FAVORITE).
-    * `last_read_chapter_id` (ID chapter đọc gần nhất).
-    * `updated_at` (Thời gian tương tác cuối).
+    * `last_read_chapter_id` (Lưu tiến độ đọc).
+    * `updated_at`.
 
 ### 2.2. Remote Models (MangaDex API)
-*(Các model này không lưu DB, chỉ parse từ JSON trả về để map lên UI)*
+*(Chỉ dùng để parse JSON trả về, không lưu vào Room)*
 * **MangaModel:** `id`, `title`, `description`, `cover_art`, `rating`, `tags/genres`.
 * **ChapterModel:** `id`, `manga_id`, `chapter_number`, `title`, `pages` (List URL ảnh).
 
-## 3. Phân định Logic (API vs Local DB)
-- **MangaDex API đảm nhiệm:** Lấy danh sách truyện ở tab Discover, tìm kiếm truyện ở tab Search, lấy chi tiết truyện (các chapter), và tải ảnh nội dung truyện.
-- **Room Database đảm nhiệm:** Xác thực người dùng (đọc/ghi UserEntity), quản lý tab My Library (đọc/ghi LibraryItemEntity khi user thả tim hoặc đọc 1 chapter).
+## 3. Phân định Logic
+- **MangaDex API:** Lấy danh sách truyện (Discover), tìm kiếm (Search), chi tiết truyện, và tải ảnh trang truyện.
+- **Room Database:** Xác thực người dùng (Auth) và quản lý dữ liệu cá nhân (Library).
 
 ## 4. Luồng Điều hướng (Navigation Flow)
 
 **A. Auth Flow**
-- `LoginScreen` (Màn hình đầu tiên nếu DataStore báo chưa đăng nhập) -> Nhập user/pass -> Lưu vào Room -> Chuyển sang Main Flow.
+- Khởi chạy -> Kiểm tra DataStore:
+  - Nếu chưa đăng nhập: Hiện `LoginScreen` -> Nhập user/pass -> Lưu DB -> Chuyển sang Main Flow.
+  - Nếu đã đăng nhập: Chuyển thẳng sang Main Flow.
 
-**B. Main Flow (Bottom Navigation với 4 Tabs)**
-1.  **Discover Tab (`DiscoverScreen`):**
-    - Gọi API lấy danh sách truyện nổi bật/mới cập nhật.
-    - Hiển thị danh sách (LazyColumn/LazyVerticalGrid).
-    - Click vào 1 truyện -> Mở `MangaDetailPopup/Screen`.
-2.  **Search Tab (`SearchScreen`):**
-    - Ô nhập liệu (TextField). Gọi API Search MangaDex theo keyword.
-    - Hiển thị danh sách kết quả (chỉ hiện title, cover, rating ngắn gọn).
-    - Click vào kết quả -> Mở `MangaDetailPopup/Screen`.
-3.  **My Library Tab (`LibraryScreen`):**
-    - Có Top Tab/Filter: Lịch sử (Đang đọc/Đã đọc) & Yêu thích.
-    - Query từ Room DB bảng `LibraryItemEntity`.
-    - Click vào truyện -> Mở thẳng Chapter đang đọc dở (hoặc mở Detail).
-4.  **User Setting Tab (`SettingScreen`):**
-    - Hiển thị thông tin UserEntity.
-    - Nút Xóa Cache (Clear ảnh lưu bởi Coil/Data).
-    - Nút Đăng xuất (Xóa trạng thái trong DataStore, quay về Auth Flow).
+**B. Main Flow (Bottom Navigation)**
+1.  **Discover Tab (`DiscoverScreen`):** Gọi API lấy list truyện -> Click mở `MangaDetailScreen`.
+2.  **Search Tab (`SearchScreen`):** Nhập keyword -> Gọi API tìm kiếm -> Hiển thị list (title, cover, rating) -> Click mở `MangaDetailScreen`.
+3.  **My Library Tab (`LibraryScreen`):** Có top tab/filter (Lịch sử / Yêu thích). Query từ bảng `LibraryItemEntity` -> Click mở tiếp chapter đang đọc dở hoặc mở Detail.
+4.  **User Setting Tab (`SettingScreen`):** Hiển thị Info User -> Các chức năng: Xóa Cache (Coil) / Đăng xuất (Clear DataStore, quay về Auth Flow).
 
 **C. Detail & Reader Flow**
-- `MangaDetailPopup/Screen`: Hiển thị ảnh, mô tả, đánh giá từ API. Nút "Đọc ngay", nút "Yêu thích" (lưu vào Room). Danh sách chapter.
-- `ReaderScreen`: Hiển thị các trang ảnh của 1 chapter. Khi vuốt hết chapter, tự động cập nhật `last_read_chapter_id` xuống Room DB.
+- **`MangaDetailScreen`:** Hiện mô tả, ảnh, list chapter. Có nút "Đọc ngay" và "Yêu thích" (Lưu xuống Room).
+- **`ReaderScreen`:** Hiện trang truyện của 1 chapter. Khi vuốt đến trang cuối, tự động cập nhật `last_read_chapter_id` xuống DB.
