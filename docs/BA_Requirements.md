@@ -18,6 +18,7 @@
     * `title`, `cover_url` (Lưu đệm để hiển thị nhanh không cần gọi lại API).
     * `status` (Enum: READING, COMPLETED, FAVORITE).
     * `last_read_chapter_id` (Lưu tiến độ đọc).
+    * `last_read_page_index` (Lưu vị trí trang đang đọc dở).
     * `updated_at`.
 
 ### 2.2. Remote Models (MangaDex API)
