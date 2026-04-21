@@ -24,6 +24,7 @@ class LibraryRepository(
                 cover_url = "https://example.com/cover_one.jpg",
                 status = LibraryStatus.READING,
                 last_read_chapter_id = "ch_010",
+                last_read_page_index = 2,
                 updated_at = now - 3_600_000L
             ),
             LibraryItemEntity(
@@ -32,6 +33,7 @@ class LibraryRepository(
                 cover_url = "https://example.com/cover_two.jpg",
                 status = LibraryStatus.FAVORITE,
                 last_read_chapter_id = "ch_000",
+                last_read_page_index = 0,
                 updated_at = now - 7_200_000L
             ),
             LibraryItemEntity(
@@ -40,6 +42,7 @@ class LibraryRepository(
                 cover_url = "https://example.com/cover_three.jpg",
                 status = LibraryStatus.READING,
                 last_read_chapter_id = "ch_002",
+                last_read_page_index = 5,
                 updated_at = now - 10_800_000L
             )
         )
@@ -54,6 +57,19 @@ class LibraryRepository(
 
         val items = mockLibraryItemsFlow().first()
         libraryDao.upsert(items)
+    }
+
+    suspend fun updateReadingProgress(
+        mangaId: String,
+        chapterId: String,
+        pageIndex: Int
+    ) {
+        libraryDao.updateReadingProgress(
+            mangaId = mangaId,
+            chapterId = chapterId,
+            pageIndex = pageIndex,
+            updatedAt = System.currentTimeMillis()
+        )
     }
 }
 

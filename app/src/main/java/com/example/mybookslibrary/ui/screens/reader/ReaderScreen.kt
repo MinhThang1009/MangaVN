@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-//import androidx.compose.foundation.layout.weight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -31,6 +30,8 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,6 +42,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import com.example.mybookslibrary.data.local.AppDatabase
+import com.example.mybookslibrary.data.repository.LibraryRepository
 import com.example.mybookslibrary.ui.viewmodel.ReaderViewModel
 import com.example.mybookslibrary.ui.viewmodel.ReaderViewModelFactory
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -49,14 +52,29 @@ import kotlinx.coroutines.flow.map
 
 @Composable
 fun ReaderScreen(
+    mangaId: String,
+    chapterId: String,
     chapterTitle: String,
+    initialPageIndex: Int,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val factory = ReaderViewModelFactory(chapterTitle)
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val database = remember(context) { AppDatabase.getInstance(context) }
+    val repository = remember(database) { LibraryRepository(database.libraryDao()) }
+    val factory = remember(chapterTitle, mangaId, chapterId, initialPageIndex, repository) {
+        ReaderViewModelFactory(
+            chapterTitle = chapterTitle,
+            mangaId = mangaId,
+            chapterId = chapterId,
+            initialPageIndex = initialPageIndex,
+            repository = repository
+        )
+    }
     val viewModel: ReaderViewModel = viewModel(factory = factory)
     val state by viewModel.state.collectAsState()
     val listState = rememberLazyListState()
+    val hasRestoredInitialPage = remember { mutableStateOf(false) }
 
     LaunchedEffect(listState, state.pages.size) {
         if (state.pages.isEmpty()) return@LaunchedEffect
@@ -65,6 +83,12 @@ fun ReaderScreen(
             .distinctUntilChanged()
             .filter { it >= 0 }
             .collect(viewModel::onVisiblePageChanged)
+    }
+
+    LaunchedEffect(state.pages.size, state.lastReadPageIndex) {
+        if (state.pages.isEmpty() || hasRestoredInitialPage.value) return@LaunchedEffect
+        listState.scrollToItem(state.lastReadPageIndex.coerceIn(0, state.pages.lastIndex))
+        hasRestoredInitialPage.value = true
     }
 
     DisposableEffect(Unit) {

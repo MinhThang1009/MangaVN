@@ -37,7 +37,9 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "mybooks_library.db"
-                ).build()
+                )
+                    .fallbackToDestructiveMigration()
+                    .build()
 
                 INSTANCE = created
                 created

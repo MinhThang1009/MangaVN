@@ -4,6 +4,10 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.mybookslibrary.R
+import com.example.mybookslibrary.data.repository.LibraryRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,10 +23,19 @@ data class ReaderState(
 )
 
 class ReaderViewModel(
-    chapterTitle: String
+    chapterTitle: String,
+    private val mangaId: String,
+    private val chapterId: String,
+    initialPageIndex: Int,
+    private val repository: LibraryRepository
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(ReaderState(chapterTitle = chapterTitle))
+    private val _state = MutableStateFlow(
+        ReaderState(
+            chapterTitle = chapterTitle,
+            lastReadPageIndex = initialPageIndex
+        )
+    )
     val state: StateFlow<ReaderState> = _state.asStateFlow()
 
     init {
@@ -61,7 +74,19 @@ class ReaderViewModel(
     }
 
     fun syncProgressToRoom() {
-        Log.d(TAG, "syncProgressToRoom(pageIndex=${_state.value.lastReadPageIndex})")
+        val pageIndex = _state.value.lastReadPageIndex
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                repository.updateReadingProgress(
+                    mangaId = mangaId,
+                    chapterId = chapterId,
+                    pageIndex = pageIndex
+                )
+                Log.d(TAG, "syncProgressToRoom(mangaId=$mangaId, chapterId=$chapterId, pageIndex=$pageIndex)")
+            } catch (t: Throwable) {
+                throw t
+            }
+        }
     }
 
     private fun saveProgressToDataStore(index: Int) {
@@ -69,8 +94,17 @@ class ReaderViewModel(
     }
 
     private fun buildMockPages(): List<String> {
-        val drawableUri = "android.resource://com.example.mybookslibrary/${com.example.mybookslibrary.R.drawable.ic_launcher_foreground}"
-        return List(8) { drawableUri }
+        val packageName = "com.example.mybookslibrary"
+        val mockResIds = listOf(
+            R.drawable.mock_img_1,
+            R.drawable.mock_img_2,
+            R.drawable.mock_img_2,
+            R.drawable.mock_img_3,
+            R.drawable.mock_img_4
+        )
+        return mockResIds.map { resId ->
+            "android.resource://$packageName/$resId"
+        }
     }
 
     companion object {
@@ -79,12 +113,22 @@ class ReaderViewModel(
 }
 
 class ReaderViewModelFactory(
-    private val chapterTitle: String
+    private val chapterTitle: String,
+    private val mangaId: String,
+    private val chapterId: String,
+    private val initialPageIndex: Int,
+    private val repository: LibraryRepository
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(ReaderViewModel::class.java)) {
-            return ReaderViewModel(chapterTitle) as T
+            return ReaderViewModel(
+                chapterTitle = chapterTitle,
+                mangaId = mangaId,
+                chapterId = chapterId,
+                initialPageIndex = initialPageIndex,
+                repository = repository
+            ) as T
         }
         error("Unknown ViewModel class: ${modelClass.name}")
     }

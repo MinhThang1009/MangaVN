@@ -25,5 +25,21 @@ interface LibraryDao {
 
     @Query("SELECT * FROM library_items WHERE manga_id = :mangaId LIMIT 1")
     suspend fun getByMangaId(mangaId: String): LibraryItemEntity?
+
+    @Query(
+        """
+        UPDATE library_items
+        SET last_read_chapter_id = :chapterId,
+            last_read_page_index = :pageIndex,
+            updated_at = :updatedAt
+        WHERE manga_id = :mangaId
+        """
+    )
+    suspend fun updateReadingProgress(
+        mangaId: String,
+        chapterId: String,
+        pageIndex: Int,
+        updatedAt: Long
+    ): Int
 }
 

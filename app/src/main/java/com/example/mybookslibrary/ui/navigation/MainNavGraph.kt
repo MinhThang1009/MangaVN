@@ -69,14 +69,25 @@ private val bottomDestinations = listOf(
 
 object ReaderDestination {
     const val route = "reader"
+    private const val mangaIdArg = "mangaId"
+    private const val chapterIdArg = "chapterId"
     private const val chapterTitleArg = "chapterTitle"
-    const val routePattern = "$route/{$chapterTitleArg}"
+    private const val startPageIndexArg = "startPageIndex"
+    const val routePattern = "$route/{$mangaIdArg}/{$chapterIdArg}/{$chapterTitleArg}/{$startPageIndexArg}"
 
-    fun createRoute(chapterTitle: String): String {
-        return "$route/${Uri.encode(chapterTitle)}"
+    fun createRoute(
+        mangaId: String,
+        chapterId: String,
+        chapterTitle: String,
+        startPageIndex: Int
+    ): String {
+        return "$route/${Uri.encode(mangaId)}/${Uri.encode(chapterId)}/${Uri.encode(chapterTitle)}/$startPageIndex"
     }
 
+    const val mangaIdArgumentName = mangaIdArg
+    const val chapterIdArgumentName = chapterIdArg
     const val chapterTitleArgumentName = chapterTitleArg
+    const val startPageIndexArgumentName = startPageIndexArg
 }
 
 @Composable
@@ -120,8 +131,15 @@ fun MainNavHost() {
             }
             composable(BottomNavDestination.Library.route) {
                 LibraryScreen(
-                    onOpenReader = { title ->
-                        navController.navigate(ReaderDestination.createRoute(title))
+                    onOpenReader = { mangaId, chapterId, title, startPageIndex ->
+                        navController.navigate(
+                            ReaderDestination.createRoute(
+                                mangaId = mangaId,
+                                chapterId = chapterId,
+                                chapterTitle = title,
+                                startPageIndex = startPageIndex
+                            )
+                        )
                     }
                 )
             }
@@ -131,16 +149,37 @@ fun MainNavHost() {
             composable(
                 route = ReaderDestination.routePattern,
                 arguments = listOf(
+                    navArgument(ReaderDestination.mangaIdArgumentName) {
+                        type = NavType.StringType
+                    },
+                    navArgument(ReaderDestination.chapterIdArgumentName) {
+                        type = NavType.StringType
+                    },
                     navArgument(ReaderDestination.chapterTitleArgumentName) {
                         type = NavType.StringType
+                    },
+                    navArgument(ReaderDestination.startPageIndexArgumentName) {
+                        type = NavType.IntType
                     }
                 )
             ) { backStackEntry ->
+                val mangaId = backStackEntry.arguments
+                    ?.getString(ReaderDestination.mangaIdArgumentName)
+                    .orEmpty()
+                val chapterId = backStackEntry.arguments
+                    ?.getString(ReaderDestination.chapterIdArgumentName)
+                    .orEmpty()
                 val chapterTitle = backStackEntry.arguments
                     ?.getString(ReaderDestination.chapterTitleArgumentName)
                     .orEmpty()
+                val startPageIndex = backStackEntry.arguments
+                    ?.getInt(ReaderDestination.startPageIndexArgumentName)
+                    ?: 0
                 ReaderScreen(
+                    mangaId = mangaId,
+                    chapterId = chapterId,
                     chapterTitle = chapterTitle,
+                    initialPageIndex = startPageIndex,
                     onBackClick = { navController.popBackStack() }
                 )
             }

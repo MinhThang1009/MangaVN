@@ -74,7 +74,12 @@ fun SearchScreen() {
 
 @Composable
 fun LibraryScreen(
-    onOpenReader: (chapterTitle: String) -> Unit
+    onOpenReader: (
+        mangaId: String,
+        chapterId: String,
+        chapterTitle: String,
+        startPageIndex: Int
+    ) -> Unit
 ) {
     val context = LocalContext.current
 
@@ -98,8 +103,14 @@ fun LibraryScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable {
-                        val chapterTitle = "${item.title} - Chapter ${item.last_read_chapter_id ?: "Mock"}"
-                        onOpenReader(chapterTitle)
+                        val chapterId = item.last_read_chapter_id ?: "mock_chapter"
+                        val chapterTitle = "${item.title} - Chapter $chapterId"
+                        onOpenReader(
+                            item.manga_id,
+                            chapterId,
+                            chapterTitle,
+                            item.last_read_page_index
+                        )
                     }
             )
         }
