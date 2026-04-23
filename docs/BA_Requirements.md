@@ -41,7 +41,11 @@
 1.  **Discover Tab (`DiscoverScreen`):** Gọi API lấy list truyện -> Click mở `MangaDetailScreen`.
 2.  **Search Tab (`SearchScreen`):** Nhập keyword -> Gọi API tìm kiếm -> Hiển thị list (title, cover, rating) -> Click mở `MangaDetailScreen`.
 3.  **My Library Tab (`LibraryScreen`):** Có top tab/filter (Lịch sử / Yêu thích). Query từ bảng `LibraryItemEntity` -> Click mở tiếp chapter đang đọc dở hoặc mở Detail.
-4.  **User Setting Tab (`SettingScreen`):** Hiển thị Info User -> Các chức năng: Xóa Cache (Coil) / Đăng xuất (Clear DataStore, quay về Auth Flow).
+4.  **User Setting Tab (`SettingScreen`):** Hiển thị Info User ảo -> Các chức năng:
+  - Cấu hình tải ảnh (`READER_QUALITY`): Cho phép chọn chất lượng Gốc (`data`) hoặc Tiết kiệm (`data-saver`). Lưu trữ bằng DataStore (Mặc định: `data`).
+  - Xóa Cache (Coil).
+  - Backup / Restore dữ liệu (Export/Import Local Database & Preferences).
+  - Đăng xuất (Clear DataStore, quay về Auth Flow).
 
 **C. Detail & Reader Flow**
 - **`MangaDetailScreen`:** Hiện mô tả, ảnh, list chapter. Có nút "Đọc ngay" và "Yêu thích" (Lưu xuống Room).
