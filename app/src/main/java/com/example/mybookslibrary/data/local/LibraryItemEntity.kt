@@ -13,10 +13,13 @@ enum class LibraryStatus {
 
 class LibraryStatusConverters {
     @androidx.room.TypeConverter
-    fun fromStatus(status: LibraryStatus): String = status.name
+    fun fromStatus(status: LibraryStatus?): String = status?.name ?: LibraryStatus.READING.name
 
     @androidx.room.TypeConverter
-    fun toStatus(value: String): LibraryStatus = LibraryStatus.valueOf(value)
+    fun toStatus(value: String?): LibraryStatus =
+        value
+            ?.let { raw -> LibraryStatus.entries.firstOrNull { it.name == raw } }
+            ?: LibraryStatus.READING
 }
 
 @Entity(tableName = "library_items")

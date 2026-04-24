@@ -3,10 +3,11 @@ package com.example.mybookslibrary.ui.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
 import com.example.mybookslibrary.data.local.LibraryItemEntity
 import com.example.mybookslibrary.data.repository.LibraryRepository
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.launch
 
 class LibraryViewModel(
     private val repository: LibraryRepository
@@ -15,16 +16,18 @@ class LibraryViewModel(
         private const val TAG = "LibraryViewModel"
     }
 
-    val libraryItems: Flow<List<LibraryItemEntity>> = repository
-        .observeLibraryItems()
-        .onStart {
-            // Seed mocks trước khi emit data
-            Log.d(TAG, "LibraryViewModel: Seeding mock data before emitting...")
-            repository.seedMockIfEmpty()
-        }
+    // Observe library directly; seeding runs once in init.
+    val libraryItems: Flow<List<LibraryItemEntity>> = repository.observeLibraryItems()
 
     init {
         Log.d(TAG, "LibraryViewModel: Created")
+        viewModelScope.launch {
+            runCatching {
+                repository.seedMockIfEmpty()
+            }.onFailure { error ->
+                Log.e(TAG, "LibraryViewModel: Failed to seed mock data", error)
+            }
+        }
     }
 }
 
@@ -40,4 +43,3 @@ class LibraryViewModelFactory(
         error("Unknown ViewModel class: ${modelClass.name}")
     }
 }
-
