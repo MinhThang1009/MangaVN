@@ -1,7 +1,7 @@
 package com.example.mybookslibrary.di
 
 import android.content.Context
-import coil.ImageLoader
+import coil3.ImageLoader
 import com.example.mybookslibrary.data.local.AppDatabase
 import com.example.mybookslibrary.data.local.UserPreferencesDataStore
 import com.example.mybookslibrary.data.local.userPreferencesDataStore

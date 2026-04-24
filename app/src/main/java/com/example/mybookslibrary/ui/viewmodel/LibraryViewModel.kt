@@ -3,12 +3,10 @@ package com.example.mybookslibrary.ui.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewModelScope
 import com.example.mybookslibrary.data.local.LibraryItemEntity
 import com.example.mybookslibrary.data.repository.LibraryRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.launch
 
 class LibraryViewModel(
     private val repository: LibraryRepository

@@ -27,7 +27,7 @@ import com.example.mybookslibrary.domain.model.MangaModel
 import com.example.mybookslibrary.ui.viewmodel.DiscoverViewModel
 import com.example.mybookslibrary.ui.viewmodel.LibraryViewModel
 import com.example.mybookslibrary.ui.viewmodel.LibraryViewModelFactory
-import coil.compose.AsyncImage
+import coil3.compose.AsyncImage
 
 @Composable
 fun DiscoverScreen() {
