@@ -5,36 +5,33 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.mybookslibrary.data.local.AppDatabase
 import com.example.mybookslibrary.data.local.LibraryStatus
-import com.example.mybookslibrary.data.remote.NetworkModule
 import com.example.mybookslibrary.data.repository.LibraryRepository
-import com.example.mybookslibrary.data.repository.MangaRepository
 import com.example.mybookslibrary.domain.model.MangaModel
 import com.example.mybookslibrary.ui.viewmodel.DiscoverViewModel
-import com.example.mybookslibrary.ui.viewmodel.DiscoverViewModelFactory
 import com.example.mybookslibrary.ui.viewmodel.LibraryViewModel
 import com.example.mybookslibrary.ui.viewmodel.LibraryViewModelFactory
 import coil.compose.AsyncImage
 
 @Composable
 fun DiscoverScreen() {
-    val repository = remember { MangaRepository(NetworkModule.mangaDexApi) }
-    val factory = remember(repository) { DiscoverViewModelFactory(repository) }
-    val vm: DiscoverViewModel = viewModel(factory = factory)
+    val vm: DiscoverViewModel = hiltViewModel()
     val uiState by vm.uiState.collectAsState()
 
     when {
@@ -65,13 +62,21 @@ fun DiscoverScreen() {
     }
 }
 
+
 @Composable
 fun SearchScreen() {
     CenteredText("Search")
 }
 
 @Composable
-fun LibraryScreen() {
+fun LibraryScreen(
+    onOpenReader: (
+        mangaId: String,
+        chapterId: String,
+        chapterTitle: String,
+        startPageIndex: Int
+    ) -> Unit
+) {
     val context = LocalContext.current
 
     // Skeleton: tạo database + repository local-first trực tiếp (chưa dùng DI/Hilt).
@@ -88,7 +93,22 @@ fun LibraryScreen() {
             .padding(horizontal = 16.dp, vertical = 12.dp)
     ) {
         items(items, key = { it.manga_id }) { item ->
-            Text(text = "${item.title} - ${item.status.toDisplayName()}")
+            ListItem(
+                headlineContent = { Text(text = item.title) },
+                supportingContent = { Text(text = item.status.toDisplayName()) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        val chapterId = item.last_read_chapter_id ?: "mock_chapter"
+                        val chapterTitle = "${item.title} - Chapter $chapterId"
+                        onOpenReader(
+                            item.manga_id,
+                            chapterId,
+                            chapterTitle,
+                            item.last_read_page_index
+                        )
+                    }
+            )
         }
     }
 }

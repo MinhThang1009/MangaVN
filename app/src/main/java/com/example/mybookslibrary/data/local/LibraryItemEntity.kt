@@ -28,6 +28,7 @@ data class LibraryItemEntity(
     @ColumnInfo(name = "cover_url") val cover_url: String,
     val status: LibraryStatus,
     @ColumnInfo(name = "last_read_chapter_id") val last_read_chapter_id: String?,
+    @ColumnInfo(name = "last_read_page_index") val last_read_page_index: Int = 0,
     @ColumnInfo(name = "updated_at") val updated_at: Long
 )
 
