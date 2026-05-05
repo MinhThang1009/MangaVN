@@ -27,9 +27,9 @@ class LibraryRepository(
         val now = System.currentTimeMillis()
         val items = listOf(
             LibraryItemEntity(
-                manga_id = "manga_test_001",
-                title = "Test Manga: API Reading Demo",
-                cover_url = "https://example.com/cover_test.jpg",
+                manga_id = "0ca1627e-95dd-4118-892a-f144adf02256",
+                title = "Placeholder Manga",
+                cover_url = "https://example.com/cover_placeholder.jpg",
                 added_at = now
             ),
             LibraryItemEntity(
@@ -111,6 +111,41 @@ class LibraryRepository(
                 last_read_page = pageIndex,
                 total_pages = 0,
                 updated_at = now
+            )
+        )
+    }
+
+    suspend fun markChapterCompleted(
+        mangaId: String,
+        chapterId: String,
+        totalPages: Int
+    ) {
+        val boundedTotalPages = totalPages.coerceAtLeast(0)
+        chapterDao.upsertChapterProgress(
+            ChapterProgressEntity(
+                chapter_id = chapterId,
+                manga_id = mangaId,
+                status = ChapterStatus.COMPLETED,
+                last_read_page = boundedTotalPages,
+                total_pages = boundedTotalPages,
+                updated_at = System.currentTimeMillis()
+            )
+        )
+    }
+
+    suspend fun markChapterUnread(
+        mangaId: String,
+        chapterId: String,
+        totalPages: Int
+    ) {
+        chapterDao.upsertChapterProgress(
+            ChapterProgressEntity(
+                chapter_id = chapterId,
+                manga_id = mangaId,
+                status = ChapterStatus.UNREAD,
+                last_read_page = 0,
+                total_pages = totalPages.coerceAtLeast(0),
+                updated_at = System.currentTimeMillis()
             )
         )
     }

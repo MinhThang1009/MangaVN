@@ -25,9 +25,9 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.mybookslibrary.ui.screens.DiscoverScreen
 import com.example.mybookslibrary.ui.screens.LibraryScreen
-import com.example.mybookslibrary.ui.screens.MangaDetailScreen
 import com.example.mybookslibrary.ui.screens.SearchScreen
 import com.example.mybookslibrary.ui.screens.SettingScreen
+import com.example.mybookslibrary.ui.screens.detail.MangaDetailScreen
 import com.example.mybookslibrary.ui.screens.reader.ReaderScreen
 
 sealed class BottomNavDestination(
@@ -162,7 +162,17 @@ fun MainNavHost() {
                     mangaId = backStackEntry
                         .arguments
                         ?.getString(MangaDetailDestination.mangaIdArgumentName)
-                        .orEmpty()
+                        .orEmpty(),
+                    onOpenReader = { mangaId, chapterId, chapterTitle, startPageIndex ->
+                        navController.navigate(
+                            ReaderDestination.createRoute(
+                                mangaId = mangaId,
+                                chapterId = chapterId,
+                                chapterTitle = chapterTitle,
+                                startPageIndex = startPageIndex
+                            )
+                        )
+                    }
                 )
             }
             composable(

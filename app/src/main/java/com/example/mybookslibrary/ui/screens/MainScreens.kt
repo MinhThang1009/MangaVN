@@ -160,10 +160,6 @@ private fun BookmarkActionsSheet(
     }
 }
 
-@Composable
-fun MangaDetailScreen(mangaId: String) {
-    CenteredText("Manga detail: $mangaId")
-}
 
 @Composable
 fun SettingScreen() {
