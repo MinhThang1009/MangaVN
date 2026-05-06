@@ -1,20 +1,33 @@
 package com.example.mybookslibrary.ui.navigation
 
 import android.net.Uri
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-//import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -26,33 +39,35 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.mybookslibrary.ui.screens.DiscoverScreen
 import com.example.mybookslibrary.ui.screens.LibraryScreen
+import com.example.mybookslibrary.ui.screens.MangaDetailScreen
 import com.example.mybookslibrary.ui.screens.SearchScreen
 import com.example.mybookslibrary.ui.screens.SettingScreen
 import com.example.mybookslibrary.ui.screens.reader.ReaderScreen
+import com.example.mybookslibrary.ui.theme.KansoCard
+import com.example.mybookslibrary.ui.theme.KansoGraphite
+import com.example.mybookslibrary.ui.theme.KansoInk
 
+// 4 tab chính của bottom navigation
 sealed class BottomNavDestination(
     val route: String,
     val label: String,
-    val icon: androidx.compose.ui.graphics.vector.ImageVector
+    val icon: ImageVector
 ) {
     data object Discover : BottomNavDestination(
         route = "discover",
         label = "Discover",
-        icon = Icons.Filled.Favorite
+        icon = Icons.Filled.Home
     )
-
     data object Search : BottomNavDestination(
         route = "search",
         label = "Search",
         icon = Icons.Filled.Search
     )
-
     data object Library : BottomNavDestination(
         route = "library",
         label = "Library",
         icon = Icons.Filled.Favorite
     )
-
     data object Setting : BottomNavDestination(
         route = "setting",
         label = "Setting",
@@ -67,6 +82,7 @@ private val bottomDestinations = listOf(
     BottomNavDestination.Setting
 )
 
+// Route cho màn hình đọc truyện — nhận 4 tham số: mangaId, chapterId, title, startPage
 object ReaderDestination {
     const val route = "reader"
     private const val mangaIdArg = "mangaId"
@@ -80,9 +96,7 @@ object ReaderDestination {
         chapterId: String,
         chapterTitle: String,
         startPageIndex: Int
-    ): String {
-        return "$route/${Uri.encode(mangaId)}/${Uri.encode(chapterId)}/${Uri.encode(chapterTitle)}/$startPageIndex"
-    }
+    ) = "$route/${Uri.encode(mangaId)}/${Uri.encode(chapterId)}/${Uri.encode(chapterTitle)}/$startPageIndex"
 
     const val mangaIdArgumentName = mangaIdArg
     const val chapterIdArgumentName = chapterIdArg
@@ -90,19 +104,53 @@ object ReaderDestination {
     const val startPageIndexArgumentName = startPageIndexArg
 }
 
+// Route cho màn hình chi tiết manga — truyền display data qua nav args, ViewModel fetch thêm chapters
+object MangaDetailDestination {
+    private const val NAV_ARG_DESC_MAX_LENGTH = 600
+    const val route = "manga_detail"
+    private const val mangaIdArg = "mangaId"
+    private const val titleArg = "title"
+    private const val coverArtArg = "coverArt"
+    private const val descriptionArg = "description"
+    private const val tagsArg = "tags"
+    const val routePattern =
+        "$route/{$mangaIdArg}/{$titleArg}/{$coverArtArg}/{$descriptionArg}/{$tagsArg}"
+
+    fun createRoute(
+        mangaId: String,
+        title: String,
+        coverArt: String?,
+        description: String,
+        tags: List<String>
+    ): String {
+        val safeDesc = description.take(NAV_ARG_DESC_MAX_LENGTH)
+        val safeTags = tags.take(3).joinToString(",")
+        return "$route/${Uri.encode(mangaId)}/${Uri.encode(title)}/${Uri.encode(coverArt ?: "")}/${Uri.encode(safeDesc)}/${Uri.encode(safeTags)}"
+    }
+
+    const val mangaIdArgumentName = mangaIdArg
+    const val titleArgumentName = titleArg
+    const val coverArtArgumentName = coverArtArg
+    const val descriptionArgumentName = descriptionArg
+    const val tagsArgumentName = tagsArg
+}
+
 @Composable
 fun MainNavHost() {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
-    val showBottomBar = currentDestination?.hierarchy?.any {
-        it.route?.startsWith(ReaderDestination.route) == true
-    } != true
+
+    // Hide bottom bar on reader and detail screens
+    val showBottomBar = currentDestination?.hierarchy?.none { dest ->
+        dest.route?.startsWith(ReaderDestination.route) == true ||
+            dest.route?.startsWith(MangaDetailDestination.route) == true
+    } ?: true
 
     Scaffold(
         bottomBar = {
             if (showBottomBar) {
-                BottomBar(
+                FloatingPillNavBar(
                     destinations = bottomDestinations,
                     currentDestination = currentDestination,
                     onNavigate = { destination ->
@@ -116,7 +164,8 @@ fun MainNavHost() {
                     }
                 )
             }
-        }
+        },
+        containerColor = com.example.mybookslibrary.ui.theme.KansoPaper
     ) { innerPadding ->
         NavHost(
             navController = navController,
@@ -124,10 +173,55 @@ fun MainNavHost() {
             modifier = Modifier.padding(innerPadding)
         ) {
             composable(BottomNavDestination.Discover.route) {
-                DiscoverScreen()
+                DiscoverScreen(
+                    onMangaClick = { manga ->
+                        navController.navigate(
+                            MangaDetailDestination.createRoute(
+                                mangaId = manga.id,
+                                title = manga.title,
+                                coverArt = manga.coverArt,
+                                description = manga.description,
+                                tags = manga.tags
+                            )
+                        )
+                    },
+                    onSearchClick = {
+                        navController.navigate(BottomNavDestination.Search.route) {
+                            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                    onLibraryClick = {
+                        navController.navigate(BottomNavDestination.Library.route) {
+                            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                    onProfileClick = {
+                        navController.navigate(BottomNavDestination.Setting.route) {
+                            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
+                )
             }
             composable(BottomNavDestination.Search.route) {
-                SearchScreen()
+                SearchScreen(
+                    onMangaClick = { manga ->
+                        navController.navigate(
+                            MangaDetailDestination.createRoute(
+                                mangaId = manga.id,
+                                title = manga.title,
+                                coverArt = manga.coverArt,
+                                description = manga.description,
+                                tags = manga.tags
+                            )
+                        )
+                    }
+                )
             }
             composable(BottomNavDestination.Library.route) {
                 LibraryScreen(
@@ -140,6 +234,17 @@ fun MainNavHost() {
                                 startPageIndex = startPageIndex
                             )
                         )
+                    },
+                    onOpenDetail = { mangaId, title, coverUrl ->
+                        navController.navigate(
+                            MangaDetailDestination.createRoute(
+                                mangaId = mangaId,
+                                title = title,
+                                coverArt = coverUrl,
+                                description = "",
+                                tags = emptyList()
+                            )
+                        )
                     }
                 )
             }
@@ -147,46 +252,112 @@ fun MainNavHost() {
                 SettingScreen()
             }
             composable(
-                route = ReaderDestination.routePattern,
+                route = MangaDetailDestination.routePattern,
                 arguments = listOf(
-                    navArgument(ReaderDestination.mangaIdArgumentName) {
-                        type = NavType.StringType
-                    },
-                    navArgument(ReaderDestination.chapterIdArgumentName) {
-                        type = NavType.StringType
-                    },
-                    navArgument(ReaderDestination.chapterTitleArgumentName) {
-                        type = NavType.StringType
-                    },
-                    navArgument(ReaderDestination.startPageIndexArgumentName) {
-                        type = NavType.IntType
+                    navArgument(MangaDetailDestination.mangaIdArgumentName) { type = NavType.StringType },
+                    navArgument(MangaDetailDestination.titleArgumentName) { type = NavType.StringType },
+                    navArgument(MangaDetailDestination.coverArtArgumentName) { type = NavType.StringType },
+                    navArgument(MangaDetailDestination.descriptionArgumentName) { type = NavType.StringType },
+                    navArgument(MangaDetailDestination.tagsArgumentName) { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val args = backStackEntry.arguments ?: return@composable
+                val tagsString = args.getString(MangaDetailDestination.tagsArgumentName) ?: ""
+                val tags = tagsString.split(",").filter { it.isNotBlank() }
+                MangaDetailScreen(
+                    mangaId = args.getString(MangaDetailDestination.mangaIdArgumentName) ?: "",
+                    title = args.getString(MangaDetailDestination.titleArgumentName) ?: "",
+                    coverArt = args.getString(MangaDetailDestination.coverArtArgumentName) ?: "",
+                    description = args.getString(MangaDetailDestination.descriptionArgumentName) ?: "",
+                    tags = tags,
+                    onBackClick = { navController.popBackStack() },
+                    onReadChapter = { mangaId, chapterId, chapterTitle ->
+                        navController.navigate(
+                            ReaderDestination.createRoute(
+                                mangaId = mangaId,
+                                chapterId = chapterId,
+                                chapterTitle = chapterTitle,
+                                startPageIndex = 0
+                            )
+                        )
                     }
                 )
-            ) {
-                ReaderScreen(
-                    onBackClick = { navController.popBackStack() }
+            }
+            composable(
+                route = ReaderDestination.routePattern,
+                arguments = listOf(
+                    navArgument(ReaderDestination.mangaIdArgumentName) { type = NavType.StringType },
+                    navArgument(ReaderDestination.chapterIdArgumentName) { type = NavType.StringType },
+                    navArgument(ReaderDestination.chapterTitleArgumentName) { type = NavType.StringType },
+                    navArgument(ReaderDestination.startPageIndexArgumentName) { type = NavType.IntType }
                 )
+            ) {
+                ReaderScreen(onBackClick = { navController.popBackStack() })
             }
         }
     }
 }
 
 @Composable
-private fun BottomBar(
+private fun FloatingPillNavBar(
     destinations: List<BottomNavDestination>,
     currentDestination: NavDestination?,
     onNavigate: (BottomNavDestination) -> Unit
 ) {
-    NavigationBar {
-        destinations.forEach { destination ->
-            val selected = currentDestination?.hierarchy?.any { it.route == destination.route } == true
-            NavigationBarItem(
-                selected = selected,
-                onClick = { onNavigate(destination) },
-                icon = { Icon(imageVector = destination.icon, contentDescription = destination.label) },
-                label = { Text(destination.label) }
-            )
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .navigationBarsPadding()
+            .padding(horizontal = 32.dp, vertical = 16.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Card(
+            shape = RoundedCornerShape(32.dp),
+            colors = CardDefaults.cardColors(containerColor = KansoInk),
+            elevation = CardDefaults.cardElevation(defaultElevation = 12.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp, vertical = 10.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                destinations.forEach { destination ->
+                    val selected = currentDestination?.hierarchy
+                        ?.any { it.route == destination.route } == true
+                    PillNavItem(
+                        icon = destination.icon,
+                        label = destination.label,
+                        selected = selected,
+                        onClick = { onNavigate(destination) }
+                    )
+                }
+            }
         }
     }
 }
 
+@Composable
+private fun PillNavItem(
+    icon: ImageVector,
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(20.dp))
+            .background(if (selected) KansoCard.copy(alpha = 0.18f) else Color.Transparent)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 20.dp, vertical = 10.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = label,
+            tint = if (selected) KansoCard else KansoGraphite,
+            modifier = Modifier.size(24.dp)
+        )
+    }
+}

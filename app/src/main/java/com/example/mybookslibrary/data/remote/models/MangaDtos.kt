@@ -3,6 +3,9 @@ package com.example.mybookslibrary.data.remote.models
 import com.example.mybookslibrary.domain.model.MangaModel
 import com.google.gson.annotations.SerializedName
 
+// DTO cho MangaDex API — map JSON response sang Kotlin data classes
+// Chuyển đổi sang domain model qua extension function toDomainModel()
+
 data class MangaListResponseDto(
     @SerializedName("data") val data: List<MangaDataDto> = emptyList()
 )
@@ -38,6 +41,7 @@ data class RelationshipAttributesDto(
     @SerializedName("fileName") val fileName: String? = null
 )
 
+// Chuyển DTO sang domain model, ưu tiên ngôn ngữ: en → vi → fallback giá trị đầu tiên
 fun MangaDataDto.toDomainModel(): MangaModel {
     val mainTitle = attributes.title["en"]
         ?: attributes.title["vi"]
@@ -64,10 +68,7 @@ fun MangaDataDto.toDomainModel(): MangaModel {
     )
 }
 
-/**
- * MangaDex trả cover qua relationships có type = cover_art.
- * URL chuẩn: https://uploads.mangadex.org/covers/{manga_id}/{file_name}
- */
+// Cover URL được ghép từ relationships type=cover_art: uploads.mangadex.org/covers/{mangaId}/{fileName}
 fun MangaDataDto.extractCoverUrl(): String? {
     val coverFileName = relationships
         .firstOrNull { it.type == "cover_art" }
@@ -77,6 +78,29 @@ fun MangaDataDto.extractCoverUrl(): String? {
 
     return "https://uploads.mangadex.org/covers/$id/$coverFileName"
 }
+
+// Single Manga Detail Response
+data class MangaDetailResponseDto(
+    @SerializedName("data") val data: MangaDataDto
+)
+
+// Chapter Feed DTOs
+data class ChapterListResponseDto(
+    @SerializedName("data") val data: List<ChapterDataDto> = emptyList()
+)
+
+data class ChapterDataDto(
+    @SerializedName("id") val id: String,
+    @SerializedName("attributes") val attributes: ChapterAttributesDto
+)
+
+data class ChapterAttributesDto(
+    @SerializedName("volume") val volume: String? = null,
+    @SerializedName("chapter") val chapter: String? = null,
+    @SerializedName("title") val title: String? = null,
+    @SerializedName("translatedLanguage") val translatedLanguage: String? = null,
+    @SerializedName("pages") val pages: Int = 0
+)
 
 // At-Home Server DTOs for Reader
 data class AtHomeResponseDto(

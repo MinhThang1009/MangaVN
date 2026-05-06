@@ -14,6 +14,7 @@ val Context.userPreferencesDataStore: DataStore<Preferences> by preferencesDataS
     name = USER_PREFERENCES_NAME
 )
 
+// DataStore wrapper lưu trữ cài đặt người dùng (chất lượng ảnh reader)
 class UserPreferencesDataStore(private val dataStore: DataStore<Preferences>) {
     companion object {
         private val READER_QUALITY = stringPreferencesKey("reader_quality")
@@ -21,16 +22,16 @@ class UserPreferencesDataStore(private val dataStore: DataStore<Preferences>) {
     }
 
     suspend fun getReaderQuality(): String =
-        dataStore.data.first { preferences ->
-            true
-        }.let { preferences ->
-            preferences[READER_QUALITY] ?: DEFAULT_QUALITY
-        }
+        dataStore.data.first()[READER_QUALITY] ?: DEFAULT_QUALITY
 
     suspend fun setReaderQuality(quality: String) {
         dataStore.edit { preferences ->
             preferences[READER_QUALITY] = quality
         }
+    }
+
+    suspend fun clearAll() {
+        dataStore.edit { it.clear() }
     }
 }
 

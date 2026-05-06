@@ -23,7 +23,7 @@ class LibraryStatusConverters {
 @TypeConverters(LibraryStatusConverters::class)
 data class LibraryItemEntity(
     @PrimaryKey
-    @ColumnInfo(name = "manga_id") val manga_id: String, // PK - lấy từ MangaDex
+    @ColumnInfo(name = "manga_id") val manga_id: String,
     val title: String,
     @ColumnInfo(name = "cover_url") val cover_url: String,
     val status: LibraryStatus,

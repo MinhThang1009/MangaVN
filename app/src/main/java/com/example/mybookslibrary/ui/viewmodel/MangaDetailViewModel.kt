@@ -1,0 +1,102 @@
+package com.example.mybookslibrary.ui.viewmodel
+
+import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.mybookslibrary.data.repository.LibraryRepository
+import com.example.mybookslibrary.data.repository.MangaRepository
+import com.example.mybookslibrary.domain.model.ChapterModel
+import com.example.mybookslibrary.domain.model.MangaModel
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import javax.inject.Inject
+
+data class MangaDetailUiState(
+    val mangaDetail: MangaModel? = null,
+    val chapters: List<ChapterModel> = emptyList(),
+    val isLoadingChapters: Boolean = false,
+    val chaptersError: String? = null,
+    val isInLibrary: Boolean = false
+)
+
+// ViewModel cho MangaDetailScreen — tải chi tiết manga + danh sách chapter + quản lý library
+@HiltViewModel
+class MangaDetailViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
+    private val mangaRepository: MangaRepository,
+    private val libraryRepository: LibraryRepository
+) : ViewModel() {
+
+    private val mangaId: String = savedStateHandle.get<String>("mangaId").orEmpty()
+
+    private val _uiState = MutableStateFlow(MangaDetailUiState())
+    val uiState: StateFlow<MangaDetailUiState> = _uiState.asStateFlow()
+
+    init {
+        loadMangaDetail()
+        loadChapters()
+        checkLibraryStatus()
+    }
+
+    private fun loadMangaDetail() {
+        if (mangaId.isBlank()) return
+        viewModelScope.launch(Dispatchers.IO) {
+            mangaRepository.getMangaDetail(mangaId).onSuccess { manga ->
+                _uiState.update { it.copy(mangaDetail = manga) }
+            }
+        }
+    }
+
+    private fun loadChapters() {
+        if (mangaId.isBlank()) return
+        viewModelScope.launch(Dispatchers.IO) {
+            _uiState.update { it.copy(isLoadingChapters = true, chaptersError = null) }
+            mangaRepository.getChapterFeed(mangaId).onSuccess { chapters ->
+                _uiState.update {
+                    it.copy(chapters = chapters, isLoadingChapters = false)
+                }
+            }.onFailure { e ->
+                _uiState.update {
+                    it.copy(isLoadingChapters = false, chaptersError = e.message)
+                }
+            }
+        }
+    }
+
+    private fun checkLibraryStatus() {
+        if (mangaId.isBlank()) return
+        viewModelScope.launch(Dispatchers.IO) {
+            val inLib = libraryRepository.isInLibrary(mangaId)
+            _uiState.update { it.copy(isInLibrary = inLib) }
+        }
+    }
+
+    // Tự động thêm vào thư viện khi user bắt đầu đọc (để ReaderVM lưu được tiến độ)
+    fun ensureInLibrary(title: String, coverUrl: String) {
+        if (_uiState.value.isInLibrary) return
+        viewModelScope.launch(Dispatchers.IO) {
+            libraryRepository.addToLibrary(mangaId = mangaId, title = title, coverUrl = coverUrl)
+            _uiState.update { it.copy(isInLibrary = true) }
+        }
+    }
+
+    fun toggleLibrary(title: String, coverUrl: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            if (_uiState.value.isInLibrary) {
+                libraryRepository.removeFromLibrary(mangaId)
+            } else {
+                libraryRepository.addToLibrary(
+                    mangaId = mangaId,
+                    title = title,
+                    coverUrl = coverUrl
+                )
+            }
+            _uiState.update { it.copy(isInLibrary = !it.isInLibrary) }
+        }
+    }
+}

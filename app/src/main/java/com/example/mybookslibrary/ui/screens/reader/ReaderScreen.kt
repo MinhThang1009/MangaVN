@@ -5,29 +5,28 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -38,14 +37,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
-import com.example.mybookslibrary.ui.viewmodel.ReaderViewModel
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.AsyncImage
+import com.example.mybookslibrary.ui.theme.KansoCard
+import com.example.mybookslibrary.ui.theme.KansoGraphite
+import com.example.mybookslibrary.ui.theme.KansoInk
+import com.example.mybookslibrary.ui.viewmodel.ReaderViewModel
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
@@ -82,14 +85,14 @@ fun ReaderScreen(
     }
 
     DisposableEffect(Unit) {
-        onDispose {
-            viewModel.syncProgressToRoom()
-        }
+        onDispose { viewModel.syncProgressToRoom() }
     }
 
+    // Immersive black background per design spec
     Box(
         modifier = modifier
             .fillMaxSize()
+            .background(Color.Black)
             .pointerInput(Unit) {
                 detectTapGestures(onTap = { viewModel.toggleOverlay() })
             }
@@ -100,7 +103,7 @@ fun ReaderScreen(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator()
+                    CircularProgressIndicator(color = KansoCard)
                 }
             }
 
@@ -109,7 +112,11 @@ fun ReaderScreen(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("Error: ${state.error}")
+                    Text(
+                        text = "Error: ${state.error}",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = KansoCard
+                    )
                 }
             }
 
@@ -160,7 +167,6 @@ private fun VerticalReaderContent(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun BoxScope.ReaderTopBar(
     chapterTitle: String,
@@ -173,23 +179,40 @@ private fun BoxScope.ReaderTopBar(
         exit = slideOutVertically(targetOffsetY = { -it }) + fadeOut(),
         modifier = Modifier.align(Alignment.TopCenter)
     ) {
-        Surface(color = MaterialTheme.colorScheme.surface.copy(alpha = 0.96f)) {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = chapterTitle,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+        // 90% opacity KansoInk overlay per design spec
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(KansoInk.copy(alpha = 0.9f))
+                .statusBarsPadding()
+                .padding(horizontal = 8.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = onBackClick) {
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .clip(CircleShape)
+                        .background(KansoCard.copy(alpha = 0.15f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back",
+                        tint = KansoCard,
+                        modifier = Modifier.size(20.dp)
                     )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
-                        )
-                    }
                 }
+            }
+            Text(
+                text = chapterTitle,
+                style = MaterialTheme.typography.titleMedium,
+                color = KansoCard,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(start = 8.dp)
             )
         }
     }
@@ -202,8 +225,7 @@ private fun BoxScope.ReaderBottomBar(
     totalPages: Int
 ) {
     val safeTotalPages = totalPages.coerceAtLeast(1)
-    val displayCurrentPage = (currentPage + 1).coerceIn(1, safeTotalPages)
-    val progressText = "$displayCurrentPage / $safeTotalPages"
+    val displayPage = (currentPage + 1).coerceIn(1, safeTotalPages)
 
     AnimatedVisibility(
         visible = isVisible,
@@ -211,30 +233,25 @@ private fun BoxScope.ReaderBottomBar(
         exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
         modifier = Modifier.align(Alignment.BottomCenter)
     ) {
-        Surface(color = MaterialTheme.colorScheme.surface.copy(alpha = 0.96f)) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 8.dp),
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = progressText,
-                        style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier.weight(1f)
-                    )
-                    IconButton(onClick = {}) {
-                        Icon(
-                            imageVector = Icons.Default.Settings,
-                            contentDescription = "Reader settings",
-                            tint = Color.Unspecified
-                        )
-                    }
-                }
-            }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(KansoInk.copy(alpha = 0.9f))
+                .padding(horizontal = 24.dp, vertical = 16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Serif page counter per design spec: "12 / 45"
+            Text(
+                text = "$displayPage / $safeTotalPages",
+                style = MaterialTheme.typography.titleMedium,
+                color = KansoCard,
+                modifier = Modifier.weight(1f)
+            )
+            Text(
+                text = "Pages",
+                style = MaterialTheme.typography.bodySmall,
+                color = KansoGraphite
+            )
         }
     }
 }
