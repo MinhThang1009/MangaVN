@@ -1,7 +1,6 @@
 package com.example.mybookslibrary.di
 
 import android.content.Context
-import coil3.ImageLoader
 import com.example.mybookslibrary.data.local.AppDatabase
 import com.example.mybookslibrary.data.local.UserPreferencesDataStore
 import com.example.mybookslibrary.data.local.userPreferencesDataStore
@@ -17,6 +16,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
+// Hilt module cung cấp Room DB, DAO, Repository và DataStore cho toàn app
 @Module
 @InstallIn(SingletonComponent::class)
 object DataModule {
@@ -28,6 +28,7 @@ object DataModule {
     ): AppDatabase = AppDatabase.getInstance(context)
 
     @Provides
+    @Singleton
     fun provideLibraryDao(database: AppDatabase): LibraryDao = database.libraryDao()
 
     @Provides
@@ -56,9 +57,6 @@ object DataModule {
         preferencesDataStore: UserPreferencesDataStore
     ): MangaRepository = MangaRepository(api, preferencesDataStore)
 
-    @Provides
-    @Singleton
-    fun provideCoilImageLoader(imageLoader: ImageLoader): ImageLoader = imageLoader
 }
 
 

@@ -16,8 +16,14 @@ interface LibraryDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(item: LibraryItemEntity)
 
-    @Query("SELECT * FROM library_items ORDER BY added_at DESC")
-    fun getBookmarkedMangas(): Flow<List<LibraryItemEntity>>
+    @Query("DELETE FROM library_items WHERE manga_id = :mangaId")
+    suspend fun deleteByMangaId(mangaId: String)
+
+    @Query("SELECT * FROM library_items ORDER BY updated_at DESC")
+    fun observeAll(): Flow<List<LibraryItemEntity>>
+
+    @Query("SELECT * FROM library_items ORDER BY updated_at DESC")
+    suspend fun getAll(): List<LibraryItemEntity>
 
     @Query("SELECT COUNT(*) FROM library_items")
     suspend fun count(): Int
@@ -25,8 +31,6 @@ interface LibraryDao {
     @Query("SELECT * FROM library_items WHERE manga_id = :mangaId LIMIT 1")
     suspend fun getByMangaId(mangaId: String): LibraryItemEntity?
 
-    @Query("DELETE FROM library_items WHERE manga_id = :mangaId")
-    suspend fun deleteByMangaId(mangaId: String)
 
     @Query("DELETE FROM library_items")
     suspend fun deleteAll()

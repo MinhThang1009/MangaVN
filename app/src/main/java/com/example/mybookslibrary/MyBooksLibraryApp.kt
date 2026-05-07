@@ -2,42 +2,60 @@ package com.example.mybookslibrary
 
 import android.app.Application
 import android.util.Log
-import com.example.mybookslibrary.data.repository.LibraryRepository
-import com.example.mybookslibrary.di.IoDispatcher
 import dagger.hilt.android.HiltAndroidApp
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
-import javax.inject.Inject
+import java.io.File
+import java.io.PrintWriter
+import java.io.StringWriter
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @HiltAndroidApp
 class MyBooksLibraryApp : Application() {
 
-	@Inject
-	lateinit var libraryRepository: LibraryRepository
+    override fun onCreate() {
+        super.onCreate()
 
-	@Inject
-	@IoDispatcher
-	lateinit var ioDispatcher: CoroutineDispatcher
+        // Bắt toàn bộ uncaught exception → ghi log ra file + logcat
+        val defaultHandler = Thread.getDefaultUncaughtExceptionHandler()
+        Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
+            val sw = StringWriter()
+            throwable.printStackTrace(PrintWriter(sw))
+            val stackTrace = sw.toString()
 
-	private val appScope by lazy { CoroutineScope(SupervisorJob() + ioDispatcher) }
+            // Log ra logcat với tag dễ filter
+            Log.e(TAG, "═══ UNCAUGHT CRASH ═══")
+            Log.e(TAG, "Thread: ${thread.name}")
+            Log.e(TAG, "Exception: ${throwable.javaClass.simpleName}: ${throwable.message}")
+            Log.e(TAG, stackTrace)
 
-	override fun onCreate() {
-		super.onCreate()
+            // Ghi ra file trong app cache dir
+            try {
+                val timestamp = SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.US).format(Date())
+                val crashFile = File(cacheDir, "crash_$timestamp.txt")
+                crashFile.writeText(buildString {
+                    appendLine("═══ MyBooksLibrary Crash Report ═══")
+                    appendLine("Time: $timestamp")
+                    appendLine("Thread: ${thread.name}")
+                    appendLine("Exception: ${throwable.javaClass.name}")
+                    appendLine("Message: ${throwable.message}")
+                    appendLine()
+                    appendLine("Stack Trace:")
+                    appendLine(stackTrace)
+                })
+                Log.e(TAG, "Crash log saved: ${crashFile.absolutePath}")
+            } catch (_: Exception) {
+                // Không để ghi file lỗi gây thêm crash
+            }
 
-		appScope.launch {
-			runCatching {
-				libraryRepository.debugClearAndReseed()
-				Log.d(TAG, "Startup mock reseed completed")
-			}.onFailure { throwable ->
-				Log.e(TAG, "Startup mock reseed failed", throwable)
-			}
-		}
-	}
+            // Chuyển về handler mặc định (hiện dialog crash)
+            defaultHandler?.uncaughtException(thread, throwable)
+        }
 
-	companion object {
-		private const val TAG = "MyBooksLibraryApp"
-	}
+        Log.i(TAG, "App initialized")
+    }
+
+    companion object {
+        private const val TAG = "MyBooksLibraryApp"
+    }
 }
-

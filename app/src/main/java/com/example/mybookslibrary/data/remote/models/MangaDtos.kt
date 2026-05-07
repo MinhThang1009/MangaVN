@@ -4,6 +4,14 @@ import com.example.mybookslibrary.domain.model.MangaModel
 import com.example.mybookslibrary.domain.model.ChapterModel
 import com.google.gson.annotations.SerializedName
 
+object MangaDexConstants {
+    const val QUALITY_ORIGINAL = "data"
+    const val QUALITY_DATA_SAVER = "data-saver"
+    const val COVER_BASE_URL = "https://uploads.mangadex.org/covers"
+    const val LANG_EN = "en"
+    const val LANG_VI = "vi"
+}
+
 data class MangaListResponseDto(
     @SerializedName("data") val data: List<MangaDataDto> = emptyList()
 )
@@ -39,19 +47,22 @@ data class RelationshipAttributesDto(
     @SerializedName("fileName") val fileName: String? = null
 )
 
-fun MangaDataDto.toDomainModel(): MangaModel {
-    val mainTitle = attributes.title["en"]
-        ?: attributes.title["vi"]
-        ?: attributes.title.values.firstOrNull()
-        ?: "Untitled"
+fun MangaDataDto.toDomainModel(preferredLang: String = MangaDexConstants.LANG_EN): MangaModel {
+    val fallbackLang = if (preferredLang == MangaDexConstants.LANG_VI) MangaDexConstants.LANG_EN else MangaDexConstants.LANG_VI
 
-    val mainDescription = attributes.description["en"]
-        ?: attributes.description["vi"]
+    val mainTitle = attributes.title[preferredLang]
+        ?: attributes.title[fallbackLang]
+        ?: attributes.title.values.firstOrNull()
+        ?: ""
+
+    val mainDescription = attributes.description[preferredLang]
+        ?: attributes.description[fallbackLang]
         ?: attributes.description.values.firstOrNull()
         ?: ""
 
     val genres = attributes.tags.mapNotNull { tag ->
-        tag.attributes?.name?.get("en")
+        tag.attributes?.name?.get(preferredLang)
+            ?: tag.attributes?.name?.get(fallbackLang)
             ?: tag.attributes?.name?.values?.firstOrNull()
     }
 
@@ -60,15 +71,11 @@ fun MangaDataDto.toDomainModel(): MangaModel {
         title = mainTitle,
         description = mainDescription,
         coverArt = extractCoverUrl(),
-        rating = null,
         tags = genres
     )
 }
 
-/**
- * MangaDex trả cover qua relationships có type = cover_art.
- * URL chuẩn: https://uploads.mangadex.org/covers/{manga_id}/{file_name}
- */
+// Ghép URL cover từ relationships type=cover_art: uploads.mangadex.org/covers/{mangaId}/{fileName}
 fun MangaDataDto.extractCoverUrl(): String? {
     val coverFileName = relationships
         .firstOrNull { it.type == "cover_art" }
@@ -76,7 +83,7 @@ fun MangaDataDto.extractCoverUrl(): String? {
         ?.fileName
         ?: return null
 
-    return "https://uploads.mangadex.org/covers/$id/$coverFileName"
+    return "${MangaDexConstants.COVER_BASE_URL}/$id/$coverFileName"
 }
 
 data class ChapterListDto(
@@ -92,10 +99,16 @@ data class ChapterDto(
     @SerializedName("relationships") val relationships: List<RelationshipDto> = emptyList()
 )
 
+// Response chi tiết 1 manga
+data class MangaDetailResponseDto(
+    @SerializedName("data") val data: MangaDataDto
+)
+
 data class ChapterAttributesDto(
     @SerializedName("volume") val volume: String? = null,
     @SerializedName("chapter") val chapter: String? = null,
     @SerializedName("title") val title: String? = null,
+    @SerializedName("translatedLanguage") val translatedLanguage: String? = null,
     @SerializedName("pages") val pages: Int? = null,
     @SerializedName("isUnavailable") val isUnavailable: Boolean? = null
 )

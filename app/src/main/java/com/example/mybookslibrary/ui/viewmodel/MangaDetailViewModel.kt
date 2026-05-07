@@ -4,91 +4,95 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mybookslibrary.data.repository.LibraryRepository
-import com.example.mybookslibrary.domain.model.ChapterWithProgressModel
-import com.example.mybookslibrary.domain.usecase.GetChapterListWithProgressUseCase
+import com.example.mybookslibrary.data.repository.MangaRepository
+import com.example.mybookslibrary.domain.model.ChapterModel
+import com.example.mybookslibrary.domain.model.MangaModel
+import com.example.mybookslibrary.ui.navigation.MangaDetailDestination
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class MangaDetailUiState(
-    val isLoading: Boolean = true,
-    val chapters: List<ChapterWithProgressModel> = emptyList(),
-    val error: String? = null
+    val mangaDetail: MangaModel? = null,
+    val detailError: String? = null,
+    val chapters: List<ChapterModel> = emptyList(),
+    val isLoadingChapters: Boolean = false,
+    val chaptersError: String? = null,
+    val isInLibrary: Boolean = false
 )
 
 @HiltViewModel
 class MangaDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val getChapterListWithProgressUseCase: GetChapterListWithProgressUseCase,
+    private val mangaRepository: MangaRepository,
     private val libraryRepository: LibraryRepository
 ) : ViewModel() {
 
-    private val mangaId: String = savedStateHandle.get<String>(MANGA_ID_ARG).orEmpty()
+    private val mangaId: String = savedStateHandle.get<String>(
+        MangaDetailDestination.mangaIdArgumentName
+    ).orEmpty()
 
     private val _uiState = MutableStateFlow(MangaDetailUiState())
     val uiState: StateFlow<MangaDetailUiState> = _uiState.asStateFlow()
 
     init {
-        observeChapterList()
+        loadMangaDetail()
+        loadChapters()
+        checkLibraryStatus()
     }
 
-    private fun observeChapterList() {
-        if (mangaId.isBlank()) {
-            _uiState.update { it.copy(isLoading = false, error = "Missing mangaId") }
-            return
-        }
-
-        viewModelScope.launch {
-            getChapterListWithProgressUseCase(mangaId)
-                .onStart { _uiState.update { current -> current.copy(isLoading = true, error = null) } }
-                .catch { throwable ->
-                    _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            error = throwable.message ?: "Failed to load chapter list"
-                        )
-                    }
-                }
-                .collect { chapters ->
-                    _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            chapters = chapters,
-                            error = null
-                        )
-                    }
-                }
+    private fun loadMangaDetail() {
+        if (mangaId.isBlank()) return
+        viewModelScope.launch(Dispatchers.IO) {
+            mangaRepository.getMangaDetail(mangaId).onSuccess { manga ->
+                _uiState.update { it.copy(mangaDetail = manga, detailError = null) }
+            }.onFailure { e ->
+                _uiState.update { it.copy(detailError = e.message) }
+            }
         }
     }
 
-    fun markChapterCompleted(chapter: ChapterWithProgressModel) {
-        viewModelScope.launch {
-            libraryRepository.markChapterCompleted(
-                mangaId = chapter.mangaId,
-                chapterId = chapter.chapterId,
-                totalPages = chapter.totalPages
-            )
+    private fun loadChapters() {
+        if (mangaId.isBlank()) return
+        viewModelScope.launch(Dispatchers.IO) {
+            _uiState.update { it.copy(isLoadingChapters = true, chaptersError = null) }
+            mangaRepository.getChapterFeed(mangaId).onSuccess { chapters ->
+                _uiState.update { it.copy(chapters = chapters, isLoadingChapters = false) }
+            }.onFailure { e ->
+                _uiState.update { it.copy(isLoadingChapters = false, chaptersError = e.message) }
+            }
         }
     }
 
-    fun markChapterUnread(chapter: ChapterWithProgressModel) {
-        viewModelScope.launch {
-            libraryRepository.markChapterUnread(
-                mangaId = chapter.mangaId,
-                chapterId = chapter.chapterId,
-                totalPages = chapter.totalPages
-            )
+    private fun checkLibraryStatus() {
+        if (mangaId.isBlank()) return
+        viewModelScope.launch(Dispatchers.IO) {
+            val inLib = libraryRepository.isInLibrary(mangaId)
+            _uiState.update { it.copy(isInLibrary = inLib) }
         }
     }
 
-    companion object {
-        private const val MANGA_ID_ARG = "mangaId"
+    fun ensureInLibrary(title: String, coverUrl: String) {
+        if (_uiState.value.isInLibrary) return
+        viewModelScope.launch(Dispatchers.IO) {
+            libraryRepository.addToLibrary(mangaId = mangaId, title = title, coverUrl = coverUrl)
+            _uiState.update { it.copy(isInLibrary = true) }
+        }
+    }
+
+    fun toggleLibrary(title: String, coverUrl: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            if (_uiState.value.isInLibrary) {
+                libraryRepository.removeFromLibrary(mangaId)
+            } else {
+                libraryRepository.addToLibrary(mangaId = mangaId, title = title, coverUrl = coverUrl)
+            }
+            _uiState.update { it.copy(isInLibrary = !it.isInLibrary) }
+        }
     }
 }
-
