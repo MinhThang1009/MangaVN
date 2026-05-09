@@ -47,6 +47,7 @@ import com.example.mybookslibrary.ui.screens.SearchScreen
 import com.example.mybookslibrary.ui.screens.SettingScreen
 import com.example.mybookslibrary.ui.screens.reader.ReaderScreen
 import com.example.mybookslibrary.ui.screens.detail.MangaDetailScreen
+import com.example.mybookslibrary.ui.screens.MangaReviewScreen
 
 sealed class BottomNavDestination(
     val route: String,
@@ -109,6 +110,16 @@ object MangaDetailDestination {
     const val tagsArgumentName = tagsArg
 }
 
+object MangaReviewDestination {
+    const val route = "manga_review"
+    private const val mangaIdArg = "mangaId"
+    const val routePattern = "$route/{$mangaIdArg}"
+    
+    fun createRoute(mangaId: String) = "$route/${Uri.encode(mangaId)}"
+    
+    const val mangaIdArgumentName = mangaIdArg
+}
+
 @Composable
 fun MainNavHost() {
     val navController = rememberNavController()
@@ -117,7 +128,8 @@ fun MainNavHost() {
 
     val showBottomBar = currentDestination?.hierarchy?.none { dest ->
         dest.route?.startsWith(ReaderDestination.route) == true ||
-            dest.route?.startsWith(MangaDetailDestination.route) == true
+            dest.route?.startsWith(MangaDetailDestination.route) == true ||
+            dest.route?.startsWith(MangaReviewDestination.route) == true
     } ?: true
 
     Scaffold(
@@ -219,8 +231,19 @@ fun MainNavHost() {
                         navController.navigate(
                             ReaderDestination.createRoute(mangaId, chapterId, chapterTitle, 0)
                         )
+                    },
+                    onReviewClick = { mangaId ->
+                        navController.navigate(MangaReviewDestination.createRoute(mangaId))
                     }
                 )
+            }
+            composable(
+                route = MangaReviewDestination.routePattern,
+                arguments = listOf(
+                    navArgument(MangaReviewDestination.mangaIdArgumentName) { type = NavType.StringType }
+                )
+            ) {
+                MangaReviewScreen(onBackClick = { navController.popBackStack() })
             }
             composable(
                 route = ReaderDestination.routePattern,
