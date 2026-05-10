@@ -64,6 +64,8 @@ import androidx.compose.ui.composed
 import com.example.mybookslibrary.ui.navigation.LocalNavAnimatedVisibilityScope
 import com.example.mybookslibrary.ui.navigation.LocalSharedTransitionScope
 import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import androidx.compose.ui.platform.LocalContext
 import com.example.mybookslibrary.R
 import com.example.mybookslibrary.data.local.LibraryItemEntity
 import com.example.mybookslibrary.data.local.LibraryStatus
@@ -257,7 +259,13 @@ private fun SpotlightCard(manga: MangaModel, onClick: () -> Unit, modifier: Modi
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Box(Modifier.fillMaxSize()) {
-            AsyncImage(model = manga.coverArt, contentDescription = manga.title, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(manga.coverArt)
+                    .memoryCacheKey("cover_${manga.id}")
+                    .build(),
+                contentDescription = manga.title, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize()
+            )
             Box(Modifier.fillMaxSize().background(
                 Brush.verticalGradient(listOf(Color.Transparent, Color.Black.copy(alpha = 0.82f)), startY = 300f)
             ))
@@ -312,7 +320,13 @@ fun BookCoverCard(manga: MangaModel, onClick: () -> Unit, modifier: Modifier = M
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background)
         ) {
-            AsyncImage(model = manga.coverArt, contentDescription = manga.title, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(manga.coverArt)
+                    .memoryCacheKey("cover_${manga.id}")
+                    .build(),
+                contentDescription = manga.title, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize()
+            )
         }
         Spacer(Modifier.height(8.dp))
         Text(manga.title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface,
@@ -414,7 +428,13 @@ private fun SearchResultItem(manga: MangaModel, onClick: () -> Unit) {
         Row(Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
             Card(Modifier.size(56.dp, 84.dp).sharedCoverBounds(manga.id), shape = RoundedCornerShape(8.dp),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)) {
-                AsyncImage(model = manga.coverArt, contentDescription = manga.title, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(manga.coverArt)
+                        .memoryCacheKey("cover_${manga.id}")
+                        .build(),
+                    contentDescription = manga.title, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize()
+                )
             }
             Spacer(Modifier.width(16.dp))
             Column(Modifier.weight(1f)) {
@@ -525,7 +545,13 @@ private fun LibraryItemCard(
         Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
             Card(Modifier.size(60.dp, 90.dp).sharedCoverBounds(mangaId), shape = RoundedCornerShape(8.dp),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)) {
-                AsyncImage(model = coverUrl, contentDescription = title, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(coverUrl)
+                        .memoryCacheKey("cover_$mangaId")
+                        .build(),
+                    contentDescription = title, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize()
+                )
             }
             Spacer(Modifier.width(16.dp))
             Column(Modifier.weight(1f)) {

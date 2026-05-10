@@ -63,6 +63,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import androidx.compose.ui.platform.LocalContext
 import com.example.mybookslibrary.R
 import com.example.mybookslibrary.domain.model.ChapterReadingStatus
 import com.example.mybookslibrary.domain.model.ChapterWithProgressModel
@@ -114,7 +116,12 @@ fun MangaDetailScreen(
             item {
                 Box(modifier = Modifier.fillMaxWidth().height(DetailDimensions.BackdropHeight)) {
                     AsyncImage(
-                        model = coverUrl, contentDescription = null,
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(coverUrl)
+                            .placeholderMemoryCacheKey("cover_$mangaId")
+                            .memoryCacheKey("cover_$mangaId")
+                            .build(),
+                        contentDescription = null,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize().blur(radius = DetailDimensions.BlurRadius)
                     )
@@ -144,7 +151,16 @@ fun MangaDetailScreen(
                         elevation = CardDefaults.cardElevation(defaultElevation = 20.dp),
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background)
                     ) {
-                        AsyncImage(model = coverUrl, contentDescription = displayTitle, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(coverUrl)
+                                .placeholderMemoryCacheKey("cover_$mangaId")
+                                .memoryCacheKey("cover_$mangaId")
+                                .build(),
+                            contentDescription = displayTitle,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
+                        )
                     }
                     Column(modifier = Modifier.padding(start = 20.dp, bottom = 8.dp).weight(1f)) {
                         if (displayTags.isNotEmpty()) {
