@@ -139,7 +139,7 @@ fun MangaDetailScreen(
                     verticalAlignment = Alignment.Bottom
                 ) {
                     Card(
-                        modifier = Modifier.size(DetailDimensions.CoverWidth, DetailDimensions.CoverHeight),
+                        modifier = Modifier.size(DetailDimensions.CoverWidth, DetailDimensions.CoverHeight).sharedCoverBounds(mangaId),
                         shape = RoundedCornerShape(16.dp),
                         elevation = CardDefaults.cardElevation(defaultElevation = 20.dp),
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background)
