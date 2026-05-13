@@ -127,7 +127,7 @@ fun ReaderScreen(
 @Composable
 private fun VerticalReaderContent(pages: List<String>, listState: LazyListState, modifier: Modifier = Modifier) {
     LazyColumn(modifier = modifier, state = listState) {
-        itemsIndexed(items = pages, key = { index, page -> "$index-$page" }) { index, page ->
+        itemsIndexed(items = pages, key = { _, page -> page }) { index, page ->
             MangaPageItem(
                 imageUrl = page,
                 index = index,

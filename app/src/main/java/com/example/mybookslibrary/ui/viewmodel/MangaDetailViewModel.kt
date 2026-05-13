@@ -10,7 +10,8 @@ import com.example.mybookslibrary.domain.model.MangaModel
 import com.example.mybookslibrary.domain.usecase.GetChapterListWithProgressUseCase
 import com.example.mybookslibrary.ui.navigation.MangaDetailDestination
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
+import com.example.mybookslibrary.di.IoDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -32,7 +33,8 @@ class MangaDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val mangaRepository: MangaRepository,
     private val libraryRepository: LibraryRepository,
-    private val getChapterListWithProgressUseCase: GetChapterListWithProgressUseCase
+    private val getChapterListWithProgressUseCase: GetChapterListWithProgressUseCase,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : ViewModel() {
 
     private val mangaId: String = savedStateHandle.get<String>(
@@ -50,7 +52,7 @@ class MangaDetailViewModel @Inject constructor(
 
     private fun loadMangaDetail() {
         if (mangaId.isBlank()) return
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(ioDispatcher) {
             mangaRepository.getMangaDetail(mangaId).onSuccess { manga ->
                 _uiState.update { it.copy(mangaDetail = manga, detailError = null) }
             }.onFailure { e ->
@@ -61,7 +63,7 @@ class MangaDetailViewModel @Inject constructor(
 
     private fun observeChapters() {
         if (mangaId.isBlank()) return
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(ioDispatcher) {
             _uiState.update { it.copy(isLoadingChapters = true, chaptersError = null) }
             try {
                 getChapterListWithProgressUseCase(mangaId).collect { chapters ->
@@ -81,7 +83,7 @@ class MangaDetailViewModel @Inject constructor(
 
     private fun checkLibraryStatus() {
         if (mangaId.isBlank()) return
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(ioDispatcher) {
             val inLib = libraryRepository.isInLibrary(mangaId)
             _uiState.update { it.copy(isInLibrary = inLib) }
         }
@@ -89,14 +91,14 @@ class MangaDetailViewModel @Inject constructor(
 
     fun ensureInLibrary(title: String, coverUrl: String) {
         if (_uiState.value.isInLibrary) return
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(ioDispatcher) {
             libraryRepository.addToLibrary(mangaId = mangaId, title = title, coverUrl = coverUrl)
             _uiState.update { it.copy(isInLibrary = true) }
         }
     }
 
     fun toggleLibrary(title: String, coverUrl: String) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(ioDispatcher) {
             if (_uiState.value.isInLibrary) {
                 libraryRepository.removeFromLibrary(mangaId)
             } else {
@@ -107,13 +109,13 @@ class MangaDetailViewModel @Inject constructor(
     }
 
     fun markChapterCompleted(chapterId: String, totalPages: Int) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(ioDispatcher) {
             libraryRepository.markChapterCompleted(mangaId, chapterId, totalPages)
         }
     }
 
     fun markChapterUnread(chapterId: String, totalPages: Int) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(ioDispatcher) {
             libraryRepository.markChapterUnread(mangaId, chapterId, totalPages)
         }
     }
