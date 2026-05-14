@@ -6,8 +6,8 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.mybookslibrary.data.local.UserPreferencesDataStore
 import com.example.mybookslibrary.ui.navigation.MainNavHost
 import com.example.mybookslibrary.ui.theme.MyBooksLibraryTheme
@@ -26,9 +26,9 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             val language by preferencesDataStore.observeLanguage()
-                .collectAsState(initial = "en")
+                .collectAsStateWithLifecycle(initialValue = "en")
             val themeMode by preferencesDataStore.observeThemeMode()
-                .collectAsState(initial = "system")
+                .collectAsStateWithLifecycle(initialValue = "system")
 
             val darkTheme = when (themeMode) {
                 "dark" -> true

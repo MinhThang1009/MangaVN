@@ -35,7 +35,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -51,6 +50,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import com.example.mybookslibrary.R
 import com.example.mybookslibrary.ui.viewmodel.MangaDetailViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 private object DetailDimensions {
     val BackdropHeight = 280.dp
@@ -75,7 +75,7 @@ fun MangaDetailScreen(
     onReadChapter: (mangaId: String, chapterId: String, chapterTitle: String) -> Unit,
     viewModel: MangaDetailViewModel = hiltViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val detail = uiState.mangaDetail
     val displayTitle = title.ifBlank { detail?.title ?: "" }
     val displayDescription = description.ifBlank { detail?.description ?: "" }
