@@ -55,9 +55,6 @@
     <string name="detail_add_to_library">ADD TO LIBRARY</string>
     <string name="detail_pages_suffix">%1$dp</string>
     <string name="detail_error">Couldn\'t load manga details</string>
-    <string name="detail_translating">Translating…</string>
-    <string name="detail_translated">Translated (auto)</string>
-    <string name="detail_original">Original</string>
 
     <!-- Chapter formatting -->
     <string name="chapter_vol_prefix">Vol.%1$s </string>
@@ -106,13 +103,9 @@
     <string name="settings_language_english">English</string>
     <string name="settings_language_vietnamese">Tiếng Việt</string>
 
-    <!-- Library chapter format -->
-    <string name="library_chapter_title">%1$s — Ch.%2$s</string>
-
     <!-- Error fallbacks -->
     <string name="error_missing_chapter">Missing chapter ID</string>
     <string name="error_load_pages">Failed to load chapter pages</string>
     <string name="error_load_discover">Failed to load manga list</string>
-    <string name="error_unknown">Unknown error</string>
     <string name="error_unexpected">Unexpected error</string>
 </resources>
