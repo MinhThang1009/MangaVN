@@ -10,7 +10,8 @@ import com.example.mybookslibrary.data.repository.LibraryRepository
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
+import com.example.mybookslibrary.di.IoDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -40,7 +41,8 @@ data class SettingsUiState(
 class SettingsViewModel @Inject constructor(
     private val preferencesDataStore: UserPreferencesDataStore,
     private val libraryRepository: LibraryRepository,
-    private val imageLoader: ImageLoader
+    private val imageLoader: ImageLoader,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SettingsUiState())
@@ -49,7 +51,7 @@ class SettingsViewModel @Inject constructor(
     private val gson = Gson()
 
     init {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(ioDispatcher) {
             val q = preferencesDataStore.getReaderQuality()
             val t = preferencesDataStore.getThemeMode()
             val l = preferencesDataStore.getLanguage()
@@ -58,7 +60,7 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun toggleQuality() {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(ioDispatcher) {
             val newQuality = if (_uiState.value.quality == "data") "data-saver" else "data"
             preferencesDataStore.setReaderQuality(newQuality)
             _uiState.update { it.copy(quality = newQuality) }
@@ -66,7 +68,7 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun cycleThemeMode() {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(ioDispatcher) {
             val next = when (_uiState.value.themeMode) {
                 "system" -> "light"
                 "light" -> "dark"
@@ -78,14 +80,14 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun setLanguage(language: String) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(ioDispatcher) {
             preferencesDataStore.setLanguage(language)
             _uiState.update { it.copy(language = language) }
         }
     }
 
     fun clearImageCache() {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(ioDispatcher) {
             imageLoader.memoryCache?.clear()
             imageLoader.diskCache?.clear()
             _uiState.update { it.copy(cacheCleared = true) }
@@ -93,7 +95,7 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun signOut() {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(ioDispatcher) {
             // Chỉ reset quality về mặc định, giữ nguyên language + theme
             preferencesDataStore.setReaderQuality("data")
             libraryRepository.clearAll()
@@ -102,7 +104,7 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun backupLibrary(outputStream: OutputStream) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(ioDispatcher) {
             try {
                 val items = libraryRepository.getAllItems()
                 val jsonItems = items.map { entity ->
@@ -126,7 +128,7 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun restoreLibrary(inputStream: InputStream) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(ioDispatcher) {
             try {
                 val json = inputStream.bufferedReader().use { it.readText() }
                 val type = object : TypeToken<List<Map<String, Any>>>() {}.type

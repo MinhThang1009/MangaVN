@@ -6,14 +6,13 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.mybookslibrary.data.local.UserPreferencesDataStore
 import com.example.mybookslibrary.ui.navigation.MainNavHost
 import com.example.mybookslibrary.ui.theme.MyBooksLibraryTheme
 import com.example.mybookslibrary.ui.util.LocalAppLocale
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -24,15 +23,12 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val initialLang = runBlocking { preferencesDataStore.getLanguage() }
-        val initialTheme = runBlocking { preferencesDataStore.getThemeMode() }
-
         enableEdgeToEdge()
         setContent {
             val language by preferencesDataStore.observeLanguage()
-                .collectAsState(initial = initialLang)
+                .collectAsStateWithLifecycle(initialValue = "en")
             val themeMode by preferencesDataStore.observeThemeMode()
-                .collectAsState(initial = initialTheme)
+                .collectAsStateWithLifecycle(initialValue = "system")
 
             val darkTheme = when (themeMode) {
                 "dark" -> true

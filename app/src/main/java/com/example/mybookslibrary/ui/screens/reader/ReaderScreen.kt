@@ -1,55 +1,32 @@
 package com.example.mybookslibrary.ui.screens.reader
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.ContentScale
-import com.example.mybookslibrary.ui.util.appString
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import coil3.compose.AsyncImage
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.mybookslibrary.R
+import com.example.mybookslibrary.ui.util.appString
 import com.example.mybookslibrary.ui.viewmodel.ReaderViewModel
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
@@ -61,7 +38,7 @@ fun ReaderScreen(
     modifier: Modifier = Modifier,
     viewModel: ReaderViewModel = hiltViewModel()
 ) {
-    val state by viewModel.state.collectAsState()
+    val state by viewModel.state.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
     val hasRestoredInitialPage = remember { mutableStateOf(false) }
 
@@ -127,7 +104,7 @@ fun ReaderScreen(
 @Composable
 private fun VerticalReaderContent(pages: List<String>, listState: LazyListState, modifier: Modifier = Modifier) {
     LazyColumn(modifier = modifier, state = listState) {
-        itemsIndexed(items = pages, key = { index, page -> "$index-$page" }) { index, page ->
+        itemsIndexed(items = pages, key = { _, page -> page }) { index, page ->
             MangaPageItem(
                 imageUrl = page,
                 index = index,
@@ -137,107 +114,4 @@ private fun VerticalReaderContent(pages: List<String>, listState: LazyListState,
     }
 }
 
-@Composable
-private fun MangaPageItem(
-    imageUrl: String,
-    index: Int,
-    modifier: Modifier = Modifier
-) {
-    var aspectRatio by remember(imageUrl) { mutableStateOf<Float?>(null) }
-
-    val imageModifier = if (aspectRatio != null) {
-        modifier.aspectRatio(aspectRatio!!)
-    } else {
-        modifier.defaultMinSize(minHeight = 400.dp)
-    }
-
-    AsyncImage(
-        model = imageUrl,
-        contentDescription = appString(R.string.reader_page_description, index + 1),
-        contentScale = ContentScale.FillWidth,
-        onSuccess = { state ->
-            val intrinsicSize = state.painter.intrinsicSize
-            val width = intrinsicSize.width
-            val height = intrinsicSize.height
-            if (width > 0f && height > 0f) {
-                aspectRatio = width / height
-            }
-        },
-        modifier = imageModifier
-    )
-}
-
-@Composable
-private fun BoxScope.ReaderTopBar(chapterTitle: String, isVisible: Boolean, onBackClick: () -> Unit) {
-    AnimatedVisibility(
-        visible = isVisible,
-        enter = slideInVertically(initialOffsetY = { -it }) + fadeIn(),
-        exit = slideOutVertically(targetOffsetY = { -it }) + fadeOut(),
-        modifier = Modifier.align(Alignment.TopCenter)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.9f))
-                .statusBarsPadding()
-                .padding(horizontal = 8.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(onClick = onBackClick) {
-                Box(
-                    modifier = Modifier.size(36.dp).clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.15f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = appString(R.string.cd_back),
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-            }
-            Text(
-                text = chapterTitle,
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f).padding(start = 8.dp)
-            )
-        }
-    }
-}
-
-@Composable
-private fun BoxScope.ReaderBottomBar(isVisible: Boolean, currentPage: Int, totalPages: Int) {
-    val safeTotalPages = totalPages.coerceAtLeast(1)
-    val displayPage = (currentPage + 1).coerceIn(1, safeTotalPages)
-
-    AnimatedVisibility(
-        visible = isVisible,
-        enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
-        exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
-        modifier = Modifier.align(Alignment.BottomCenter)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.9f))
-                .padding(horizontal = 24.dp, vertical = 16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "$displayPage / $safeTotalPages",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                modifier = Modifier.weight(1f)
-            )
-            Text(
-                text = appString(R.string.reader_pages_label),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-    }
-}
+// Reader content and bar components moved to MangaPageItem.kt and ReaderBars.kt for modularity.

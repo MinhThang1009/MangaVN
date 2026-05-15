@@ -5,7 +5,9 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.composed
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,7 +29,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -38,19 +39,14 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
@@ -61,14 +57,13 @@ import com.example.mybookslibrary.ui.util.appString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import androidx.compose.ui.platform.LocalContext
 import com.example.mybookslibrary.R
-import com.example.mybookslibrary.domain.model.ChapterReadingStatus
-import com.example.mybookslibrary.domain.model.ChapterWithProgressModel
 import com.example.mybookslibrary.ui.viewmodel.MangaDetailViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 private object DetailDimensions {
     val BackdropHeight = 280.dp
@@ -80,6 +75,11 @@ private object DetailDimensions {
     val ChaptersOffset = (-20).dp
     val BlurRadius = 20.dp
 }
+
+// Minimal no-op shared bounds helper. The real shared transition implementation
+// is provided via CompositionLocal in `MainNavGraph` when enabled. This stub
+// keeps this file compilable when the transition is not used.
+fun Modifier.sharedCoverBounds(mangaId: String): Modifier = composed { this@composed }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -94,7 +94,7 @@ fun MangaDetailScreen(
     onReviewClick: (mangaId: String) -> Unit = {},
     viewModel: MangaDetailViewModel = hiltViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val detail = uiState.mangaDetail
     val displayTitle = title.ifBlank { detail?.title ?: "" }
     val displayDescription = description.ifBlank { detail?.description ?: "" }
@@ -107,7 +107,7 @@ fun MangaDetailScreen(
             chapter.volume?.takeIf { it.isNotBlank() } ?: noVolumeLabel
         }
     }
-    var chaptersExpanded by remember { mutableStateOf(false) }
+    var chaptersExpanded by remember { androidx.compose.runtime.mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         LazyColumn(modifier = Modifier.fillMaxSize()) {
@@ -146,7 +146,7 @@ fun MangaDetailScreen(
                     verticalAlignment = Alignment.Bottom
                 ) {
                     Card(
-                        modifier = Modifier.size(DetailDimensions.CoverWidth, DetailDimensions.CoverHeight).sharedCoverBounds(mangaId),
+                        modifier = Modifier.size(DetailDimensions.CoverWidth, DetailDimensions.CoverHeight),
                         shape = RoundedCornerShape(16.dp),
                         elevation = CardDefaults.cardElevation(defaultElevation = 20.dp),
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background)
@@ -234,7 +234,7 @@ fun MangaDetailScreen(
             // Từ nhà xuất bản (From the Publisher)
             if (displayDescription.isNotBlank()) {
                 item {
-                    var expanded by remember { mutableStateOf(false) }
+                    var expanded by remember { androidx.compose.runtime.mutableStateOf(false) }
                     Column(modifier = Modifier.padding(horizontal = 24.dp).offset(y = DetailDimensions.SynopsisOffset)) {
                         Text(
                             "From the Publisher",
@@ -448,137 +448,10 @@ fun MangaDetailScreen(
     }
 }
 
-@Composable
-private fun VolumeHeader(volume: String) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(horizontal = 24.dp, vertical = 10.dp)
-    ) {
-        Text(
-            text = volume,
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.primary
-        )
-    }
-}
+// Chapter components are moved to `ChapterComponents.kt` to keep this file small and modular.
+// Use the canonical implementations from `ChapterComponents.kt` (VolumeHeader, ChapterRow, buildChapterTitle).
 
-@Composable
-private fun ChapterRow(
-    chapter: ChapterWithProgressModel,
-    chapterTitle: String,
-    onClick: () -> Unit,
-    onMarkCompleted: () -> Unit,
-    onMarkUnread: () -> Unit
-) {
-    var menuExpanded by remember { mutableStateOf(false) }
-    val isCompleted = chapter.status == ChapterReadingStatus.COMPLETED
-    val contentAlpha = if (isCompleted) 0.55f else 1f
-
-    Box(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .combinedClickable(
-                    onClick = onClick,
-                    onLongClick = { menuExpanded = true }
-                )
-                .padding(horizontal = 24.dp, vertical = 14.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    chapterTitle,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = contentAlpha),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                if (!chapter.title.isNullOrBlank()) {
-                    Text(
-                        chapter.title,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = contentAlpha),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-                when (chapter.status) {
-                    ChapterReadingStatus.UNREAD -> Text(
-                        appString(R.string.status_unread),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = contentAlpha)
-                    )
-                    ChapterReadingStatus.READING -> Text(
-                        text = "${appString(R.string.status_reading)} · Page ${chapter.lastReadPage + 1}/${chapter.totalPages.coerceAtLeast(1)}",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.tertiary
-                    )
-                    ChapterReadingStatus.COMPLETED -> Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            Icons.Filled.Check,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(Modifier.width(4.dp))
-                        Text(
-                            appString(R.string.status_completed),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-            }
-            Text(
-                appString(R.string.detail_pages_suffix, chapter.totalPages),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = contentAlpha)
-            )
-        }
-
-        DropdownMenu(
-            expanded = menuExpanded,
-            onDismissRequest = { menuExpanded = false }
-        ) {
-            if (chapter.status != ChapterReadingStatus.COMPLETED) {
-                DropdownMenuItem(
-                    text = { Text(appString(R.string.chapter_mark_completed)) },
-                    onClick = {
-                        menuExpanded = false
-                        onMarkCompleted()
-                    }
-                )
-            }
-            if (chapter.status != ChapterReadingStatus.UNREAD) {
-                DropdownMenuItem(
-                    text = { Text(appString(R.string.chapter_mark_unread)) },
-                    onClick = {
-                        menuExpanded = false
-                        onMarkUnread()
-                    }
-                )
-            }
-        }
-    }
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(1.dp)
-            .padding(horizontal = 24.dp)
-            .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f))
-    )
-}
-
-@Composable
-private fun buildChapterTitle(ch: ChapterWithProgressModel): String {
-    val vol = if (!ch.volume.isNullOrBlank()) appString(R.string.chapter_vol_prefix, ch.volume) else ""
-    val num = if (!ch.chapterNumber.isNullOrBlank()) appString(R.string.chapter_num_prefix, ch.chapterNumber) else appString(R.string.chapter_oneshot)
-    return "$vol$num"
-}
-
+// Minimal dummy review model used for preview lists:
 data class DummyReview(
     val title: String,
     val body: String,

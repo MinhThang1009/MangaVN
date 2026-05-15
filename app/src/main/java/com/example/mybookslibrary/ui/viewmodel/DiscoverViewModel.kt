@@ -7,7 +7,8 @@ import com.example.mybookslibrary.R
 import com.example.mybookslibrary.data.repository.MangaRepository
 import com.example.mybookslibrary.domain.model.MangaModel
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
+import com.example.mybookslibrary.di.IoDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -25,7 +26,8 @@ data class DiscoverUiState(
 @HiltViewModel
 class DiscoverViewModel @Inject constructor(
     application: Application,
-    private val repository: MangaRepository
+    private val repository: MangaRepository,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow(DiscoverUiState())
@@ -36,7 +38,7 @@ class DiscoverViewModel @Inject constructor(
     }
 
     fun loadDiscover(limit: Int = 20, offset: Int = 0) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(ioDispatcher) {
             _uiState.update { it.copy(isLoading = true, error = null) }
             repository.getDiscoverManga(limit, offset).collect { result ->
                 result.onSuccess { mangas ->
