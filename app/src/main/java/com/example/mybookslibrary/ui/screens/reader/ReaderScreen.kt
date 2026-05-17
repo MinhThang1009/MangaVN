@@ -33,6 +33,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.mybookslibrary.R
@@ -52,6 +53,11 @@ import kotlinx.coroutines.launch
 
 private const val TAG = "ReaderScreen"
 
+private enum class ReaderToastType {
+    SaveFailed,
+    ShareFailed
+}
+
 @Composable
 fun ReaderScreen(
     onBackClick: () -> Unit,
@@ -62,12 +68,33 @@ fun ReaderScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
+    val savedToFileText = stringResource(R.string.reader_saved_to_file)
+    val savedToPicturesText = stringResource(R.string.reader_saved_to_pictures)
+    val sharingText = stringResource(R.string.reader_sharing)
+    val saveFailedPrefix = stringResource(R.string.reader_save_failed, "")
+    val shareFailedPrefix = stringResource(R.string.reader_share_failed, "")
+
     // --- ImageSaver instance (no DI needed — uses bare OkHttpClient internally) ---
     val imageSaver = remember { ImageSaver(context) }
 
     // --- Page Action Bottom Sheet state ---
     var showBottomSheet by remember { mutableStateOf(false) }
     var selectedPageUrl by remember { mutableStateOf<String?>(null) }
+    var errorMessageEvent by remember { mutableStateOf<String?>(null) }
+    var errorToastType by remember { mutableStateOf(ReaderToastType.SaveFailed) }
+
+    LaunchedEffect(Unit) {
+        snapshotFlow { errorMessageEvent to errorToastType }
+            .filter { (message, _) -> message != null }
+            .collectLatest { (message, type) ->
+                val toastText = when (type) {
+                    ReaderToastType.SaveFailed -> saveFailedPrefix + (message ?: "")
+                    ReaderToastType.ShareFailed -> shareFailedPrefix + (message ?: "")
+                }
+                Toast.makeText(context, toastText, Toast.LENGTH_SHORT).show()
+                errorMessageEvent = null
+            }
+    }
 
     // --- SAF launcher for "Save As" ---
     // Stores the URL temporarily while waiting for SAF result
@@ -83,12 +110,13 @@ fun ReaderScreen(
             try {
                 imageSaver.saveToUri(url, uri)
                 launch(Dispatchers.Main) {
-                    Toast.makeText(context, context.getString(R.string.reader_saved_to_file), Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, savedToFileText, Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "saveToUri failed", e)
                 launch(Dispatchers.Main) {
-                    Toast.makeText(context, context.getString(R.string.reader_save_failed, e.message ?: ""), Toast.LENGTH_SHORT).show()
+                    errorToastType = ReaderToastType.SaveFailed
+                    errorMessageEvent = e.message ?: "Unknown error"
                 }
             }
         }
@@ -252,7 +280,11 @@ fun ReaderScreen(
     // ────────────────────────────────────────────────────────────
     if (showBottomSheet && selectedPageUrl != null) {
         PageActionBottomSheet(
-            onDismiss = { showBottomSheet = false },
+            onDismiss = {
+                showBottomSheet = false
+                selectedPageUrl = null
+                Log.d(TAG, "Page action sheet dismissed: visible=$showBottomSheet, url=$selectedPageUrl")
+            },
             onAction = { action ->
                 val url = selectedPageUrl ?: return@PageActionBottomSheet
                 val pageName = "page_${state.lastReadPageIndex + 1}"
@@ -263,12 +295,13 @@ fun ReaderScreen(
                             try {
                                 imageSaver.quickSave(url, pageName)
                                 launch(Dispatchers.Main) {
-                                    Toast.makeText(context, context.getString(R.string.reader_saved_to_pictures), Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, savedToPicturesText, Toast.LENGTH_SHORT).show()
                                 }
                             } catch (e: Exception) {
                                 Log.e(TAG, "quickSave failed", e)
                                 launch(Dispatchers.Main) {
-                                    Toast.makeText(context, context.getString(R.string.reader_save_failed, e.message ?: ""), Toast.LENGTH_SHORT).show()
+                                    errorToastType = ReaderToastType.SaveFailed
+                                    errorMessageEvent = e.message ?: "Unknown error"
                                 }
                             }
                         }
@@ -284,13 +317,14 @@ fun ReaderScreen(
                             try {
                                 val intent = imageSaver.shareImage(url, pageName)
                                 launch(Dispatchers.Main) {
-                                    Toast.makeText(context, context.getString(R.string.reader_sharing), Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, sharingText, Toast.LENGTH_SHORT).show()
                                     context.startActivity(Intent.createChooser(intent, null))
                                 }
                             } catch (e: Exception) {
                                 Log.e(TAG, "shareImage failed", e)
                                 launch(Dispatchers.Main) {
-                                    Toast.makeText(context, context.getString(R.string.reader_share_failed, e.message ?: ""), Toast.LENGTH_SHORT).show()
+                                    errorToastType = ReaderToastType.ShareFailed
+                                    errorMessageEvent = e.message ?: "Unknown error"
                                 }
                             }
                         }
