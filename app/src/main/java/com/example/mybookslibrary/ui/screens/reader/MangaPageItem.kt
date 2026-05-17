@@ -1,6 +1,5 @@
 package com.example.mybookslibrary.ui.screens.reader
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -36,20 +35,21 @@ import coil3.compose.AsyncImage
 import coil3.compose.AsyncImagePainter
 import com.example.mybookslibrary.R
 import com.example.mybookslibrary.ui.util.appString
+import timber.log.Timber
 
-private const val TAG = "MangaPageItem"
 
 /**
- * Renders a single manga page image with:
- * - Dynamic aspect-ratio sizing based on intrinsic image dimensions.
- * - Error state UI ("Tap to retry") when the image fails to load.
- * - Long-press gesture detection for opening page actions (save/share).
+ * Renders one manga page with dynamic sizing, retry support, and long-press actions.
  *
- * @param imageUrl The URL of the page image.
- * @param index Zero-based page index, used for content description and logging.
- * @param modifier Modifier applied to the outermost container.
- * @param onLongPress Callback invoked when the user long-presses the page,
- *                    passing the [imageUrl] so the caller can open the action sheet.
+ * The composable keeps the page aspect ratio in sync with the loaded image,
+ * overlays a retry UI when Coil reports an error, and forwards long-press
+ * gestures to [onLongPress] so the caller can open page actions.
+ *
+ * @param imageUrl Page image URL loaded by Coil.
+ * @param index Zero-based page index used for content description and logs.
+ * @param modifier Modifier applied to the outer container.
+ * @param onLongPress Optional callback invoked with [imageUrl] when the user
+ * long-presses the page; if `null`, the gesture is ignored.
  */
 @Composable
 fun MangaPageItem(
@@ -78,6 +78,7 @@ fun MangaPageItem(
                     val down = awaitFirstDown(requireUnconsumed = false)
                     val longPress = awaitLongPressOrCancellation(down.id)
                     if (longPress != null) {
+                        Timber.d("Long press detected for page=%d url=%s", index + 1, imageUrl)
                         onLongPress?.invoke(imageUrl)
                     }
                 }
@@ -100,7 +101,7 @@ fun MangaPageItem(
                     }
                     is AsyncImagePainter.State.Error -> {
                         isError = true
-                        Log.e(TAG, "Failed to load page ${index + 1}: $imageUrl", state.result.throwable)
+                        Timber.e(state.result.throwable, "Failed to load page=%d url=%s", index + 1, imageUrl)
                     }
                     else -> { /* Loading / Empty — no-op */ }
                 }
@@ -116,7 +117,7 @@ fun MangaPageItem(
                     .background(Color.Black.copy(alpha = 0.7f))
                     .pointerInput(Unit) {
                         detectTapGestures(onTap = {
-                            Log.d(TAG, "Retrying page ${index + 1}: $imageUrl")
+                            Timber.d("Retry tapped for page=%d url=%s", index + 1, imageUrl)
                             retryHash++
                             isError = false
                         })

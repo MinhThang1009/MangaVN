@@ -33,7 +33,17 @@ import androidx.compose.ui.unit.dp
 import com.example.mybookslibrary.ui.util.appString
 import com.example.mybookslibrary.R
 import androidx.compose.runtime.Composable
+import timber.log.Timber
 
+/**
+ * Top reader overlay bar anchored inside the parent [BoxScope].
+ *
+ * Shows the chapter title and a back button only while [isVisible] is true.
+ *
+ * @param chapterTitle Title rendered in the center area of the bar.
+ * @param isVisible Controls the animated visibility of the bar.
+ * @param onBackClick Called when the back button is tapped.
+ */
 @Composable
 fun BoxScope.ReaderTopBar(chapterTitle: String, isVisible: Boolean, onBackClick: () -> Unit) {
     AnimatedVisibility(
@@ -50,7 +60,10 @@ fun BoxScope.ReaderTopBar(chapterTitle: String, isVisible: Boolean, onBackClick:
                 .padding(horizontal = 8.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(onClick = onBackClick) {
+            IconButton(onClick = {
+                Timber.d("ReaderTopBar back clicked")
+                onBackClick()
+            }) {
                 Box(
                     modifier = Modifier.size(36.dp).clip(CircleShape)
                         .background(MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.15f)),
@@ -76,6 +89,18 @@ fun BoxScope.ReaderTopBar(chapterTitle: String, isVisible: Boolean, onBackClick:
     }
 }
 
+/**
+ * Bottom reader overlay bar anchored inside the parent [BoxScope].
+ *
+ * Displays the current page counter, the pages label, and a reading-mode toggle button.
+ * The page counter is rendered as one-based and clamped to the valid range.
+ *
+ * @param isVisible Controls the animated visibility of the bar.
+ * @param currentPage Zero-based current page index used to derive the displayed counter.
+ * @param totalPages Total number of pages available in the chapter.
+ * @param currentReadingMode Active reading mode used to choose the toggle icon and label.
+ * @param onToggleReadingMode Called when the mode toggle button is tapped.
+ */
 @Composable
 fun BoxScope.ReaderBottomBar(
     isVisible: Boolean,
@@ -120,7 +145,10 @@ fun BoxScope.ReaderBottomBar(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(end = 8.dp)
             )
-            IconButton(onClick = onToggleReadingMode) {
+            IconButton(onClick = {
+                Timber.d("ReaderBottomBar toggle clicked: currentMode=%s", currentReadingMode)
+                onToggleReadingMode()
+            }) {
                 Icon(
                     imageVector = modeIcon,
                     contentDescription = appString(modeDescriptionRes),
