@@ -1,7 +1,6 @@
 package com.example.mybookslibrary.ui.screens.reader
 
 import android.content.Intent
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -50,14 +49,21 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-
-private const val TAG = "ReaderScreen"
+import timber.log.Timber
 
 private enum class ReaderToastType {
     SaveFailed,
     ShareFailed
 }
 
+/**
+ * Main reader surface that coordinates page rendering, overlay bars, reading-mode sync,
+ * and page-level actions such as quick save, save-as, and share.
+ *
+ * @param onBackClick Invoked when the reader top bar back button is tapped.
+ * @param modifier Modifier applied to the root reader container.
+ * @param viewModel Reader state owner that provides pages, progress, mode, and navigation events.
+ */
 @Composable
 fun ReaderScreen(
     onBackClick: () -> Unit,
@@ -76,6 +82,8 @@ fun ReaderScreen(
 
     // --- ImageSaver instance (no DI needed — uses bare OkHttpClient internally) ---
     val imageSaver = remember { ImageSaver(context) }
+
+    Timber.d("ReaderScreen composed: chapter=%s mode=%s pages=%d", state.chapterTitle, state.currentReadingMode, state.pages.size)
 
     // --- Page Action Bottom Sheet state ---
     var showBottomSheet by remember { mutableStateOf(false) }
@@ -104,16 +112,23 @@ fun ReaderScreen(
     ) { uri ->
         val url = pendingSaveAsUrl ?: return@rememberLauncherForActivityResult
         pendingSaveAsUrl = null
-        if (uri == null) return@rememberLauncherForActivityResult
+        if (uri == null) {
+            Timber.d("Reader save-as cancelled: url=%s", url)
+            return@rememberLauncherForActivityResult
+        }
+
+        Timber.d("Reader save-as requested: url=%s uri=%s", url, uri)
 
         scope.launch(Dispatchers.IO) {
             try {
+                Timber.d("Reader save-as start: url=%s uri=%s", url, uri)
                 imageSaver.saveToUri(url, uri)
                 launch(Dispatchers.Main) {
                     Toast.makeText(context, savedToFileText, Toast.LENGTH_SHORT).show()
                 }
+                Timber.d("Reader save-as end: url=%s uri=%s", url, uri)
             } catch (e: Exception) {
-                Log.e(TAG, "saveToUri failed", e)
+                Timber.e(e, "Reader save-as failed: url=%s uri=%s", url, uri)
                 launch(Dispatchers.Main) {
                     errorToastType = ReaderToastType.SaveFailed
                     errorMessageEvent = e.message ?: "Unknown error"
@@ -124,6 +139,7 @@ fun ReaderScreen(
 
     // --- Long-press handler ---
     val onPageLongPress: (String) -> Unit = { url ->
+        Timber.d("Reader page long-pressed: page=%d url=%s", state.lastReadPageIndex + 1, url)
         selectedPageUrl = url
         showBottomSheet = true
     }
@@ -153,7 +169,11 @@ fun ReaderScreen(
             .filter { (_, totalItemsCount) -> totalItemsCount > 0 }
             .filter { (lastVisible, _) -> lastVisible >= 0 }
             .distinctUntilChanged()
-            .map { (lastVisible, _) -> lastVisible.coerceIn(0, state.pages.lastIndex) }
+            .map { (lastVisible, totalItemsCount) ->
+                val visiblePage = lastVisible.coerceIn(0, state.pages.lastIndex)
+                Timber.d("Reader vertical page visible: visible=%d total=%d mode=%s", visiblePage, totalItemsCount, state.currentReadingMode)
+                visiblePage
+            }
             .collect(viewModel::onVisiblePageChanged)
     }
 
@@ -161,8 +181,10 @@ fun ReaderScreen(
     LaunchedEffect(state.pages.size, state.currentReadingMode) {
         if (state.currentReadingMode != ReadingMode.VERTICAL) return@LaunchedEffect
         if (state.pages.isEmpty() || hasRestoredInitialPage.value) return@LaunchedEffect
+        Timber.d("Reader vertical restore start: targetPage=%d", state.lastReadPageIndex)
         listState.scrollToItem(state.lastReadPageIndex.coerceIn(0, state.pages.lastIndex))
         hasRestoredInitialPage.value = true
+        Timber.d("Reader vertical restore end: targetPage=%d", state.lastReadPageIndex)
     }
 
     // ────────────────────────────────────────────────────────────
@@ -171,10 +193,12 @@ fun ReaderScreen(
     LaunchedEffect(state.currentReadingMode) {
         if (state.pages.isEmpty()) return@LaunchedEffect
         val targetPage = state.lastReadPageIndex.coerceIn(0, state.pages.lastIndex)
+        Timber.d("Reader mode sync start: mode=%s targetPage=%d", state.currentReadingMode, targetPage)
         when (state.currentReadingMode) {
             ReadingMode.VERTICAL -> listState.scrollToItem(targetPage)
             ReadingMode.LTR, ReadingMode.RTL -> pagerState.scrollToPage(targetPage)
         }
+        Timber.d("Reader mode sync end: mode=%s targetPage=%d", state.currentReadingMode, targetPage)
     }
 
     // ────────────────────────────────────────────────────────────
@@ -182,8 +206,13 @@ fun ReaderScreen(
     // ────────────────────────────────────────────────────────────
     LaunchedEffect(pagerState, state.currentReadingMode) {
         if (state.currentReadingMode == ReadingMode.VERTICAL) return@LaunchedEffect
+        Timber.d("Reader horizontal page tracking active: mode=%s", state.currentReadingMode)
         snapshotFlow { pagerState.currentPage }
             .distinctUntilChanged()
+            .map { page ->
+                Timber.d("Reader horizontal page visible: page=%d mode=%s", page, state.currentReadingMode)
+                page
+            }
             .collect(viewModel::onVisiblePageChanged)
     }
 
@@ -191,13 +220,19 @@ fun ReaderScreen(
     LaunchedEffect(pagerState, state.currentReadingMode) {
         if (state.currentReadingMode == ReadingMode.VERTICAL) return@LaunchedEffect
         viewModel.pageNavigationEvent.collectLatest { targetPage ->
+            Timber.d("Reader page navigation start: targetPage=%d mode=%s", targetPage, state.currentReadingMode)
             pagerState.animateScrollToPage(targetPage)
+            Timber.d("Reader page navigation end: targetPage=%d mode=%s", targetPage, state.currentReadingMode)
         }
     }
 
     // Sync progress to Room when leaving
     DisposableEffect(Unit) {
-        onDispose { viewModel.syncProgressToRoom() }
+        onDispose {
+            Timber.d("Reader progress sync start")
+            viewModel.syncProgressToRoom()
+            Timber.d("Reader progress sync end")
+        }
     }
 
     // ────────────────────────────────────────────────────────────
@@ -214,7 +249,13 @@ fun ReaderScreen(
                         totalWidth = size.width.toFloat(),
                         mode = state.currentReadingMode
                     )
-                    Log.d(TAG, "Tap detected: x=${offset.x}, width=${size.width}, mode=${state.currentReadingMode}, action=$action")
+                    Timber.d(
+                        "Reader tap detected: x=%.1f width=%d mode=%s action=%s",
+                        offset.x,
+                        size.width,
+                        state.currentReadingMode,
+                        action
+                    )
 
                     viewModel.navigateToPage(action)
                 })
@@ -283,7 +324,7 @@ fun ReaderScreen(
             onDismiss = {
                 showBottomSheet = false
                 selectedPageUrl = null
-                Log.d(TAG, "Page action sheet dismissed: visible=$showBottomSheet, url=$selectedPageUrl")
+                Timber.d("Reader page action sheet dismissed")
             },
             onAction = { action ->
                 val url = selectedPageUrl ?: return@PageActionBottomSheet
@@ -293,12 +334,14 @@ fun ReaderScreen(
                     PageAction.QuickSave -> {
                         scope.launch(Dispatchers.IO) {
                             try {
+                                Timber.d("Reader quick-save start: page=%d url=%s", state.lastReadPageIndex + 1, url)
                                 imageSaver.quickSave(url, pageName)
                                 launch(Dispatchers.Main) {
                                     Toast.makeText(context, savedToPicturesText, Toast.LENGTH_SHORT).show()
                                 }
+                                Timber.d("Reader quick-save end: page=%d url=%s", state.lastReadPageIndex + 1, url)
                             } catch (e: Exception) {
-                                Log.e(TAG, "quickSave failed", e)
+                                Timber.e(e, "Reader quick-save failed: page=%d url=%s", state.lastReadPageIndex + 1, url)
                                 launch(Dispatchers.Main) {
                                     errorToastType = ReaderToastType.SaveFailed
                                     errorMessageEvent = e.message ?: "Unknown error"
@@ -308,6 +351,7 @@ fun ReaderScreen(
                     }
 
                     PageAction.SaveAs -> {
+                        Timber.d("Reader save-as selected: page=%d url=%s", state.lastReadPageIndex + 1, url)
                         pendingSaveAsUrl = url
                         saveAsLauncher.launch("$pageName.jpg")
                     }
@@ -315,13 +359,15 @@ fun ReaderScreen(
                     PageAction.Share -> {
                         scope.launch(Dispatchers.IO) {
                             try {
+                                Timber.d("Reader share start: page=%d url=%s", state.lastReadPageIndex + 1, url)
                                 val intent = imageSaver.shareImage(url, pageName)
                                 launch(Dispatchers.Main) {
                                     Toast.makeText(context, sharingText, Toast.LENGTH_SHORT).show()
                                     context.startActivity(Intent.createChooser(intent, null))
                                 }
+                                Timber.d("Reader share end: page=%d url=%s", state.lastReadPageIndex + 1, url)
                             } catch (e: Exception) {
-                                Log.e(TAG, "shareImage failed", e)
+                                Timber.e(e, "Reader share failed: page=%d url=%s", state.lastReadPageIndex + 1, url)
                                 launch(Dispatchers.Main) {
                                     errorToastType = ReaderToastType.ShareFailed
                                     errorMessageEvent = e.message ?: "Unknown error"

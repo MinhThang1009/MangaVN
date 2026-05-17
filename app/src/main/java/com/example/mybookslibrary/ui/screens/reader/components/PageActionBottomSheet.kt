@@ -23,30 +23,28 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.mybookslibrary.R
 import com.example.mybookslibrary.ui.util.appString
+import timber.log.Timber
 
 /**
- * Sealed interface representing the three available page actions.
+ * Exhaustive page-action contract emitted by [PageActionBottomSheet].
  *
- * Used as the callback type from [PageActionBottomSheet] so the caller
- * (typically [ReaderScreen]) can pattern-match and dispatch the correct
- * [ImageSaver] function.
+ * The caller typically receives one of these values in [ReaderScreen] and
+ * maps it to the corresponding storage/share operation.
  */
 sealed interface PageAction {
-    /** Save immediately to MediaStore (Pictures/MyBooksLibrary). */
+    /** Request an immediate gallery save through MediaStore. */
     data object QuickSave : PageAction
-    /** Open SAF document picker and save to user-chosen location. */
+    /** Request a Storage Access Framework destination picker. */
     data object SaveAs : PageAction
-    /** Share the page image via system share sheet. */
+    /** Request a system share action for the current page image. */
     data object Share : PageAction
 }
 
 /**
- * Material 3 [ModalBottomSheet] presenting page-level actions for the reader.
+ * Material 3 [ModalBottomSheet] that exposes page-level actions for the reader.
  *
- * Displays three action buttons in a horizontal row:
- * - **Quick Save** — saves the image directly to the device gallery.
- * - **Save As…** — opens the system file picker (SAF) for a custom save location.
- * - **Share** — shares the image via `Intent.ACTION_SEND`.
+ * The sheet only forwards the selected [PageAction] to the caller and then
+ * requests dismissal; it does not perform any storage or sharing work itself.
  *
  * @param onDismiss Called when the sheet should be hidden.
  * @param onAction Called with the selected [PageAction].
@@ -60,7 +58,10 @@ fun PageActionBottomSheet(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     ModalBottomSheet(
-        onDismissRequest = onDismiss,
+        onDismissRequest = {
+            Timber.d("PageActionBottomSheet dismissed")
+            onDismiss()
+        },
         sheetState = sheetState
     ) {
         Row(
@@ -74,6 +75,7 @@ fun PageActionBottomSheet(
                 icon = Icons.Outlined.Download,
                 label = appString(R.string.reader_action_quick_save),
                 onClick = {
+                    Timber.d("PageActionBottomSheet action=QuickSave")
                     onAction(PageAction.QuickSave)
                     onDismiss()
                 }
@@ -82,6 +84,7 @@ fun PageActionBottomSheet(
                 icon = Icons.Outlined.Save,
                 label = appString(R.string.reader_action_save_as),
                 onClick = {
+                    Timber.d("PageActionBottomSheet action=SaveAs")
                     onAction(PageAction.SaveAs)
                     onDismiss()
                 }
@@ -90,6 +93,7 @@ fun PageActionBottomSheet(
                 icon = Icons.Outlined.Share,
                 label = appString(R.string.reader_action_share),
                 onClick = {
+                    Timber.d("PageActionBottomSheet action=Share")
                     onAction(PageAction.Share)
                     onDismiss()
                 }
