@@ -12,10 +12,15 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.MenuBook
+import androidx.compose.material.icons.filled.AutoStories
+import androidx.compose.material.icons.filled.ImportContacts
+import com.example.mybookslibrary.domain.model.ReadingMode
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -28,7 +33,17 @@ import androidx.compose.ui.unit.dp
 import com.example.mybookslibrary.ui.util.appString
 import com.example.mybookslibrary.R
 import androidx.compose.runtime.Composable
+import timber.log.Timber
 
+/**
+ * Top reader overlay bar anchored inside the parent [BoxScope].
+ *
+ * Shows the chapter title and a back button only while [isVisible] is true.
+ *
+ * @param chapterTitle Title rendered in the center area of the bar.
+ * @param isVisible Controls the animated visibility of the bar.
+ * @param onBackClick Called when the back button is tapped.
+ */
 @Composable
 fun BoxScope.ReaderTopBar(chapterTitle: String, isVisible: Boolean, onBackClick: () -> Unit) {
     AnimatedVisibility(
@@ -45,7 +60,10 @@ fun BoxScope.ReaderTopBar(chapterTitle: String, isVisible: Boolean, onBackClick:
                 .padding(horizontal = 8.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(onClick = onBackClick) {
+            IconButton(onClick = {
+                Timber.d("ReaderTopBar back clicked")
+                onBackClick()
+            }) {
                 Box(
                     modifier = Modifier.size(36.dp).clip(CircleShape)
                         .background(MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.15f)),
@@ -71,10 +89,40 @@ fun BoxScope.ReaderTopBar(chapterTitle: String, isVisible: Boolean, onBackClick:
     }
 }
 
+/**
+ * Bottom reader overlay bar anchored inside the parent [BoxScope].
+ *
+ * Displays the current page counter, the pages label, and a reading-mode toggle button.
+ * The page counter is rendered as one-based and clamped to the valid range.
+ *
+ * @param isVisible Controls the animated visibility of the bar.
+ * @param currentPage Zero-based current page index used to derive the displayed counter.
+ * @param totalPages Total number of pages available in the chapter.
+ * @param currentReadingMode Active reading mode used to choose the toggle icon and label.
+ * @param onToggleReadingMode Called when the mode toggle button is tapped.
+ */
 @Composable
-fun BoxScope.ReaderBottomBar(isVisible: Boolean, currentPage: Int, totalPages: Int) {
+fun BoxScope.ReaderBottomBar(
+    isVisible: Boolean,
+    currentPage: Int,
+    totalPages: Int,
+    currentReadingMode: ReadingMode,
+    onToggleReadingMode: () -> Unit
+) {
     val safeTotalPages = totalPages.coerceAtLeast(1)
     val displayPage = (currentPage + 1).coerceIn(1, safeTotalPages)
+    val nextReadingModeRes = when (currentReadingMode) {
+        ReadingMode.VERTICAL -> R.string.reader_mode_ltr
+        ReadingMode.LTR -> R.string.reader_mode_rtl
+        ReadingMode.RTL -> R.string.reader_mode_vertical
+    }
+
+    // Icon and content description cycle: VERTICAL → LTR → RTL
+    val modeIcon = when (currentReadingMode) {
+        ReadingMode.VERTICAL -> Icons.AutoMirrored.Filled.MenuBook
+        ReadingMode.LTR -> Icons.Filled.ImportContacts
+        ReadingMode.RTL -> Icons.Filled.AutoStories
+    }
 
     AnimatedVisibility(
         visible = isVisible,
@@ -86,7 +134,8 @@ fun BoxScope.ReaderBottomBar(isVisible: Boolean, currentPage: Int, totalPages: I
             modifier = Modifier
                 .fillMaxWidth()
                 .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.9f))
-                .padding(horizontal = 24.dp, vertical = 16.dp),
+                .navigationBarsPadding()
+                .padding(horizontal = 24.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
@@ -98,9 +147,23 @@ fun BoxScope.ReaderBottomBar(isVisible: Boolean, currentPage: Int, totalPages: I
             Text(
                 text = appString(R.string.reader_pages_label),
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(end = 8.dp)
             )
+            IconButton(onClick = {
+                Timber.d("ReaderBottomBar toggle clicked: currentMode=%s", currentReadingMode)
+                onToggleReadingMode()
+            }) {
+                Icon(
+                    imageVector = modeIcon,
+                    contentDescription = appString(
+                        R.string.reader_switch_mode_action,
+                        appString(nextReadingModeRes)
+                    ),
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
         }
     }
 }
-
