@@ -33,6 +33,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import coil3.compose.AsyncImagePainter
+import coil3.decode.DataSource
 import com.example.mybookslibrary.R
 import com.example.mybookslibrary.ui.util.appString
 import timber.log.Timber
@@ -98,6 +99,15 @@ fun MangaPageItem(
                         if (w > 0f && h > 0f) {
                             aspectRatio = w / h
                         }
+                        val dataSource = state.result.dataSource
+                        val origin = if (dataSource == DataSource.NETWORK) "internet" else "cache"
+                        Timber.d(
+                            "Loaded page=%d url=%s origin=%s source=%s",
+                            index + 1,
+                            imageUrl,
+                            origin,
+                            dataSource
+                        )
                     }
                     is AsyncImagePainter.State.Error -> {
                         isError = true
