@@ -41,13 +41,17 @@ import com.example.mybookslibrary.domain.model.TapZoneEvaluator
 import com.example.mybookslibrary.ui.screens.reader.components.PageAction
 import com.example.mybookslibrary.ui.screens.reader.components.PageActionBottomSheet
 import com.example.mybookslibrary.ui.util.appString
+import com.example.mybookslibrary.ui.util.findActivePageIndex
 import com.example.mybookslibrary.ui.viewmodel.ReaderViewModel
 import com.example.mybookslibrary.util.storage.ImageSaver
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -64,13 +68,16 @@ private data class SelectedPageActionTarget(
 
 /**
  * Main reader surface that coordinates page rendering, overlay bars, reading-mode sync,
- * and page-level actions such as quick save, save-as, and share.
+ * progress tracking, and page-level actions such as quick save, save-as, and share.
  *
- * @param onBackClick Invoked when the reader top bar back button is tapped.
- * @param modifier Modifier applied to the root reader container.
- * @param viewModel Reader state owner that provides pages, progress, mode, and navigation events.
+ * Logging notes:
+ * - vertical page changes are logged after the active-item calculation,
+ * - flushes on dispose are logged with the final page index,
+ * - mode sync and page navigation events keep their existing debug traces.
  */
+@Suppress("ASSIGNED_VALUE_IS_NEVER_READ")
 @Composable
+@OptIn(FlowPreview::class)
 fun ReaderScreen(
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -91,7 +98,6 @@ fun ReaderScreen(
     Timber.d("ReaderScreen composed: chapter=%s mode=%s pages=%d", state.chapterTitle, state.currentReadingMode, state.pages.size)
 
     // --- Page Action Bottom Sheet state ---
-    var showBottomSheet by remember { mutableStateOf(false) }
     var selectedPageTarget by remember { mutableStateOf<SelectedPageActionTarget?>(null) }
     var errorMessageEvent by remember { mutableStateOf<String?>(null) }
     var errorToastType by remember { mutableStateOf(ReaderToastType.SaveFailed) }
@@ -149,12 +155,13 @@ fun ReaderScreen(
     val onPageLongPress: (String, Int) -> Unit = { url, pageIndex ->
         Timber.d("Reader page long-pressed: page=%d url=%s", pageIndex + 1, url)
         selectedPageTarget = SelectedPageActionTarget(pageUrl = url, pageIndex = pageIndex)
-        showBottomSheet = true
     }
 
     // --- Vertical mode state ---
+    // Keep the latest active page so we can flush it immediately on dispose.
     val listState = rememberLazyListState()
     val hasRestoredInitialPage = remember { mutableStateOf(false) }
+    val latestActivePageIndex = remember { mutableStateOf<Int?>(null) }
 
     // --- Horizontal mode state ---
     val pagerState = rememberPagerState(
@@ -168,18 +175,17 @@ fun ReaderScreen(
     LaunchedEffect(listState, state.pages.size, state.currentReadingMode) {
         if (state.currentReadingMode != ReadingMode.VERTICAL) return@LaunchedEffect
         if (state.pages.isEmpty()) return@LaunchedEffect
-        snapshotFlow {
-            val lastVisible = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: -1
-            val totalItemsCount = listState.layoutInfo.totalItemsCount
-            lastVisible to totalItemsCount
-        }
+        snapshotFlow { listState.layoutInfo.findActivePageIndex() }
+            .filter { it >= 0 }
+            .onEach { index ->
+                latestActivePageIndex.value = index
+                Timber.d("Reader vertical active-page candidate: page=%d", index)
+            }
             .distinctUntilChanged()
-            .filter { (_, totalItemsCount) -> totalItemsCount > 0 }
-            .filter { (lastVisible, _) -> lastVisible >= 0 }
-            .distinctUntilChanged()
-            .map { (lastVisible, totalItemsCount) ->
-                val visiblePage = lastVisible.coerceIn(0, state.pages.lastIndex)
-                Timber.d("Reader vertical page visible: visible=%d total=%d mode=%s", visiblePage, totalItemsCount, state.currentReadingMode)
+            .debounce(300)
+            .map { index ->
+                val visiblePage = index.coerceIn(0, state.pages.lastIndex)
+                Timber.d("Reader vertical page active: page=%d mode=%s", visiblePage, state.currentReadingMode)
                 visiblePage
             }
             .collect(viewModel::onVisiblePageChanged)
@@ -237,8 +243,8 @@ fun ReaderScreen(
     // Sync progress to Room when leaving
     DisposableEffect(Unit) {
         onDispose {
-            Timber.d("Reader progress sync start")
-            viewModel.syncProgressToRoom()
+            Timber.d("Reader progress sync start: finalPage=%s", latestActivePageIndex.value?.toString() ?: "<none>")
+            viewModel.flushProgress(latestActivePageIndex.value)
             Timber.d("Reader progress sync end")
         }
     }
@@ -327,10 +333,9 @@ fun ReaderScreen(
     // ────────────────────────────────────────────────────────────
     // Page Action Bottom Sheet
     // ────────────────────────────────────────────────────────────
-    if (showBottomSheet && selectedPageTarget != null) {
+    if (selectedPageTarget != null) {
         PageActionBottomSheet(
             onDismiss = {
-                showBottomSheet = false
                 selectedPageTarget = null
                 Timber.d("Reader page action sheet dismissed")
             },
