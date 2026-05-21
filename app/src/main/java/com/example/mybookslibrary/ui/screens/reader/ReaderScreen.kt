@@ -192,6 +192,8 @@ fun ReaderScreen(
     val latestActivePageIndex = remember { mutableStateOf<Int?>(null) }
 
     // --- Horizontal mode state ---
+    // startPageIndex arrives through navigation and SavedStateHandle as
+    // ReaderState.lastReadPageIndex, so the pager resumes on the saved page.
     val pagerState = rememberPagerState(
         initialPage = state.lastReadPageIndex,
         pageCount = { state.pages.size }
