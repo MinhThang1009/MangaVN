@@ -20,7 +20,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.filled.StopCircle
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.style.TextOverflow
 import com.example.mybookslibrary.ui.util.appString
@@ -31,6 +38,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import com.example.mybookslibrary.R
+import com.example.mybookslibrary.domain.model.ChapterDownloadState
+import com.example.mybookslibrary.domain.model.ChapterDownloadStatus
 
 @Composable
 fun VolumeHeader(volume: String) {
@@ -54,7 +63,10 @@ fun ChapterRow(
     chapterTitle: String,
     onClick: () -> Unit,
     onMarkCompleted: () -> Unit,
-    onMarkUnread: () -> Unit
+    onMarkUnread: () -> Unit,
+    onStartDownload: () -> Unit,
+    onCancelDownload: () -> Unit,
+    onDeleteDownload: () -> Unit
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
     val isCompleted = chapter.status == ChapterReadingStatus.COMPLETED
@@ -120,6 +132,13 @@ fun ChapterRow(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = contentAlpha)
             )
+            Spacer(Modifier.width(8.dp))
+            ChapterDownloadIndicator(
+                state = chapter.downloadState,
+                onStartDownload = onStartDownload,
+                onCancelDownload = onCancelDownload,
+                onDeleteDownload = onDeleteDownload
+            )
         }
 
         DropdownMenu(
@@ -157,10 +176,74 @@ fun ChapterRow(
 }
 
 @Composable
+private fun ChapterDownloadIndicator(
+    state: ChapterDownloadState,
+    onStartDownload: () -> Unit,
+    onCancelDownload: () -> Unit,
+    onDeleteDownload: () -> Unit
+) {
+    val tint = MaterialTheme.colorScheme.onSurfaceVariant
+    when (state.status) {
+        ChapterDownloadStatus.NOT_DOWNLOADED -> {
+            IconButton(onClick = onStartDownload) {
+                Icon(
+                    imageVector = Icons.Filled.Download,
+                    contentDescription = appString(R.string.chapter_download)
+                )
+            }
+        }
+        ChapterDownloadStatus.PENDING -> {
+            IconButton(onClick = onCancelDownload) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(22.dp),
+                    strokeWidth = 2.dp,
+                    color = tint
+                )
+            }
+        }
+        ChapterDownloadStatus.DOWNLOADING -> {
+            IconButton(onClick = onCancelDownload) {
+                Box(contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(
+                        progress = { state.progressPercent.coerceIn(0, 100) / 100f },
+                        modifier = Modifier.size(24.dp),
+                        strokeWidth = 2.dp,
+                        color = tint
+                    )
+                    Icon(
+                        imageVector = Icons.Filled.StopCircle,
+                        contentDescription = appString(R.string.chapter_cancel_download),
+                        modifier = Modifier.size(14.dp),
+                        tint = tint
+                    )
+                }
+            }
+        }
+        ChapterDownloadStatus.DOWNLOADED -> {
+            IconButton(onClick = onDeleteDownload) {
+                Icon(
+                    imageVector = Icons.Filled.CheckCircle,
+                    contentDescription = appString(R.string.chapter_delete_download),
+                    tint = tint
+                )
+            }
+        }
+        ChapterDownloadStatus.ERROR -> {
+            IconButton(onClick = onStartDownload) {
+                Icon(
+                    imageVector = Icons.Filled.ErrorOutline,
+                    contentDescription = state.errorMessage ?: appString(R.string.chapter_download_error),
+                    tint = MaterialTheme.colorScheme.error
+                )
+            }
+        }
+    }
+}
+
+@Composable
 fun buildChapterTitle(ch: ChapterWithProgressModel): String {
     val vol = if (!ch.volume.isNullOrBlank()) appString(R.string.chapter_vol_prefix, ch.volume) else ""
     val num = if (!ch.chapterNumber.isNullOrBlank()) appString(R.string.chapter_num_prefix, ch.chapterNumber) else appString(R.string.chapter_oneshot)
     return "$vol$num"
 }
-
 

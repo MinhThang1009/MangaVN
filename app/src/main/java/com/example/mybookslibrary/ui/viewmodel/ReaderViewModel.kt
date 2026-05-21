@@ -4,7 +4,10 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import androidx.core.net.toUri
 import com.example.mybookslibrary.R
+import com.example.mybookslibrary.data.download.DownloadedChapterCache
+import com.example.mybookslibrary.data.download.OfflineDownloadStorage
 import com.example.mybookslibrary.data.repository.LibraryRepository
 import com.example.mybookslibrary.data.repository.MangaRepository
 import com.example.mybookslibrary.di.IoDispatcher
@@ -18,6 +21,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -40,6 +44,8 @@ class ReaderViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val mangaRepository: MangaRepository,
     private val libraryRepository: LibraryRepository,
+    private val downloadedChapterCache: DownloadedChapterCache,
+    private val offlineDownloadStorage: OfflineDownloadStorage,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : AndroidViewModel(application) {
 
@@ -77,7 +83,7 @@ class ReaderViewModel @Inject constructor(
         loadChapterPages()
     }
 
-    // Gọi At-Home API để lấy URL ảnh từng trang của chapter
+    // Ưu tiên trang offline nếu chapter đã tải; fallback At-Home API nếu chưa có bản local.
     private fun loadChapterPages() {
         if (chapterId.isEmpty()) {
             Timber.w("loadChapterPages aborted: missing chapterId")
@@ -89,9 +95,36 @@ class ReaderViewModel @Inject constructor(
             Timber.d("loadChapterPages start: chapterId=%s", chapterId)
             _state.update { it.copy(isLoading = true, error = null) }
             try {
+                val isDownloaded = downloadedChapterCache.isChapterDownloadedFlow(chapterId).first()
+                val localPages = if (isDownloaded) {
+                    offlineDownloadStorage.getChapterPages(mangaId, chapterId)
+                } else {
+                    emptyList()
+                }
+
+                if (localPages.isNotEmpty()) {
+                    val localPageUris = localPages.map { it.toUri().toString() }
+                    Timber.d(
+                        "loadChapterPages local success: mangaId=%s chapterId=%s pages=%d",
+                        mangaId,
+                        chapterId,
+                        localPageUris.size
+                    )
+                    _state.update { it.copy(pages = localPageUris, isLoading = false, error = null) }
+                    return@launch
+                }
+
+                if (isDownloaded) {
+                    Timber.w("loadChapterPages local missing, fallback network: mangaId=%s chapterId=%s", mangaId, chapterId)
+                }
+
                 mangaRepository.getChapterPages(chapterId).onSuccess { urls ->
                     Timber.d("loadChapterPages success: chapterId=%s pages=%d", chapterId, urls.size)
-                    _state.update { it.copy(pages = urls, isLoading = false, error = null) }
+                    if (urls.isEmpty()) {
+                        _state.update { it.copy(pages = emptyList(), isLoading = false, error = str(R.string.error_load_pages)) }
+                    } else {
+                        _state.update { it.copy(pages = urls, isLoading = false, error = null) }
+                    }
                 }.onFailure { throwable ->
                     Timber.w(
                         throwable,

@@ -3,8 +3,10 @@ package com.example.mybookslibrary.data.download
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
+import android.content.pm.ServiceInfo
 import android.os.Build
 import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
@@ -105,6 +107,7 @@ class ChapterDownloadWorker @AssistedInject constructor(
             )
             setProgress(workDataOf(KEY_PROGRESS_PERCENT to 100))
             setForeground(createForegroundInfo(chapterId, progressPercent = 100, indeterminate = false))
+            showFinishedNotification(chapterId, success = true, message = "Chapter download complete")
             Timber.d("ChapterDownloadWorker success: mangaId=%s chapterId=%s pages=%d", mangaId, chapterId, pageUrls.size)
             Result.success()
         } catch (t: Throwable) {
@@ -114,6 +117,11 @@ class ChapterDownloadWorker @AssistedInject constructor(
                 status = DownloadStatus.ERROR,
                 progressPercent = 0,
                 errorMessage = t.message
+            )
+            showFinishedNotification(
+                chapterId = chapterId,
+                success = false,
+                message = t.message ?: "Chapter download failed"
             )
             Result.failure(workDataOf(KEY_ERROR to (t.message ?: "Download failed")))
         }
@@ -160,7 +168,15 @@ class ChapterDownloadWorker @AssistedInject constructor(
             .setProgress(100, progressPercent.coerceIn(0, 100), indeterminate)
             .build()
 
-        return ForegroundInfo(notificationIdFor(chapterId), notification)
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            ForegroundInfo(
+                notificationIdFor(chapterId),
+                notification,
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+            )
+        } else {
+            ForegroundInfo(notificationIdFor(chapterId), notification)
+        }
     }
 
     private fun ensureNotificationChannel() {
@@ -178,8 +194,38 @@ class ChapterDownloadWorker @AssistedInject constructor(
         )
     }
 
+    private fun showFinishedNotification(
+        chapterId: String,
+        success: Boolean,
+        message: String
+    ) {
+        ensureNotificationChannel()
+        val notification = NotificationCompat.Builder(applicationContext, NOTIFICATION_CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setContentTitle(if (success) "Download complete" else "Download failed")
+            .setContentText(message)
+            .setAutoCancel(true)
+            .setOnlyAlertOnce(false)
+            .build()
+
+        try {
+            val notificationManager = NotificationManagerCompat.from(applicationContext)
+            if (notificationManager.areNotificationsEnabled()) {
+                notificationManager.notify(finishedNotificationIdFor(chapterId), notification)
+            } else {
+                Timber.w("Finished notification skipped: notifications disabled chapterId=%s", chapterId)
+            }
+        } catch (securityException: SecurityException) {
+            Timber.w(securityException, "Finished notification skipped: missing notification permission")
+        }
+    }
+
     private fun notificationIdFor(chapterId: String): Int {
         return NOTIFICATION_ID_BASE + (chapterId.hashCode().absoluteValue % NOTIFICATION_ID_RANGE)
+    }
+
+    private fun finishedNotificationIdFor(chapterId: String): Int {
+        return FINISHED_NOTIFICATION_ID_BASE + (chapterId.hashCode().absoluteValue % NOTIFICATION_ID_RANGE)
     }
 
     private fun extensionFor(pageUrl: String, contentSubtype: String?): String {
@@ -205,6 +251,7 @@ class ChapterDownloadWorker @AssistedInject constructor(
         private const val PAGE_DOWNLOAD_CONCURRENCY = 3
         private const val NOTIFICATION_CHANNEL_ID = "offline_downloads"
         private const val NOTIFICATION_ID_BASE = 41_000
+        private const val FINISHED_NOTIFICATION_ID_BASE = 42_000
         private const val NOTIFICATION_ID_RANGE = 1_000
     }
 }

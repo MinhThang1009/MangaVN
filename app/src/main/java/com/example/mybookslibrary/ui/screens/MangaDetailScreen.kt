@@ -450,7 +450,10 @@ fun MangaDetailScreen(
                                         onReadChapter(mangaId, chapter.chapterId, chTitle, startPageIndex)
                                     },
                                     onMarkCompleted = { viewModel.markChapterCompleted(chapter.chapterId, chapter.totalPages) },
-                                    onMarkUnread = { viewModel.markChapterUnread(chapter.chapterId, chapter.totalPages) }
+                                    onMarkUnread = { viewModel.markChapterUnread(chapter.chapterId, chapter.totalPages) },
+                                    onStartDownload = { viewModel.startChapterDownload(chapter.chapterId) },
+                                    onCancelDownload = { viewModel.cancelChapterDownload(chapter.chapterId) },
+                                    onDeleteDownload = { viewModel.deleteChapterDownload(chapter.chapterId) }
                                 )
                             }
                         }

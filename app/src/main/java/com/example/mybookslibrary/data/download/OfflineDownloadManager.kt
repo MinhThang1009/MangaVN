@@ -19,7 +19,8 @@ import javax.inject.Singleton
 @Singleton
 class OfflineDownloadManager @Inject constructor(
     @param:ApplicationContext private val context: Context,
-    private val repository: OfflineDownloadRepository
+    private val repository: OfflineDownloadRepository,
+    private val storage: OfflineDownloadStorage
 ) {
 
     private val workManager: WorkManager
@@ -60,6 +61,13 @@ class OfflineDownloadManager @Inject constructor(
         Timber.d("cancelDownload: chapterId=%s", chapterId)
         workManager.cancelUniqueWork(uniqueWorkName(chapterId))
         repository.removeQueuedChapter(chapterId)
+    }
+
+    suspend fun deleteDownload(mangaId: String, chapterId: String) {
+        Timber.d("deleteDownload: mangaId=%s chapterId=%s", mangaId, chapterId)
+        workManager.cancelUniqueWork(uniqueWorkName(chapterId))
+        storage.deleteChapter(mangaId, chapterId)
+        repository.markChapterNotDownloaded(chapterId)
     }
 
     companion object {
