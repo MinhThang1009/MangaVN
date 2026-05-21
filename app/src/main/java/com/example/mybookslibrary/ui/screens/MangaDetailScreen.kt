@@ -62,8 +62,11 @@ import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import androidx.compose.ui.platform.LocalContext
 import com.example.mybookslibrary.R
+import com.example.mybookslibrary.domain.model.ChapterReadingStatus
+import com.example.mybookslibrary.domain.model.ChapterWithProgressModel
 import com.example.mybookslibrary.ui.viewmodel.MangaDetailViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import timber.log.Timber
 
 private object DetailDimensions {
     val BackdropHeight = 280.dp
@@ -90,7 +93,7 @@ fun MangaDetailScreen(
     description: String,
     tags: List<String>,
     onBackClick: () -> Unit,
-    onReadChapter: (mangaId: String, chapterId: String, chapterTitle: String) -> Unit,
+    onReadChapter: (mangaId: String, chapterId: String, chapterTitle: String, startPageIndex: Int) -> Unit,
     onReviewClick: (mangaId: String) -> Unit = {},
     viewModel: MangaDetailViewModel = hiltViewModel()
 ) {
@@ -191,8 +194,23 @@ fun MangaDetailScreen(
                     Button(
                         onClick = {
                             if (firstChapter != null) {
+                                val startPageIndex = firstChapter.resumePageIndex()
+                                Timber.d(
+                                    "MangaDetail read-now: mangaId=%s chapterId=%s status=%s lastReadPage=%d startPageIndex=%d totalPages=%d",
+                                    mangaId,
+                                    firstChapter.chapterId,
+                                    firstChapter.status,
+                                    firstChapter.lastReadPage,
+                                    startPageIndex,
+                                    firstChapter.totalPages
+                                )
                                 viewModel.ensureInLibrary(displayTitle, displayCoverArt)
-                                onReadChapter(mangaId, firstChapter.chapterId, firstChapterTitle)
+                                onReadChapter(
+                                    mangaId,
+                                    firstChapter.chapterId,
+                                    firstChapterTitle,
+                                    startPageIndex
+                                )
                             }
                         },
                         enabled = firstChapter != null,
@@ -416,8 +434,20 @@ fun MangaDetailScreen(
                                     chapter = chapter,
                                     chapterTitle = chTitle,
                                     onClick = {
+                                        val startPageIndex = chapter.resumePageIndex()
+                                        Timber.d(
+                                            "MangaDetail chapter click: mangaId=%s chapterId=%s status=%s lastReadPage=%d startPageIndex=%d totalPages=%d",
+                                            mangaId,
+                                            chapter.chapterId,
+                                            chapter.status,
+                                            chapter.lastReadPage,
+                                            startPageIndex,
+                                            chapter.totalPages
+                                        )
                                         viewModel.ensureInLibrary(displayTitle, displayCoverArt)
-                                        onReadChapter(mangaId, chapter.chapterId, chTitle)
+                                        // Detail progress flows to ReaderDestination.startPageIndex,
+                                        // then into ReaderState.lastReadPageIndex via SavedStateHandle.
+                                        onReadChapter(mangaId, chapter.chapterId, chTitle, startPageIndex)
                                     },
                                     onMarkCompleted = { viewModel.markChapterCompleted(chapter.chapterId, chapter.totalPages) },
                                     onMarkUnread = { viewModel.markChapterUnread(chapter.chapterId, chapter.totalPages) }
@@ -450,6 +480,11 @@ fun MangaDetailScreen(
 
 // Chapter components are moved to `ChapterComponents.kt` to keep this file small and modular.
 // Use the canonical implementations from `ChapterComponents.kt` (VolumeHeader, ChapterRow, buildChapterTitle).
+
+private fun ChapterWithProgressModel.resumePageIndex(): Int {
+    val rawPageIndex = if (status == ChapterReadingStatus.UNREAD) 0 else lastReadPage
+    return if (totalPages > 0) rawPageIndex.coerceIn(0, totalPages - 1) else 0
+}
 
 // Minimal dummy review model used for preview lists:
 data class DummyReview(
