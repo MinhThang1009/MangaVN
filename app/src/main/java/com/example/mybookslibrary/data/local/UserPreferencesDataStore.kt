@@ -3,6 +3,7 @@ package com.example.mybookslibrary.data.local
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -21,9 +22,11 @@ class UserPreferencesDataStore(private val dataStore: DataStore<Preferences>) {
         private val READER_QUALITY = stringPreferencesKey("reader_quality")
         private val LANGUAGE = stringPreferencesKey("language")
         private val THEME_MODE = stringPreferencesKey("theme_mode")
+        private val DOWNLOAD_ONLY_ON_WIFI = booleanPreferencesKey("download_only_on_wifi")
         private const val DEFAULT_QUALITY = "data"
         private const val DEFAULT_LANGUAGE = "en"
         private const val DEFAULT_THEME = "system"
+        private const val DEFAULT_DOWNLOAD_ONLY_ON_WIFI = true
     }
 
     // Chất lượng ảnh reader
@@ -52,6 +55,16 @@ class UserPreferencesDataStore(private val dataStore: DataStore<Preferences>) {
 
     suspend fun setThemeMode(mode: String) {
         dataStore.edit { it[THEME_MODE] = mode }
+    }
+
+    fun observeDownloadOnlyOnWifi(): Flow<Boolean> =
+        dataStore.data.map { it[DOWNLOAD_ONLY_ON_WIFI] ?: DEFAULT_DOWNLOAD_ONLY_ON_WIFI }
+
+    suspend fun getDownloadOnlyOnWifi(): Boolean =
+        dataStore.data.first()[DOWNLOAD_ONLY_ON_WIFI] ?: DEFAULT_DOWNLOAD_ONLY_ON_WIFI
+
+    suspend fun setDownloadOnlyOnWifi(enabled: Boolean) {
+        dataStore.edit { it[DOWNLOAD_ONLY_ON_WIFI] = enabled }
     }
 
     suspend fun clearAll() {
