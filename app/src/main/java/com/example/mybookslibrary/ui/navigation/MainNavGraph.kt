@@ -287,9 +287,9 @@ fun MainNavHost() {
                         description = args.getString(MangaDetailDestination.descriptionArgumentName) ?: "",
                         tags = tags,
                         onBackClick = { navController.popBackStack() },
-                        onReadChapter = { mangaId, chapterId, chapterTitle ->
+                        onReadChapter = { mangaId, chapterId, chapterTitle, startPageIndex ->
                             navController.navigate(
-                                ReaderDestination.createRoute(mangaId, chapterId, chapterTitle, 0)
+                                ReaderDestination.createRoute(mangaId, chapterId, chapterTitle, startPageIndex)
                             )
                         },
                         onReviewClick = { mangaId ->
