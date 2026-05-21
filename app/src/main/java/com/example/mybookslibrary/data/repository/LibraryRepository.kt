@@ -65,7 +65,8 @@ class LibraryRepository(
     /**
      * Persists the chapter/page reading progress in a single Room transaction.
      *
-     * - Updates the library row with the latest chapter and page index.
+     * - Updates the library row with the latest chapter and page index without REPLACE,
+     *   because REPLACE can cascade-delete chapter progress rows through the FK.
      * - Updates the chapter progress row with READING/COMPLETED state.
      * - Marks the chapter as completed only when the last page is reached exactly.
      */
@@ -81,7 +82,7 @@ class LibraryRepository(
         val isCompleted = boundedTotalPages > 0 && boundedPageIndex == (boundedTotalPages - 1)
 
         Timber.d(
-            "updateReadingProgress: mangaId=%s chapterId=%s pageIndex=%d totalPages=%d completed=%s",
+            "updateReadingProgress start: mangaId=%s chapterId=%s pageIndex=%d totalPages=%d completed=%s",
             mangaId,
             chapterId,
             boundedPageIndex,
@@ -90,16 +91,26 @@ class LibraryRepository(
         )
 
         database.withTransaction {
-            libraryDao.getByMangaId(mangaId)?.let { current ->
-                libraryDao.upsert(
-                    current.copy(
-                        last_read_chapter_id = chapterId,
-                        last_read_page_index = boundedPageIndex,
-                        updated_at = now
-                    )
-                )
-            }
+            Timber.d(
+                "updateReadingProgress tx: writing library progress row mangaId=%s chapterId=%s pageIndex=%d",
+                mangaId,
+                chapterId,
+                boundedPageIndex
+            )
+            libraryDao.updateReadingProgress(
+                mangaId = mangaId,
+                chapterId = chapterId,
+                pageIndex = boundedPageIndex,
+                updatedAt = now
+            )
 
+            Timber.d(
+                "updateReadingProgress tx: writing chapter_progress chapterId=%s status=%s lastReadPage=%d totalPages=%d",
+                chapterId,
+                if (isCompleted) ChapterStatus.COMPLETED else ChapterStatus.READING,
+                boundedPageIndex,
+                boundedTotalPages
+            )
             chapterDao.upsertChapterProgress(
                 ChapterProgressEntity(
                     chapter_id = chapterId,
@@ -112,7 +123,13 @@ class LibraryRepository(
             )
         }
 
-        Timber.d("updateReadingProgress: finished mangaId=%s chapterId=%s", mangaId, chapterId)
+        Timber.d(
+            "updateReadingProgress end: mangaId=%s chapterId=%s pageIndex=%d completed=%s",
+            mangaId,
+            chapterId,
+            boundedPageIndex,
+            isCompleted
+        )
     }
 
     suspend fun markChapterCompleted(
@@ -121,6 +138,12 @@ class LibraryRepository(
         totalPages: Int
     ) {
         val boundedTotalPages = totalPages.coerceAtLeast(0)
+        Timber.d(
+            "markChapterCompleted: mangaId=%s chapterId=%s totalPages=%d",
+            mangaId,
+            chapterId,
+            boundedTotalPages
+        )
         chapterDao.upsertChapterProgress(
             ChapterProgressEntity(
                 chapter_id = chapterId,
@@ -138,6 +161,12 @@ class LibraryRepository(
         chapterId: String,
         totalPages: Int
     ) {
+        Timber.d(
+            "markChapterUnread: mangaId=%s chapterId=%s totalPages=%d",
+            mangaId,
+            chapterId,
+            totalPages.coerceAtLeast(0)
+        )
         chapterDao.upsertChapterProgress(
             ChapterProgressEntity(
                 chapter_id = chapterId,
