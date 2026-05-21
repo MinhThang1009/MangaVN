@@ -320,6 +320,15 @@ fun ReaderScreen(
                     )
                 }
             }
+            state.pages.isEmpty() -> {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(
+                        text = appString(R.string.error_load_pages),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.surface
+                    )
+                }
+            }
             else -> {
                 when (state.currentReadingMode) {
                     ReadingMode.VERTICAL -> {

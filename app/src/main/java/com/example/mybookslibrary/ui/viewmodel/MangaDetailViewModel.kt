@@ -3,6 +3,7 @@ package com.example.mybookslibrary.ui.viewmodel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.mybookslibrary.data.download.OfflineDownloadManager
 import com.example.mybookslibrary.data.repository.LibraryRepository
 import com.example.mybookslibrary.data.repository.MangaRepository
 import com.example.mybookslibrary.domain.model.ChapterWithProgressModel
@@ -37,6 +38,7 @@ class MangaDetailViewModel @Inject constructor(
     private val mangaRepository: MangaRepository,
     private val libraryRepository: LibraryRepository,
     private val getChapterListWithProgressUseCase: GetChapterListWithProgressUseCase,
+    private val offlineDownloadManager: OfflineDownloadManager,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : ViewModel() {
 
@@ -146,6 +148,27 @@ class MangaDetailViewModel @Inject constructor(
     fun markChapterUnread(chapterId: String, totalPages: Int) {
         viewModelScope.launch(ioDispatcher) {
             libraryRepository.markChapterUnread(mangaId, chapterId, totalPages)
+        }
+    }
+
+    fun startChapterDownload(chapterId: String) {
+        if (mangaId.isBlank() || chapterId.isBlank()) return
+        viewModelScope.launch(ioDispatcher) {
+            offlineDownloadManager.enqueueDownload(mangaId, chapterId)
+        }
+    }
+
+    fun cancelChapterDownload(chapterId: String) {
+        if (chapterId.isBlank()) return
+        viewModelScope.launch(ioDispatcher) {
+            offlineDownloadManager.cancelDownload(chapterId)
+        }
+    }
+
+    fun deleteChapterDownload(chapterId: String) {
+        if (mangaId.isBlank() || chapterId.isBlank()) return
+        viewModelScope.launch(ioDispatcher) {
+            offlineDownloadManager.deleteDownload(mangaId, chapterId)
         }
     }
 }
