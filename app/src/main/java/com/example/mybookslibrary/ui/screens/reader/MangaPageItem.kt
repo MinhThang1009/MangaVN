@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -20,33 +19,40 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImage
-import coil3.compose.AsyncImagePainter
 import coil3.decode.DataSource
+import coil3.request.ImageRequest
 import com.example.mybookslibrary.R
 import com.example.mybookslibrary.ui.theme.MyBooksLibraryTheme
 import com.example.mybookslibrary.ui.util.appString
+import kotlinx.coroutines.flow.distinctUntilChanged
+import me.saket.telephoto.zoomable.ZoomSpec
+import me.saket.telephoto.zoomable.coil3.ZoomableAsyncImage
+import me.saket.telephoto.zoomable.rememberZoomableImageState
+import me.saket.telephoto.zoomable.rememberZoomableState
 import timber.log.Timber
 
 
 /**
- * Renders one manga page with dynamic sizing, retry support, and long-press actions.
+ * Renders one zoomable manga page with dynamic sizing, retry support, and long-press actions.
  *
  * The composable keeps the page aspect ratio in sync with the loaded image,
- * overlays a retry UI when Coil reports an error, and forwards long-press
- * gestures to [onLongPress] so the caller can open page actions.
+ * overlays a retry UI when Coil reports an error, and uses Telephoto to support
+ * pinch-to-zoom and double-tap-to-zoom while retaining Coil load-state logging.
  *
  * @param imageUrl Page image URL loaded by Coil.
  * @param index Zero-based page index used for content description and logs.
@@ -61,16 +67,57 @@ fun MangaPageItem(
     modifier: Modifier = Modifier,
     onLongPress: ((String, Int) -> Unit)? = null
 ) {
+    val context = LocalContext.current
     var aspectRatio by remember(imageUrl) { mutableStateOf<Float?>(null) }
     // Increment to force Coil to re-fetch when the user taps "retry"
     var retryHash by remember(imageUrl) { mutableIntStateOf(0) }
     var isError by remember(imageUrl) { mutableStateOf(false) }
+    val zoomableState = rememberZoomableState(zoomSpec = ZoomSpec(maxZoomFactor = 3f))
+    val zoomableImageState = rememberZoomableImageState(zoomableState)
+    val imageRequest = remember(context, imageUrl, retryHash) {
+        ImageRequest.Builder(context)
+            // Append retryHash so Coil treats it as a new request on retry
+            .data("$imageUrl#retry=$retryHash")
+            .listener(
+                onSuccess = { _, result ->
+                    val image = result.image
+                    val w = image.width
+                    val h = image.height
+                    if (w > 0 && h > 0) {
+                        aspectRatio = w.toFloat() / h.toFloat()
+                    }
+                    isError = false
+                    val dataSource = result.dataSource
+                    val origin = if (dataSource == DataSource.NETWORK) "internet" else "cache"
+                    Timber.d(
+                        "Loaded page=%d url=%s origin=%s source=%s",
+                        index + 1,
+                        imageUrl,
+                        origin,
+                        dataSource
+                    )
+                },
+                onError = { _, result ->
+                    isError = true
+                    Timber.e(result.throwable, "Failed to load page=%d url=%s", index + 1, imageUrl)
+                }
+            )
+            .build()
+    }
+
+    LaunchedEffect(zoomableState, imageUrl, index) {
+        snapshotFlow { zoomableState.zoomFraction }
+            .distinctUntilChanged()
+            .collect { zoomFraction ->
+                Timber.d("Reader zoom changed: page=%d zoomFraction=%s", index + 1, zoomFraction)
+            }
+    }
 
     val imageModifier = remember(aspectRatio, modifier) {
         if (aspectRatio != null) {
             modifier.fillMaxWidth().aspectRatio(aspectRatio!!)
         } else {
-            modifier.fillMaxWidth().defaultMinSize(minHeight = 400.dp)
+            modifier.fillMaxWidth().height(400.dp)
         }
     }
 
@@ -87,37 +134,11 @@ fun MangaPageItem(
                 }
             }
     ) {
-        AsyncImage(
-            // Append retryHash so Coil treats it as a new request on retry
-            model = "$imageUrl#retry=$retryHash",
+        ZoomableAsyncImage(
+            model = imageRequest,
             contentDescription = appString(R.string.reader_page_description, index + 1),
+            state = zoomableImageState,
             contentScale = ContentScale.FillWidth,
-            onState = { state ->
-                when (state) {
-                    is AsyncImagePainter.State.Success -> {
-                        val intrinsicSize = state.painter.intrinsicSize
-                        val w = intrinsicSize.width
-                        val h = intrinsicSize.height
-                        if (w > 0f && h > 0f) {
-                            aspectRatio = w / h
-                        }
-                        val dataSource = state.result.dataSource
-                        val origin = if (dataSource == DataSource.NETWORK) "internet" else "cache"
-                        Timber.d(
-                            "Loaded page=%d url=%s origin=%s source=%s",
-                            index + 1,
-                            imageUrl,
-                            origin,
-                            dataSource
-                        )
-                    }
-                    is AsyncImagePainter.State.Error -> {
-                        isError = true
-                        Timber.e(state.result.throwable, "Failed to load page=%d url=%s", index + 1, imageUrl)
-                    }
-                    else -> { /* Loading / Empty — no-op */ }
-                }
-            },
             modifier = Modifier.fillMaxSize()
         )
 
