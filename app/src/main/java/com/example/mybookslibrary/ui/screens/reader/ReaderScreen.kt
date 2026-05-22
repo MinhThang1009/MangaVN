@@ -11,7 +11,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
@@ -37,15 +36,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.mybookslibrary.R
+import com.example.mybookslibrary.domain.model.ReaderTapAction
 import com.example.mybookslibrary.domain.model.ReadingMode
-import com.example.mybookslibrary.domain.model.TapZoneEvaluator
 import com.example.mybookslibrary.ui.screens.reader.components.PageAction
 import com.example.mybookslibrary.ui.screens.reader.components.PageActionBottomSheet
 import com.example.mybookslibrary.ui.util.appString
@@ -184,6 +182,7 @@ fun ReaderScreen(
         Timber.d("Reader page long-pressed: page=%d url=%s", pageIndex + 1, url)
         selectedPageTarget = SelectedPageActionTarget(pageUrl = url, pageIndex = pageIndex)
     }
+    val onPageTapAction: (ReaderTapAction) -> Unit = viewModel::navigateToPage
 
     // --- Vertical mode state ---
     // Keep the latest active page so we can flush it immediately on dispose.
@@ -286,24 +285,6 @@ fun ReaderScreen(
         modifier = modifier
             .fillMaxSize()
             .background(Color.Black)
-            .pointerInput(state.currentReadingMode) {
-                detectTapGestures(onTap = { offset ->
-                    val action = TapZoneEvaluator.evaluateTap(
-                        x = offset.x,
-                        totalWidth = size.width.toFloat(),
-                        mode = state.currentReadingMode
-                    )
-                    Timber.d(
-                        "Reader tap detected: x=%.1f width=%d mode=%s action=%s",
-                        offset.x,
-                        size.width,
-                        state.currentReadingMode,
-                        action
-                    )
-
-                    viewModel.navigateToPage(action)
-                })
-            }
     ) {
         when {
             state.isLoading -> {
@@ -335,6 +316,8 @@ fun ReaderScreen(
                         VerticalReaderContent(
                             pages = state.pages,
                             listState = listState,
+                            readingMode = state.currentReadingMode,
+                            onTapAction = onPageTapAction,
                             onPageLongPress = onPageLongPress,
                             modifier = Modifier.fillMaxSize()
                         )
@@ -344,6 +327,7 @@ fun ReaderScreen(
                             pages = state.pages,
                             pagerState = pagerState,
                             readingMode = state.currentReadingMode,
+                            onTapAction = onPageTapAction,
                             onPageLongPress = onPageLongPress,
                             modifier = Modifier.fillMaxSize()
                         )
@@ -449,6 +433,8 @@ fun ReaderScreen(
 private fun VerticalReaderContent(
     pages: List<String>,
     listState: LazyListState,
+    readingMode: ReadingMode,
+    onTapAction: (ReaderTapAction) -> Unit,
     onPageLongPress: (String, Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -457,6 +443,8 @@ private fun VerticalReaderContent(
             MangaPageItem(
                 imageUrl = page,
                 index = index,
+                readingMode = readingMode,
+                onTapAction = onTapAction,
                 onLongPress = onPageLongPress,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -527,6 +515,8 @@ private fun ReaderPreviewLayout(
                 VerticalReaderContent(
                     pages = pages,
                     listState = listState,
+                    readingMode = readingMode,
+                    onTapAction = {},
                     onPageLongPress = { _, _ -> },
                     modifier = Modifier.fillMaxSize()
                 )
@@ -536,6 +526,7 @@ private fun ReaderPreviewLayout(
                     pages = pages,
                     pagerState = pagerState,
                     readingMode = readingMode,
+                    onTapAction = {},
                     onPageLongPress = { _, _ -> },
                     modifier = Modifier.fillMaxSize()
                 )

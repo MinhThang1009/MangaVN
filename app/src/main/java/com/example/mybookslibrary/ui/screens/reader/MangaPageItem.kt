@@ -1,9 +1,6 @@
 package com.example.mybookslibrary.ui.screens.reader
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.awaitEachGesture
-import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.foundation.gestures.awaitLongPressOrCancellation
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -29,14 +26,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil3.decode.DataSource
 import coil3.request.ImageRequest
 import com.example.mybookslibrary.R
+import com.example.mybookslibrary.domain.model.ReaderTapAction
+import com.example.mybookslibrary.domain.model.ReadingMode
+import com.example.mybookslibrary.domain.model.TapZoneEvaluator
 import com.example.mybookslibrary.ui.theme.MyBooksLibraryTheme
 import com.example.mybookslibrary.ui.util.appString
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -56,7 +56,9 @@ import timber.log.Timber
  *
  * @param imageUrl Page image URL loaded by Coil.
  * @param index Zero-based page index used for content description and logs.
+ * @param readingMode Current reader mode used to map Telephoto click coordinates to tap-zone actions.
  * @param modifier Modifier applied to the outer container.
+ * @param onTapAction Callback invoked with the evaluated reader action for a Telephoto single tap.
  * @param onLongPress Optional callback invoked with [imageUrl] and [index] when the user
  * long-presses the page; if `null`, the gesture is ignored.
  */
@@ -64,7 +66,9 @@ import timber.log.Timber
 fun MangaPageItem(
     imageUrl: String,
     index: Int,
+    readingMode: ReadingMode,
     modifier: Modifier = Modifier,
+    onTapAction: (ReaderTapAction) -> Unit = {},
     onLongPress: ((String, Int) -> Unit)? = null
 ) {
     val context = LocalContext.current
@@ -72,6 +76,7 @@ fun MangaPageItem(
     // Increment to force Coil to re-fetch when the user taps "retry"
     var retryHash by remember(imageUrl) { mutableIntStateOf(0) }
     var isError by remember(imageUrl) { mutableStateOf(false) }
+    var pageWidthPx by remember(imageUrl) { mutableIntStateOf(0) }
     val zoomableState = rememberZoomableState(zoomSpec = ZoomSpec(maxZoomFactor = 3f))
     val zoomableImageState = rememberZoomableImageState(zoomableState)
     val imageRequest = remember(context, imageUrl, retryHash) {
@@ -123,22 +128,33 @@ fun MangaPageItem(
 
     Box(
         modifier = imageModifier
-            .pointerInput(imageUrl) {
-                awaitEachGesture {
-                    val down = awaitFirstDown(requireUnconsumed = false)
-                    val longPress = awaitLongPressOrCancellation(down.id)
-                    if (longPress != null) {
-                        Timber.d("Long press detected for page=%d url=%s", index + 1, imageUrl)
-                        onLongPress?.invoke(imageUrl, index)
-                    }
-                }
-            }
+            .onSizeChanged { pageWidthPx = it.width }
     ) {
         ZoomableAsyncImage(
             model = imageRequest,
             contentDescription = appString(R.string.reader_page_description, index + 1),
             state = zoomableImageState,
             contentScale = ContentScale.FillWidth,
+            onClick = { offset ->
+                val action = TapZoneEvaluator.evaluateTap(
+                    x = offset.x,
+                    totalWidth = pageWidthPx.toFloat(),
+                    mode = readingMode
+                )
+                Timber.d(
+                    "Reader page tap: page=%d x=%.1f width=%d mode=%s action=%s",
+                    index + 1,
+                    offset.x,
+                    pageWidthPx,
+                    readingMode,
+                    action
+                )
+                onTapAction(action)
+            },
+            onLongClick = {
+                Timber.d("Reader page long-click: page=%d url=%s", index + 1, imageUrl)
+                onLongPress?.invoke(imageUrl, index)
+            },
             modifier = Modifier.fillMaxSize()
         )
 
@@ -198,6 +214,8 @@ private fun MangaPageItemPreview() {
             MangaPageItem(
                 imageUrl = PreviewPageUrl,
                 index = 0,
+                readingMode = ReadingMode.VERTICAL,
+                onTapAction = {},
                 onLongPress = { _, _ -> },
                 modifier = Modifier.fillMaxSize()
             )
