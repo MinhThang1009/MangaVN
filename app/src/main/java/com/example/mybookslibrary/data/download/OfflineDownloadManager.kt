@@ -38,24 +38,29 @@ class OfflineDownloadManager @Inject constructor(
         )
         repository.enqueueChapter(mangaId, chapterId)
 
-        val request = OneTimeWorkRequestBuilder<ChapterDownloadWorker>()
-            .setConstraints(
-                Constraints.Builder()
-                    .setRequiredNetworkType(networkType)
-                    .build()
-            )
-            .setInputData(
-                workDataOf(
-                    ChapterDownloadWorker.KEY_MANGA_ID to mangaId,
-                    ChapterDownloadWorker.KEY_CHAPTER_ID to chapterId
-                )
-            )
-            .addTag(CHAPTER_DOWNLOAD_TAG)
-            .addTag(chapterTag(chapterId))
-            .build()
-
+        val request = buildDownloadRequest(mangaId, chapterId, networkType)
         workManager.enqueueUniqueWork(uniqueWorkName(chapterId), ExistingWorkPolicy.REPLACE, request)
     }
+
+    internal fun buildDownloadRequest(
+        mangaId: String,
+        chapterId: String,
+        networkType: NetworkType
+    ) = OneTimeWorkRequestBuilder<ChapterDownloadWorker>()
+        .setConstraints(
+            Constraints.Builder()
+                .setRequiredNetworkType(networkType)
+                .build()
+        )
+        .setInputData(
+            workDataOf(
+                ChapterDownloadWorker.KEY_MANGA_ID to mangaId,
+                ChapterDownloadWorker.KEY_CHAPTER_ID to chapterId
+            )
+        )
+        .addTag(CHAPTER_DOWNLOAD_TAG)
+        .addTag(chapterTag(chapterId))
+        .build()
 
     suspend fun cancelDownload(chapterId: String) {
         Timber.d("cancelDownload: chapterId=%s", chapterId)
