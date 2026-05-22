@@ -6,6 +6,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.example.mybookslibrary.data.local.dao.ChapterDao
+import com.example.mybookslibrary.data.local.dao.DownloadQueueDao
 import com.example.mybookslibrary.data.local.dao.LibraryDao
 import com.example.mybookslibrary.data.local.dao.UserDao
 
@@ -13,9 +14,10 @@ import com.example.mybookslibrary.data.local.dao.UserDao
     entities = [
         UserEntity::class,
         LibraryItemEntity::class,
-        ChapterProgressEntity::class
+        ChapterProgressEntity::class,
+        DownloadQueueEntity::class
     ],
-    version = 1,
+    version = 3,
     exportSchema = false
 )
 @TypeConverters(LibraryStatusConverters::class)
@@ -24,6 +26,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
     abstract fun libraryDao(): LibraryDao
     abstract fun chapterDao(): ChapterDao
+    abstract fun downloadQueueDao(): DownloadQueueDao
 
     companion object {
         @Volatile
@@ -51,4 +54,3 @@ abstract class AppDatabase : RoomDatabase() {
         }
     }
 }
-

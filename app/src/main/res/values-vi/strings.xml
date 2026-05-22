@@ -64,6 +64,10 @@
     <string name="status_unread">Chưa đọc</string>
     <string name="chapter_mark_completed">Đánh dấu đã đọc xong</string>
     <string name="chapter_mark_unread">Đánh dấu chưa đọc</string>
+    <string name="chapter_download">Tải chương</string>
+    <string name="chapter_cancel_download">Huỷ tải</string>
+    <string name="chapter_delete_download">Xoá bản tải</string>
+    <string name="chapter_download_error">Tải thất bại</string>
 
     <!-- Reader -->
     <string name="reader_page_description">Trang %1$d</string>
