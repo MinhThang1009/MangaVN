@@ -1,15 +1,19 @@
 package com.example.mybookslibrary.domain.usecase
 
+import com.example.mybookslibrary.data.download.DownloadedChapterCache
 import com.example.mybookslibrary.data.local.ChapterProgressEntity
 import com.example.mybookslibrary.data.local.ChapterStatus
 import com.example.mybookslibrary.data.local.dao.ChapterDao
+import com.example.mybookslibrary.data.repository.OfflineDownloadRepository
 import com.example.mybookslibrary.data.repository.MangaRepository
 import com.example.mybookslibrary.domain.model.ChapterModel
+import com.example.mybookslibrary.domain.model.ChapterDownloadStatus
 import com.example.mybookslibrary.domain.model.ChapterReadingStatus
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -19,7 +23,14 @@ class GetChapterListWithProgressUseCaseTest {
 
     private val mangaRepository = mockk<MangaRepository>()
     private val chapterDao = mockk<ChapterDao>()
-    private val useCase = GetChapterListWithProgressUseCase(mangaRepository, chapterDao)
+    private val offlineDownloadRepository = mockk<OfflineDownloadRepository>()
+    private val downloadedChapterCache = mockk<DownloadedChapterCache>()
+    private val useCase = GetChapterListWithProgressUseCase(
+        mangaRepository,
+        chapterDao,
+        offlineDownloadRepository,
+        downloadedChapterCache
+    )
 
     @Test
     fun mapsProgressByChapterId_independently() = runTest {
@@ -36,6 +47,8 @@ class GetChapterListWithProgressUseCaseTest {
                 progress("chapter-2", ChapterStatus.COMPLETED, lastReadPage = 9, totalPages = 10)
             )
         )
+        every { offlineDownloadRepository.observeQueueByManga(MANGA_ID) } returns flowOf(emptyList())
+        every { downloadedChapterCache.downloadedChapterIds } returns MutableStateFlow(emptySet())
 
         val result = useCase(MANGA_ID).first()
 
@@ -65,10 +78,27 @@ class GetChapterListWithProgressUseCaseTest {
         every { chapterDao.getChapterProgressByManga(MANGA_ID) } returns flowOf(
             listOf(progress("chapter-1", ChapterStatus.READING, lastReadPage = 3, totalPages = 15))
         )
+        every { offlineDownloadRepository.observeQueueByManga(MANGA_ID) } returns flowOf(emptyList())
+        every { downloadedChapterCache.downloadedChapterIds } returns MutableStateFlow(emptySet())
 
         val result = useCase(MANGA_ID).first()
 
         assertEquals(15, result.single().totalPages)
+    }
+
+    @Test
+    fun mapsDownloadedCacheToChapterDownloadState() = runTest {
+        coEvery { mangaRepository.getMangaFeed(MANGA_ID) } returns Result.success(
+            listOf(chapter(id = "chapter-1", pages = 12))
+        )
+        every { chapterDao.getChapterProgressByManga(MANGA_ID) } returns flowOf(emptyList())
+        every { offlineDownloadRepository.observeQueueByManga(MANGA_ID) } returns flowOf(emptyList())
+        every { downloadedChapterCache.downloadedChapterIds } returns MutableStateFlow(setOf("chapter-1"))
+
+        val result = useCase(MANGA_ID).first()
+
+        assertEquals(ChapterDownloadStatus.DOWNLOADED, result.single().downloadState.status)
+        assertEquals(100, result.single().downloadState.progressPercent)
     }
 
     private fun chapter(id: String, pages: Int): ChapterModel = ChapterModel(
