@@ -50,14 +50,16 @@ fun HorizontalReaderContent(
             state = pagerState,
             modifier = modifier,
             beyondViewportPageCount = 2,
-            key = { index -> pages[index] }
+            key = { index -> pages.getOrNull(index) ?: "missing-page-$index" }
         ) { pageIndex ->
-            MangaPageItem(
-                imageUrl = pages[pageIndex],
-                index = pageIndex,
-                onLongPress = onPageLongPress,
-                modifier = Modifier.fillMaxSize()
-            )
+            pages.getOrNull(pageIndex)?.let { pageUrl ->
+                MangaPageItem(
+                    imageUrl = pageUrl,
+                    index = pageIndex,
+                    onLongPress = onPageLongPress,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
         }
     }
 }
