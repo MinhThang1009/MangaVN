@@ -14,6 +14,8 @@ import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.example.mybookslibrary.R
 import com.example.mybookslibrary.data.local.DownloadStatus
+import com.example.mybookslibrary.data.remote.AtHomeReportPolicy
+import com.example.mybookslibrary.data.remote.models.AtHomeReportRequest
 import com.example.mybookslibrary.data.repository.MangaRepository
 import com.example.mybookslibrary.data.repository.OfflineDownloadRepository
 import dagger.assisted.Assisted
@@ -28,9 +30,11 @@ import kotlinx.coroutines.flow.flow
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import timber.log.Timber
+import java.io.IOException
 import java.util.concurrent.atomic.AtomicInteger
 import javax.inject.Named
 import kotlin.math.absoluteValue
+import kotlin.time.TimeSource
 
 /**
  * WorkManager worker that downloads all pages for a chapter into app-private storage.
@@ -134,21 +138,80 @@ class ChapterDownloadWorker @AssistedInject constructor(
         pageUrl: String
     ) {
         Timber.d("downloadPage start: chapterId=%s pageIndex=%d url=%s", chapterId, pageIndex, pageUrl)
-        val request = Request.Builder().url(pageUrl).build()
-        imageOkHttpClient.newCall(request).execute().use { response ->
-            if (!response.isSuccessful) {
-                throw IllegalStateException("Page download failed: HTTP ${response.code}")
+        val startedAt = TimeSource.Monotonic.markNow()
+        var bytes = 0L
+        var cached = false
+        var success = false
+
+        try {
+            val request = Request.Builder()
+                .url(pageUrl)
+                .header(AtHomeReportPolicy.SKIP_REPORT_HEADER, "true")
+                .build()
+            imageOkHttpClient.newCall(request).execute().use { response ->
+                cached = response.header(HEADER_X_CACHE)
+                    ?.startsWith(CACHE_HIT_PREFIX, ignoreCase = true) == true
+                val body = response.body
+                if (!response.isSuccessful) {
+                    bytes = responseBodySize(body)
+                    throw IllegalStateException("Page download failed: HTTP ${response.code}")
+                }
+                val savedFile = offlineDownloadStorage.savePage(
+                    mangaId = mangaId,
+                    chapterId = chapterId,
+                    pageIndex = pageIndex,
+                    byteStream = body.byteStream(),
+                    extension = extensionFor(pageUrl, body.contentType()?.subtype)
+                )
+                bytes = savedFile.length()
+                success = true
             }
-            val body = response.body
-            offlineDownloadStorage.savePage(
-                mangaId = mangaId,
-                chapterId = chapterId,
-                pageIndex = pageIndex,
-                byteStream = body.byteStream(),
-                extension = extensionFor(pageUrl, body.contentType()?.subtype)
+        } catch (ioException: IOException) {
+            Timber.e(ioException, "downloadPage network error: chapterId=%s pageIndex=%d", chapterId, pageIndex)
+            throw ioException
+        } finally {
+            val durationMillis = startedAt.elapsedNow().inWholeMilliseconds
+            sendDownloadReport(
+                pageUrl = pageUrl,
+                success = success,
+                bytes = bytes,
+                durationMillis = durationMillis,
+                cached = cached
             )
         }
-        Timber.d("downloadPage end: chapterId=%s pageIndex=%d", chapterId, pageIndex)
+        Timber.d("downloadPage end: chapterId=%s pageIndex=%d bytes=%d", chapterId, pageIndex, bytes)
+    }
+
+    private suspend fun sendDownloadReport(
+        pageUrl: String,
+        success: Boolean,
+        bytes: Long,
+        durationMillis: Long,
+        cached: Boolean
+    ) {
+        if (!AtHomeReportPolicy.isReportableImageUrl(pageUrl)) {
+            Timber.d("downloadPage report skipped: url=%s", pageUrl)
+            return
+        }
+
+        val report = AtHomeReportRequest(
+            url = pageUrl,
+            success = success,
+            bytes = AtHomeReportPolicy.bytesToInt(bytes),
+            duration = durationMillis.coerceAtLeast(0L),
+            cached = cached
+        )
+        Timber.d("downloadPage report: payload=%s", report)
+        mangaRepository.sendAtHomeReport(report)
+    }
+
+    private fun responseBodySize(body: okhttp3.ResponseBody): Long {
+        return try {
+            body.bytes().size.toLong()
+        } catch (t: Throwable) {
+            Timber.e(t, "responseBodySize failed")
+            0L
+        }
     }
 
     private fun createForegroundInfo(
@@ -249,6 +312,8 @@ class ChapterDownloadWorker @AssistedInject constructor(
         const val KEY_ERROR = "error"
 
         private const val PAGE_DOWNLOAD_CONCURRENCY = 3
+        private const val HEADER_X_CACHE = "X-Cache"
+        private const val CACHE_HIT_PREFIX = "HIT"
         private const val NOTIFICATION_CHANNEL_ID = "offline_downloads"
         private const val NOTIFICATION_ID_BASE = 41_000
         private const val FINISHED_NOTIFICATION_ID_BASE = 42_000
