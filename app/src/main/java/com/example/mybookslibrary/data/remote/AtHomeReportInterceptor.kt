@@ -34,6 +34,13 @@ class AtHomeReportInterceptor(
         val request = chain.request()
         val url = request.url
         val urlString = url.toString()
+        if (request.header(AtHomeReportPolicy.SKIP_REPORT_HEADER) != null) {
+            return chain.proceed(
+                request.newBuilder()
+                    .removeHeader(AtHomeReportPolicy.SKIP_REPORT_HEADER)
+                    .build()
+            )
+        }
         if (!url.isReportableAtHomeImage()) {
             return chain.proceed(request)
         }
@@ -154,12 +161,7 @@ class AtHomeReportInterceptor(
 }
 
 private fun okhttp3.HttpUrl.isReportableAtHomeImage(): Boolean {
-    val lowerHost = host.lowercase()
-    if (lowerHost.contains("mangadex.org")) return false
-
-    return pathSegments.any { segment ->
-        segment == "data" || segment == "data-saver"
-    }
+    return AtHomeReportPolicy.isReportableImageUrl(this)
 }
 
 private fun Long.coerceToInt(): Int {
