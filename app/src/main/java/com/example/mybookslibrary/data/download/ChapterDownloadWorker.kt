@@ -16,6 +16,7 @@ import com.example.mybookslibrary.R
 import com.example.mybookslibrary.data.local.DownloadStatus
 import com.example.mybookslibrary.data.remote.AtHomeReportPolicy
 import com.example.mybookslibrary.data.remote.models.AtHomeReportRequest
+import com.example.mybookslibrary.data.repository.ChapterDelivery
 import com.example.mybookslibrary.data.repository.MangaRepository
 import com.example.mybookslibrary.data.repository.OfflineDownloadRepository
 import dagger.assisted.Assisted
@@ -27,11 +28,14 @@ import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flatMapMerge
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import timber.log.Timber
 import java.io.IOException
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicReference
 import javax.inject.Named
 import kotlin.math.absoluteValue
 import kotlin.time.TimeSource
@@ -64,32 +68,38 @@ class ChapterDownloadWorker @AssistedInject constructor(
         offlineDownloadRepository.updateQueueStatus(chapterId, DownloadStatus.DOWNLOADING, 0)
 
         return try {
-            val pageUrls = mangaRepository.getChapterPages(chapterId).getOrThrow()
-            if (pageUrls.isEmpty()) {
+            val chapterDelivery = mangaRepository.getChapterDelivery(chapterId).getOrThrow()
+            if (chapterDelivery.filenames.isEmpty()) {
                 throw IllegalStateException("Chapter has no pages")
             }
 
+            val currentDelivery = AtomicReference(chapterDelivery)
+            val consecutiveErrors = AtomicInteger(0)
+            val failoverMutex = Mutex()
             val completedPages = AtomicInteger(0)
             setForeground(createForegroundInfo(chapterId, progressPercent = 0, indeterminate = false))
 
-            pageUrls.withIndex()
+            chapterDelivery.filenames.indices
                 .asFlow()
-                .flatMapMerge(concurrency = PAGE_DOWNLOAD_CONCURRENCY) { indexedPage ->
+                .flatMapMerge(concurrency = PAGE_DOWNLOAD_CONCURRENCY) { pageIndex ->
                     flow {
                         currentCoroutineContext().ensureActive()
-                        downloadPage(
+                        downloadPageWithFailover(
                             mangaId = mangaId,
                             chapterId = chapterId,
-                            pageIndex = indexedPage.index,
-                            pageUrl = indexedPage.value
+                            pageIndex = pageIndex,
+                            currentDelivery = currentDelivery,
+                            consecutiveErrors = consecutiveErrors,
+                            failoverMutex = failoverMutex
                         )
                         val completed = completedPages.incrementAndGet()
-                        val progress = ((completed * 100f) / pageUrls.size).toInt().coerceIn(0, 100)
+                        val totalPages = chapterDelivery.filenames.size
+                        val progress = ((completed * 100f) / totalPages).toInt().coerceIn(0, 100)
                         Timber.d(
                             "ChapterDownloadWorker progress: chapterId=%s completed=%d total=%d progress=%d",
                             chapterId,
                             completed,
-                            pageUrls.size,
+                            totalPages,
                             progress
                         )
                         offlineDownloadRepository.updateQueueStatus(
@@ -107,12 +117,17 @@ class ChapterDownloadWorker @AssistedInject constructor(
             offlineDownloadRepository.markChapterDownloaded(
                 mangaId = mangaId,
                 chapterId = chapterId,
-                totalPages = pageUrls.size
+                totalPages = chapterDelivery.filenames.size
             )
             setProgress(workDataOf(KEY_PROGRESS_PERCENT to 100))
             setForeground(createForegroundInfo(chapterId, progressPercent = 100, indeterminate = false))
             showFinishedNotification(chapterId, success = true, message = "Chapter download complete")
-            Timber.d("ChapterDownloadWorker success: mangaId=%s chapterId=%s pages=%d", mangaId, chapterId, pageUrls.size)
+            Timber.d(
+                "ChapterDownloadWorker success: mangaId=%s chapterId=%s pages=%d",
+                mangaId,
+                chapterId,
+                chapterDelivery.filenames.size
+            )
             Result.success()
         } catch (t: Throwable) {
             Timber.e(t, "ChapterDownloadWorker failed: mangaId=%s chapterId=%s", mangaId, chapterId)
@@ -128,6 +143,120 @@ class ChapterDownloadWorker @AssistedInject constructor(
                 message = t.message ?: "Chapter download failed"
             )
             Result.failure(workDataOf(KEY_ERROR to (t.message ?: "Download failed")))
+        }
+    }
+
+    /**
+     * Downloads one page and retries it after coordinated MangaDex@Home failover.
+     *
+     * The worker downloads pages concurrently. When three page downloads fail in
+     * completion order, only the first coroutine entering [failoverMutex] refreshes
+     * `/at-home/server/{chapterId}` and updates [currentDelivery]. Other coroutines
+     * wait before building their next URL, so retries and remaining pages use the
+     * newest base URL without launching duplicate server refresh requests.
+     */
+    private suspend fun downloadPageWithFailover(
+        mangaId: String,
+        chapterId: String,
+        pageIndex: Int,
+        currentDelivery: AtomicReference<ChapterDelivery>,
+        consecutiveErrors: AtomicInteger,
+        failoverMutex: Mutex
+    ) {
+        var attempt = 1
+        while (true) {
+            currentCoroutineContext().ensureActive()
+            val pageUrl = failoverMutex.withLock {
+                currentDelivery.get().pageUrl(pageIndex)
+            }
+
+            try {
+                downloadPage(
+                    mangaId = mangaId,
+                    chapterId = chapterId,
+                    pageIndex = pageIndex,
+                    pageUrl = pageUrl
+                )
+                consecutiveErrors.set(0)
+                return
+            } catch (t: Throwable) {
+                currentCoroutineContext().ensureActive()
+                val errors = consecutiveErrors.incrementAndGet()
+                Timber.e(
+                    t,
+                    "downloadPage attempt failed: chapterId=%s pageIndex=%d attempt=%d consecutiveErrors=%d",
+                    chapterId,
+                    pageIndex,
+                    attempt,
+                    errors
+                )
+
+                if (errors >= FAILOVER_ERROR_THRESHOLD) {
+                    refreshAtHomeServerAfterFailures(
+                        chapterId = chapterId,
+                        currentDelivery = currentDelivery,
+                        consecutiveErrors = consecutiveErrors,
+                        failoverMutex = failoverMutex
+                    )
+                }
+
+                if (attempt >= MAX_PAGE_DOWNLOAD_ATTEMPTS) {
+                    Timber.e(
+                        t,
+                        "downloadPage exhausted attempts: chapterId=%s pageIndex=%d attempts=%d",
+                        chapterId,
+                        pageIndex,
+                        attempt
+                    )
+                    throw t
+                }
+
+                attempt += 1
+                Timber.d(
+                    "downloadPage retry scheduled: chapterId=%s pageIndex=%d nextAttempt=%d",
+                    chapterId,
+                    pageIndex,
+                    attempt
+                )
+            }
+        }
+    }
+
+    /**
+     * Refreshes MangaDex@Home delivery metadata after consecutive network failures.
+     *
+     * This method must stay protected by [failoverMutex]. The second threshold
+     * check is intentional: several page coroutines can fail at the same time,
+     * but only the first one that observes the threshold should call MangaDex for
+     * a replacement server. While the mutex is held, new page attempts are paused
+     * before URL construction and resume with the updated base URL.
+     */
+    private suspend fun refreshAtHomeServerAfterFailures(
+        chapterId: String,
+        currentDelivery: AtomicReference<ChapterDelivery>,
+        consecutiveErrors: AtomicInteger,
+        failoverMutex: Mutex
+    ) {
+        failoverMutex.withLock {
+            if (consecutiveErrors.get() < FAILOVER_ERROR_THRESHOLD) {
+                return
+            }
+
+            Timber.d(
+                "ChapterDownloadWorker failover triggered: chapterId=%s consecutiveErrors=%d oldBaseUrl=%s",
+                chapterId,
+                consecutiveErrors.get(),
+                currentDelivery.get().baseUrl
+            )
+            val refreshedDelivery = mangaRepository.getChapterDelivery(chapterId).getOrThrow()
+            currentDelivery.set(refreshedDelivery)
+            consecutiveErrors.set(0)
+            Timber.d(
+                "ChapterDownloadWorker failover complete: chapterId=%s newBaseUrl=%s pages=%d",
+                chapterId,
+                refreshedDelivery.baseUrl,
+                refreshedDelivery.filenames.size
+            )
         }
     }
 
@@ -312,6 +441,8 @@ class ChapterDownloadWorker @AssistedInject constructor(
         const val KEY_ERROR = "error"
 
         private const val PAGE_DOWNLOAD_CONCURRENCY = 3
+        private const val FAILOVER_ERROR_THRESHOLD = 3
+        private const val MAX_PAGE_DOWNLOAD_ATTEMPTS = 3
         private const val HEADER_X_CACHE = "X-Cache"
         private const val CACHE_HIT_PREFIX = "HIT"
         private const val NOTIFICATION_CHANNEL_ID = "offline_downloads"
