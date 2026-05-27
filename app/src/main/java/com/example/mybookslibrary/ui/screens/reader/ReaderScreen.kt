@@ -61,6 +61,9 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import me.saket.telephoto.zoomable.ZoomSpec
+import me.saket.telephoto.zoomable.rememberZoomableState
+import me.saket.telephoto.zoomable.zoomable
 import timber.log.Timber
 
 private enum class ReaderToastType {
@@ -438,18 +441,61 @@ private fun VerticalReaderContent(
     onPageLongPress: (String, Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    LazyColumn(modifier = modifier, state = listState) {
-        itemsIndexed(items = pages, key = { _, page -> page }) { index, page ->
-            MangaPageItem(
-                imageUrl = page,
-                index = index,
-                readingMode = readingMode,
-                onTapAction = onTapAction,
-                onLongPress = onPageLongPress,
-                modifier = Modifier.fillMaxWidth()
+    val zoomableState = rememberZoomableState(zoomSpec = ZoomSpec(maxZoomFactor = 3f))
+
+    LaunchedEffect(zoomableState) {
+        snapshotFlow { zoomableState.zoomFraction }
+            .distinctUntilChanged()
+            .collect { zoomFraction ->
+                Timber.d("Reader webtoon global zoom changed: zoomFraction=%s", zoomFraction)
+            }
+    }
+
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .zoomable(
+                state = zoomableState,
+                onClick = { offset ->
+                    Timber.d("Reader webtoon container tap: x=%.1f y=%.1f", offset.x, offset.y)
+                    onTapAction(ReaderTapAction.TOGGLE_OVERLAY)
+                },
+                onLongClick = { offset ->
+                    val pageIndex = listState.findPageIndexAtViewportOffset(offset.y)
+                    val pageUrl = pages.getOrNull(pageIndex)
+                    Timber.d(
+                        "Reader webtoon container long-click: x=%.1f y=%.1f page=%d url=%s",
+                        offset.x,
+                        offset.y,
+                        pageIndex + 1,
+                        pageUrl
+                    )
+                    if (pageUrl != null && pageIndex >= 0) {
+                        onPageLongPress(pageUrl, pageIndex)
+                    }
+                }
             )
+    ) {
+        LazyColumn(modifier = Modifier.fillMaxSize(), state = listState) {
+            itemsIndexed(items = pages, key = { _, page -> page }) { index, page ->
+                WebtoonPageItem(
+                    imageUrl = page,
+                    index = index,
+                    readingMode = readingMode,
+                    onTapAction = onTapAction,
+                    onLongPress = onPageLongPress,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
         }
     }
+}
+
+private fun LazyListState.findPageIndexAtViewportOffset(y: Float): Int {
+    val item = layoutInfo.visibleItemsInfo.firstOrNull { visibleItem ->
+        y >= visibleItem.offset && y <= visibleItem.offset + visibleItem.size
+    }
+    return item?.index ?: layoutInfo.findActivePageIndex()
 }
 
 // Reader content and bar components moved to MangaPageItem.kt and ReaderBars.kt for modularity.
