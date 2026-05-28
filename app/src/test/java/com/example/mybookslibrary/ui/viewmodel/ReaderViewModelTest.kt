@@ -5,6 +5,8 @@ import com.example.mybookslibrary.data.download.DownloadedChapterCache
 import com.example.mybookslibrary.data.download.OfflineDownloadStorage
 import com.example.mybookslibrary.data.repository.LibraryRepository
 import com.example.mybookslibrary.data.repository.MangaRepository
+import com.example.mybookslibrary.domain.model.ReadingMode
+import com.example.mybookslibrary.domain.usecase.TapZoneEvaluator
 import com.example.mybookslibrary.test.MainDispatcherRule
 import io.mockk.coEvery
 import io.mockk.every
@@ -111,6 +113,50 @@ class ReaderViewModelTest {
 
     @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
     @Test
+    fun onEvent_withLeftTapInRtl_updatesCurrentPageAndEmitsNavigationEffect() =
+        runTest(mainDispatcherRule.dispatcher.scheduler) {
+            val viewModel = createViewModel(startPageIndex = 2)
+            advanceUntilIdle()
+            viewModel.onEvent(ReaderEvent.ChangeReadingMode(ReadingMode.RTL))
+            val navigationEvent = async { viewModel.effects.first() as ReaderUiEffect.NavigateToPage }
+            runCurrent()
+
+            viewModel.onEvent(
+                ReaderEvent.TapOnScreen(
+                    x = 100f,
+                    y = 500f,
+                    width = 1000f,
+                    height = 1000f
+                )
+            )
+
+            assertEquals(3, viewModel.state.value.lastReadPageIndex)
+            assertEquals(3, navigationEvent.await().pageIndex)
+        }
+
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    @Test
+    fun onEvent_withTapInVerticalMode_togglesOverlay() =
+        runTest(mainDispatcherRule.dispatcher.scheduler) {
+            val viewModel = createViewModel(startPageIndex = 2)
+            advanceUntilIdle()
+            viewModel.onEvent(ReaderEvent.ChangeReadingMode(ReadingMode.VERTICAL))
+
+            viewModel.onEvent(
+                ReaderEvent.TapOnScreen(
+                    x = 900f,
+                    y = 500f,
+                    width = 1000f,
+                    height = 1000f
+                )
+            )
+
+            assertEquals(true, viewModel.state.value.isOverlayVisible)
+            assertEquals(2, viewModel.state.value.lastReadPageIndex)
+        }
+
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    @Test
     fun onEvent_atPageBoundary_doesNotMovePastAvailablePages() =
         runTest(mainDispatcherRule.dispatcher.scheduler) {
             val firstPageViewModel = createViewModel(startPageIndex = 0)
@@ -183,6 +229,7 @@ class ReaderViewModelTest {
             libraryRepository = libraryRepository,
             downloadedChapterCache = downloadedChapterCache,
             offlineDownloadStorage = offlineDownloadStorage,
+            tapZoneEvaluator = TapZoneEvaluator(),
             ioDispatcher = mainDispatcherRule.dispatcher
         )
     }

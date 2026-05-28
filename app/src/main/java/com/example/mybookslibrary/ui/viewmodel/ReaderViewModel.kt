@@ -13,7 +13,7 @@ import com.example.mybookslibrary.data.repository.MangaRepository
 import com.example.mybookslibrary.di.IoDispatcher
 import com.example.mybookslibrary.domain.model.ReaderTapAction
 import com.example.mybookslibrary.domain.model.ReadingMode
-import com.example.mybookslibrary.domain.model.TapZoneEvaluator
+import com.example.mybookslibrary.domain.usecase.TapZoneEvaluator
 import kotlinx.coroutines.CoroutineDispatcher
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -37,6 +37,7 @@ class ReaderViewModel @Inject constructor(
     private val libraryRepository: LibraryRepository,
     private val downloadedChapterCache: DownloadedChapterCache,
     private val offlineDownloadStorage: OfflineDownloadStorage,
+    private val tapZoneEvaluator: TapZoneEvaluator,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : AndroidViewModel(application) {
 
@@ -207,9 +208,11 @@ class ReaderViewModel @Inject constructor(
     }
 
     private fun handleScreenTap(event: ReaderEvent.TapOnScreen) {
-        val action = TapZoneEvaluator.evaluateTap(
+        val action = tapZoneEvaluator(
             x = event.x,
-            totalWidth = event.width,
+            y = event.y,
+            screenWidth = event.width,
+            screenHeight = event.height,
             mode = _state.value.currentReadingMode
         )
         Timber.d(
