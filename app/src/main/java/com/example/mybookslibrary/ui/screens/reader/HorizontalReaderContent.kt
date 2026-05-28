@@ -30,7 +30,6 @@ import com.example.mybookslibrary.ui.theme.MyBooksLibraryTheme
  * @param pagerState The [PagerState] controlling the pager position and animations.
  * @param readingMode The current [ReadingMode], used to determine layout direction.
  * @param onEvent Callback invoked when reader content emits UI events.
- * @param onPageLongPress Callback invoked on long-press, passing the page's image URL and index.
  * @param modifier Modifier applied to the outer pager container.
  */
 @Composable
