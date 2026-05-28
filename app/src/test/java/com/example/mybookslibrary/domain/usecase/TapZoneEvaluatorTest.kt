@@ -1,5 +1,7 @@
-package com.example.mybookslibrary.domain.model
+package com.example.mybookslibrary.domain.usecase
 
+import com.example.mybookslibrary.domain.model.ReaderTapAction
+import com.example.mybookslibrary.domain.model.ReadingMode
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -16,7 +18,9 @@ import org.junit.Test
  */
 class TapZoneEvaluatorTest {
 
+    private val evaluator = TapZoneEvaluator()
     private val totalWidth = 1000f
+    private val totalHeight = 1000f
 
     // ──────────────────────────────────────────────
     // LTR Mode
@@ -24,45 +28,45 @@ class TapZoneEvaluatorTest {
 
     @Test
     fun `LTR - tap at 0 percent returns PREVIOUS_PAGE`() {
-        val result = TapZoneEvaluator.evaluateTap(x = 0f, totalWidth = totalWidth, mode = ReadingMode.LTR)
+        val result = evaluator(x = 0f, y = 500f, screenWidth = totalWidth, screenHeight = totalHeight, mode = ReadingMode.LTR)
         assertEquals(ReaderTapAction.PREVIOUS_PAGE, result)
     }
 
     @Test
     fun `LTR - tap at 24_9 percent returns PREVIOUS_PAGE`() {
         // Just before the 25% boundary
-        val result = TapZoneEvaluator.evaluateTap(x = 249f, totalWidth = totalWidth, mode = ReadingMode.LTR)
+        val result = evaluator(x = 249f, y = 500f, screenWidth = totalWidth, screenHeight = totalHeight, mode = ReadingMode.LTR)
         assertEquals(ReaderTapAction.PREVIOUS_PAGE, result)
     }
 
     @Test
     fun `LTR - tap at exactly 25 percent returns TOGGLE_OVERLAY`() {
         // At exactly 25% boundary → center zone
-        val result = TapZoneEvaluator.evaluateTap(x = 250f, totalWidth = totalWidth, mode = ReadingMode.LTR)
+        val result = evaluator(x = 250f, y = 500f, screenWidth = totalWidth, screenHeight = totalHeight, mode = ReadingMode.LTR)
         assertEquals(ReaderTapAction.TOGGLE_OVERLAY, result)
     }
 
     @Test
     fun `LTR - tap at 50 percent returns TOGGLE_OVERLAY`() {
-        val result = TapZoneEvaluator.evaluateTap(x = 500f, totalWidth = totalWidth, mode = ReadingMode.LTR)
+        val result = evaluator(x = 500f, y = 500f, screenWidth = totalWidth, screenHeight = totalHeight, mode = ReadingMode.LTR)
         assertEquals(ReaderTapAction.TOGGLE_OVERLAY, result)
     }
 
     @Test
     fun `LTR - tap at 74_9 percent returns TOGGLE_OVERLAY`() {
-        val result = TapZoneEvaluator.evaluateTap(x = 749f, totalWidth = totalWidth, mode = ReadingMode.LTR)
+        val result = evaluator(x = 749f, y = 500f, screenWidth = totalWidth, screenHeight = totalHeight, mode = ReadingMode.LTR)
         assertEquals(ReaderTapAction.TOGGLE_OVERLAY, result)
     }
 
     @Test
     fun `LTR - tap at exactly 75 percent returns NEXT_PAGE`() {
-        val result = TapZoneEvaluator.evaluateTap(x = 750f, totalWidth = totalWidth, mode = ReadingMode.LTR)
+        val result = evaluator(x = 750f, y = 500f, screenWidth = totalWidth, screenHeight = totalHeight, mode = ReadingMode.LTR)
         assertEquals(ReaderTapAction.NEXT_PAGE, result)
     }
 
     @Test
     fun `LTR - tap at 100 percent returns NEXT_PAGE`() {
-        val result = TapZoneEvaluator.evaluateTap(x = 1000f, totalWidth = totalWidth, mode = ReadingMode.LTR)
+        val result = evaluator(x = 1000f, y = 500f, screenWidth = totalWidth, screenHeight = totalHeight, mode = ReadingMode.LTR)
         assertEquals(ReaderTapAction.NEXT_PAGE, result)
     }
 
@@ -72,37 +76,37 @@ class TapZoneEvaluatorTest {
 
     @Test
     fun `RTL - tap at 0 percent returns NEXT_PAGE`() {
-        val result = TapZoneEvaluator.evaluateTap(x = 0f, totalWidth = totalWidth, mode = ReadingMode.RTL)
+        val result = evaluator(x = 0f, y = 500f, screenWidth = totalWidth, screenHeight = totalHeight, mode = ReadingMode.RTL)
         assertEquals(ReaderTapAction.NEXT_PAGE, result)
     }
 
     @Test
     fun `RTL - tap at 24_9 percent returns NEXT_PAGE`() {
-        val result = TapZoneEvaluator.evaluateTap(x = 249f, totalWidth = totalWidth, mode = ReadingMode.RTL)
+        val result = evaluator(x = 249f, y = 500f, screenWidth = totalWidth, screenHeight = totalHeight, mode = ReadingMode.RTL)
         assertEquals(ReaderTapAction.NEXT_PAGE, result)
     }
 
     @Test
     fun `RTL - tap at exactly 25 percent returns TOGGLE_OVERLAY`() {
-        val result = TapZoneEvaluator.evaluateTap(x = 250f, totalWidth = totalWidth, mode = ReadingMode.RTL)
+        val result = evaluator(x = 250f, y = 500f, screenWidth = totalWidth, screenHeight = totalHeight, mode = ReadingMode.RTL)
         assertEquals(ReaderTapAction.TOGGLE_OVERLAY, result)
     }
 
     @Test
     fun `RTL - tap at 50 percent returns TOGGLE_OVERLAY`() {
-        val result = TapZoneEvaluator.evaluateTap(x = 500f, totalWidth = totalWidth, mode = ReadingMode.RTL)
+        val result = evaluator(x = 500f, y = 500f, screenWidth = totalWidth, screenHeight = totalHeight, mode = ReadingMode.RTL)
         assertEquals(ReaderTapAction.TOGGLE_OVERLAY, result)
     }
 
     @Test
     fun `RTL - tap at exactly 75 percent returns PREVIOUS_PAGE`() {
-        val result = TapZoneEvaluator.evaluateTap(x = 750f, totalWidth = totalWidth, mode = ReadingMode.RTL)
+        val result = evaluator(x = 750f, y = 500f, screenWidth = totalWidth, screenHeight = totalHeight, mode = ReadingMode.RTL)
         assertEquals(ReaderTapAction.PREVIOUS_PAGE, result)
     }
 
     @Test
     fun `RTL - tap at 100 percent returns PREVIOUS_PAGE`() {
-        val result = TapZoneEvaluator.evaluateTap(x = 1000f, totalWidth = totalWidth, mode = ReadingMode.RTL)
+        val result = evaluator(x = 1000f, y = 500f, screenWidth = totalWidth, screenHeight = totalHeight, mode = ReadingMode.RTL)
         assertEquals(ReaderTapAction.PREVIOUS_PAGE, result)
     }
 
@@ -112,19 +116,19 @@ class TapZoneEvaluatorTest {
 
     @Test
     fun `VERTICAL - tap at left zone returns TOGGLE_OVERLAY`() {
-        val result = TapZoneEvaluator.evaluateTap(x = 100f, totalWidth = totalWidth, mode = ReadingMode.VERTICAL)
+        val result = evaluator(x = 100f, y = 500f, screenWidth = totalWidth, screenHeight = totalHeight, mode = ReadingMode.VERTICAL)
         assertEquals(ReaderTapAction.TOGGLE_OVERLAY, result)
     }
 
     @Test
     fun `VERTICAL - tap at center returns TOGGLE_OVERLAY`() {
-        val result = TapZoneEvaluator.evaluateTap(x = 500f, totalWidth = totalWidth, mode = ReadingMode.VERTICAL)
+        val result = evaluator(x = 500f, y = 500f, screenWidth = totalWidth, screenHeight = totalHeight, mode = ReadingMode.VERTICAL)
         assertEquals(ReaderTapAction.TOGGLE_OVERLAY, result)
     }
 
     @Test
     fun `VERTICAL - tap at right zone returns TOGGLE_OVERLAY`() {
-        val result = TapZoneEvaluator.evaluateTap(x = 900f, totalWidth = totalWidth, mode = ReadingMode.VERTICAL)
+        val result = evaluator(x = 900f, y = 500f, screenWidth = totalWidth, screenHeight = totalHeight, mode = ReadingMode.VERTICAL)
         assertEquals(ReaderTapAction.TOGGLE_OVERLAY, result)
     }
 
@@ -134,39 +138,45 @@ class TapZoneEvaluatorTest {
 
     @Test
     fun `zero totalWidth returns NONE`() {
-        val result = TapZoneEvaluator.evaluateTap(x = 50f, totalWidth = 0f, mode = ReadingMode.LTR)
+        val result = evaluator(x = 50f, y = 500f, screenWidth = 0f, screenHeight = totalHeight, mode = ReadingMode.LTR)
         assertEquals(ReaderTapAction.NONE, result)
     }
 
     @Test
     fun `negative totalWidth returns NONE`() {
-        val result = TapZoneEvaluator.evaluateTap(x = 50f, totalWidth = -100f, mode = ReadingMode.LTR)
+        val result = evaluator(x = 50f, y = 500f, screenWidth = -100f, screenHeight = totalHeight, mode = ReadingMode.LTR)
+        assertEquals(ReaderTapAction.NONE, result)
+    }
+
+    @Test
+    fun `zero screenHeight returns NONE`() {
+        val result = evaluator(x = 50f, y = 500f, screenWidth = totalWidth, screenHeight = 0f, mode = ReadingMode.LTR)
         assertEquals(ReaderTapAction.NONE, result)
     }
 
     @Test
     fun `negative x is clamped to 0 - left zone`() {
         // Negative x should be clamped to 0, which is in left zone
-        val result = TapZoneEvaluator.evaluateTap(x = -50f, totalWidth = totalWidth, mode = ReadingMode.LTR)
+        val result = evaluator(x = -50f, y = 500f, screenWidth = totalWidth, screenHeight = totalHeight, mode = ReadingMode.LTR)
         assertEquals(ReaderTapAction.PREVIOUS_PAGE, result)
     }
 
     @Test
     fun `x exceeding totalWidth is clamped to totalWidth - right zone`() {
-        val result = TapZoneEvaluator.evaluateTap(x = 1500f, totalWidth = totalWidth, mode = ReadingMode.LTR)
+        val result = evaluator(x = 1500f, y = 500f, screenWidth = totalWidth, screenHeight = totalHeight, mode = ReadingMode.LTR)
         assertEquals(ReaderTapAction.NEXT_PAGE, result)
     }
 
     @Test
     fun `small totalWidth - zones still calculated correctly`() {
         // totalWidth = 4px → left zone is [0, 1), center [1, 3), right [3, 4]
-        val leftResult = TapZoneEvaluator.evaluateTap(x = 0f, totalWidth = 4f, mode = ReadingMode.LTR)
+        val leftResult = evaluator(x = 0f, y = 500f, screenWidth = 4f, screenHeight = totalHeight, mode = ReadingMode.LTR)
         assertEquals(ReaderTapAction.PREVIOUS_PAGE, leftResult)
 
-        val centerResult = TapZoneEvaluator.evaluateTap(x = 2f, totalWidth = 4f, mode = ReadingMode.LTR)
+        val centerResult = evaluator(x = 2f, y = 500f, screenWidth = 4f, screenHeight = totalHeight, mode = ReadingMode.LTR)
         assertEquals(ReaderTapAction.TOGGLE_OVERLAY, centerResult)
 
-        val rightResult = TapZoneEvaluator.evaluateTap(x = 3f, totalWidth = 4f, mode = ReadingMode.LTR)
+        val rightResult = evaluator(x = 3f, y = 500f, screenWidth = 4f, screenHeight = totalHeight, mode = ReadingMode.LTR)
         assertEquals(ReaderTapAction.NEXT_PAGE, rightResult)
     }
 }
