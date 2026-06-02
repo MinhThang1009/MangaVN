@@ -12,7 +12,6 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.async
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runCurrent
@@ -211,7 +210,7 @@ class ReaderViewModelTest {
         coEvery { mangaRepository.getChapterPages(CHAPTER_ID) } returns Result.success(
             listOf("page-1", "page-2", "page-3", "page-4", "page-5", "page-6", "page-7", "page-8")
         )
-        every { downloadedChapterCache.isChapterDownloadedFlow(CHAPTER_ID) } returns flowOf(false)
+        coEvery { downloadedChapterCache.isChapterDownloaded(CHAPTER_ID) } returns false
 
         val args = mutableMapOf<String, Any?>(
             "mangaId" to MANGA_ID,
