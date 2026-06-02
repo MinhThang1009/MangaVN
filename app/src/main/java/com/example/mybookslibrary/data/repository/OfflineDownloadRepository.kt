@@ -91,40 +91,30 @@ class OfflineDownloadRepository @Inject constructor(
         Timber.d("markChapterDownloaded: mangaId=%s chapterId=%s totalPages=%d", mangaId, chapterId, totalPages)
         database.withTransaction {
             val current = chapterDao.getChapterProgressByChapter(chapterId)
-            chapterDao.upsertChapterProgress(
+            chapterDao.upsertReadingProgress(
                 current?.copy(
                     manga_id = mangaId,
                     total_pages = current.total_pages.takeIf { it > 0 } ?: totalPages.coerceAtLeast(0),
-                    updated_at = now,
-                    is_downloaded = true
+                    updated_at = now
                 ) ?: ChapterProgressEntity(
                     chapter_id = chapterId,
                     manga_id = mangaId,
                     total_pages = totalPages.coerceAtLeast(0),
-                    updated_at = now,
-                    is_downloaded = true
+                    updated_at = now
                 )
             )
             downloadQueueDao.deleteByChapter(chapterId)
         }
-        downloadedChapterCache.markDownloaded(chapterId)
+        downloadedChapterCache.addChapter(chapterId)
     }
 
     suspend fun markChapterNotDownloaded(chapterId: String) {
-        val now = System.currentTimeMillis()
         Timber.d("markChapterNotDownloaded: chapterId=%s", chapterId)
         database.withTransaction {
-            chapterDao.getChapterProgressByChapter(chapterId)?.let { current ->
-                chapterDao.upsertChapterProgress(
-                    current.copy(
-                        updated_at = now,
-                        is_downloaded = false
-                    )
-                )
-            }
+            chapterDao.clearDownloadedChapterFlag(chapterId)
             downloadQueueDao.deleteByChapter(chapterId)
         }
-        downloadedChapterCache.markNotDownloaded(chapterId)
+        downloadedChapterCache.removeChapter(chapterId)
     }
 
     fun observeDownloadOnlyOnWifi(): Flow<Boolean> = preferencesDataStore.observeDownloadOnlyOnWifi()

@@ -20,6 +20,12 @@ abstract class ChapterDao {
     @Query("SELECT chapter_id FROM chapter_progress WHERE is_downloaded = 1")
     abstract suspend fun getDownloadedChapterIds(): List<String>
 
+    @Query("UPDATE chapter_progress SET is_downloaded = 0 WHERE is_downloaded = 1")
+    abstract suspend fun clearDownloadedChapterFlags()
+
+    @Query("UPDATE chapter_progress SET is_downloaded = 0 WHERE chapter_id = :chapterId")
+    abstract suspend fun clearDownloadedChapterFlag(chapterId: String)
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     abstract suspend fun upsertChapterProgress(progress: ChapterProgressEntity)
 

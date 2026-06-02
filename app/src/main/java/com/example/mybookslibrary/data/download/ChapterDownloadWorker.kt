@@ -110,6 +110,10 @@ class ChapterDownloadWorker @AssistedInject constructor(
                 }
                 .collect()
 
+            offlineDownloadStorage.markChapterComplete(
+                mangaId = mangaId,
+                chapterId = chapterId
+            )
             offlineDownloadRepository.markChapterDownloaded(
                 mangaId = mangaId,
                 chapterId = chapterId,
