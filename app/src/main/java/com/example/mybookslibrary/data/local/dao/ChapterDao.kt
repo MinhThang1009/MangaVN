@@ -23,6 +23,42 @@ abstract class ChapterDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     abstract suspend fun upsertChapterProgress(progress: ChapterProgressEntity)
 
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    protected abstract suspend fun insertChapterProgressIfAbsent(progress: ChapterProgressEntity)
+
+    @Query(
+        """
+        UPDATE chapter_progress
+        SET status = :status,
+            last_read_page = :lastReadPage,
+            total_pages = :totalPages,
+            updated_at = :updatedAt
+        WHERE chapter_id = :chapterId
+        """
+    )
+    protected abstract suspend fun updateReadingProgress(
+        chapterId: String,
+        status: com.example.mybookslibrary.data.local.ChapterStatus,
+        lastReadPage: Int,
+        totalPages: Int,
+        updatedAt: Long
+    )
+
+    /**
+     * Persists reading progress without overwriting download metadata.
+     */
+    @Transaction
+    open suspend fun upsertReadingProgress(progress: ChapterProgressEntity) {
+        insertChapterProgressIfAbsent(progress)
+        updateReadingProgress(
+            chapterId = progress.chapter_id,
+            status = progress.status,
+            lastReadPage = progress.last_read_page,
+            totalPages = progress.total_pages,
+            updatedAt = progress.updated_at
+        )
+    }
+
     @Query("DELETE FROM chapter_progress WHERE manga_id = :mangaId")
     protected abstract suspend fun deleteProgressByMangaId(mangaId: String)
 
