@@ -3,6 +3,8 @@ package com.example.mybookslibrary.domain.usecase
 import com.example.mybookslibrary.data.download.DownloadedChapterCache
 import com.example.mybookslibrary.data.local.ChapterProgressEntity
 import com.example.mybookslibrary.data.local.ChapterStatus
+import com.example.mybookslibrary.data.local.DownloadQueueEntity
+import com.example.mybookslibrary.data.local.DownloadStatus
 import com.example.mybookslibrary.data.local.dao.ChapterDao
 import com.example.mybookslibrary.data.repository.OfflineDownloadRepository
 import com.example.mybookslibrary.data.repository.MangaRepository
@@ -12,9 +14,14 @@ import com.example.mybookslibrary.domain.model.ChapterReadingStatus
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -99,6 +106,55 @@ class GetChapterListWithProgressUseCaseTest {
 
         assertEquals(ChapterDownloadStatus.DOWNLOADED, result.single().downloadState.status)
         assertEquals(100, result.single().downloadState.progressPercent)
+    }
+
+    @Test
+    fun emitsDownloadedStateWhenFilesystemCacheChanges() = runTest {
+        val downloadedIds = MutableStateFlow<Set<String>>(emptySet())
+        coEvery { mangaRepository.getMangaFeed(MANGA_ID) } returns Result.success(
+            listOf(chapter(id = "chapter-1", pages = 12))
+        )
+        every { chapterDao.getChapterProgressByManga(MANGA_ID) } returns flowOf(emptyList())
+        every { offlineDownloadRepository.observeQueueByManga(MANGA_ID) } returns flowOf(emptyList())
+        every { downloadedChapterCache.downloadedChapterIds } returns downloadedIds
+
+        val firstEmission = CompletableDeferred<Unit>()
+        val emissions = async {
+            useCase(MANGA_ID)
+                .onEach { firstEmission.complete(Unit) }
+                .take(2)
+                .toList()
+        }
+        firstEmission.await()
+        downloadedIds.value = setOf("chapter-1")
+
+        val result = emissions.await()
+        assertEquals(ChapterDownloadStatus.NOT_DOWNLOADED, result[0].single().downloadState.status)
+        assertEquals(ChapterDownloadStatus.DOWNLOADED, result[1].single().downloadState.status)
+    }
+
+    @Test
+    fun completedQueueWithoutFilesystemMarker_isNotDownloaded() = runTest {
+        coEvery { mangaRepository.getMangaFeed(MANGA_ID) } returns Result.success(
+            listOf(chapter(id = "chapter-1", pages = 12))
+        )
+        every { chapterDao.getChapterProgressByManga(MANGA_ID) } returns flowOf(emptyList())
+        every { offlineDownloadRepository.observeQueueByManga(MANGA_ID) } returns flowOf(
+            listOf(
+                DownloadQueueEntity(
+                    chapter_id = "chapter-1",
+                    manga_id = MANGA_ID,
+                    status = DownloadStatus.COMPLETED,
+                    progress_percent = 100
+                )
+            )
+        )
+        every { downloadedChapterCache.downloadedChapterIds } returns MutableStateFlow(emptySet())
+
+        val result = useCase(MANGA_ID).first()
+
+        assertEquals(ChapterDownloadStatus.NOT_DOWNLOADED, result.single().downloadState.status)
+        assertEquals(0, result.single().downloadState.progressPercent)
     }
 
     private fun chapter(id: String, pages: Int): ChapterModel = ChapterModel(
