@@ -98,12 +98,12 @@ private fun ChapterStatus?.toDomainStatus(): ChapterReadingStatus = when (this) 
 }
 
 private fun DownloadQueueEntity?.toDownloadState(isDownloaded: Boolean): ChapterDownloadState {
+    if (isDownloaded) {
+        return ChapterDownloadState(status = ChapterDownloadStatus.DOWNLOADED, progressPercent = 100)
+    }
+
     if (this == null) {
-        return if (isDownloaded) {
-            ChapterDownloadState(status = ChapterDownloadStatus.DOWNLOADED, progressPercent = 100)
-        } else {
-            ChapterDownloadState()
-        }
+        return ChapterDownloadState()
     }
 
     return when (status) {
@@ -115,10 +115,7 @@ private fun DownloadQueueEntity?.toDownloadState(isDownloaded: Boolean): Chapter
             status = ChapterDownloadStatus.DOWNLOADING,
             progressPercent = progress_percent
         )
-        DownloadStatus.COMPLETED -> ChapterDownloadState(
-            status = ChapterDownloadStatus.DOWNLOADED,
-            progressPercent = 100
-        )
+        DownloadStatus.COMPLETED -> ChapterDownloadState()
         DownloadStatus.ERROR -> ChapterDownloadState(
             status = ChapterDownloadStatus.ERROR,
             progressPercent = progress_percent,
