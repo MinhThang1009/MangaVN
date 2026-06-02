@@ -2,6 +2,8 @@ package com.example.mybookslibrary.data.download
 
 import com.example.mybookslibrary.data.local.dao.ChapterDao
 import com.example.mybookslibrary.di.ApplicationScope
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,27 +19,35 @@ import javax.inject.Singleton
 /**
  * In-memory index of chapters that have completed offline downloads.
  *
- * The cache loads downloaded chapter ids once from Room during app lifetime and
- * then serves O(1) reactive lookups for UI and reader code.
+ * The filesystem is the source of truth. Room download flags are read once only
+ * to migrate downloads created before completion markers existed.
  */
 @Singleton
 class DownloadedChapterCache @Inject constructor(
     private val chapterDao: ChapterDao,
+    private val storage: OfflineDownloadStorage,
     @param:ApplicationScope private val applicationScope: CoroutineScope
 ) {
 
     private val _downloadedChapterIds = MutableStateFlow<Set<String>>(emptySet())
+    private val initialization = CompletableDeferred<Unit>()
 
     val downloadedChapterIds: StateFlow<Set<String>> = _downloadedChapterIds.asStateFlow()
 
     init {
         applicationScope.launch {
             try {
-                val downloadedIds = chapterDao.getDownloadedChapterIds().toSet()
-                _downloadedChapterIds.value = downloadedIds
-                Timber.d("DownloadedChapterCache initialized: count=%d", downloadedIds.size)
+                val legacyDownloadedIds = chapterDao.getDownloadedChapterIds().toSet()
+                storage.backfillCompletionMarkers(legacyDownloadedIds)
+                chapterDao.clearDownloadedChapterFlags()
+                scanDownloadedChapters()
+                Timber.d("DownloadedChapterCache initialized: count=%d", downloadedChapterIds.value.size)
+            } catch (cancellationException: CancellationException) {
+                throw cancellationException
             } catch (t: Throwable) {
                 Timber.e(t, "DownloadedChapterCache initialization failed")
+            } finally {
+                initialization.complete(Unit)
             }
         }
     }
@@ -50,18 +60,33 @@ class DownloadedChapterCache @Inject constructor(
     }
 
     /**
-     * Marks [chapterId] as downloaded in memory after persistence succeeds.
+     * Waits for the startup disk scan before returning a one-shot lookup.
      */
-    suspend fun markDownloaded(chapterId: String) {
+    suspend fun isChapterDownloaded(chapterId: String): Boolean {
+        initialization.await()
+        return chapterId in downloadedChapterIds.value
+    }
+
+    /**
+     * Refreshes the in-memory index from completed filesystem downloads.
+     */
+    suspend fun scanDownloadedChapters() {
+        _downloadedChapterIds.value = storage.scanDownloadedChapters()
+    }
+
+    /**
+     * Adds [chapterId] after its completion marker has been written.
+     */
+    fun addChapter(chapterId: String) {
         _downloadedChapterIds.update { it + chapterId }
-        Timber.d("DownloadedChapterCache markDownloaded: chapterId=%s", chapterId)
+        Timber.d("DownloadedChapterCache addChapter: chapterId=%s", chapterId)
     }
 
     /**
      * Removes [chapterId] from the downloaded set after deletion succeeds.
      */
-    suspend fun markNotDownloaded(chapterId: String) {
+    fun removeChapter(chapterId: String) {
         _downloadedChapterIds.update { it - chapterId }
-        Timber.d("DownloadedChapterCache markNotDownloaded: chapterId=%s", chapterId)
+        Timber.d("DownloadedChapterCache removeChapter: chapterId=%s", chapterId)
     }
 }
