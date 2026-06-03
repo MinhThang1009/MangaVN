@@ -22,7 +22,6 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -86,7 +85,7 @@ class ReaderViewModel @Inject constructor(
             Timber.d("loadChapterPages start: chapterId=%s", chapterId)
             _state.update { it.copy(isLoading = true, error = null) }
             try {
-                val isDownloaded = downloadedChapterCache.isChapterDownloadedFlow(chapterId).first()
+                val isDownloaded = downloadedChapterCache.isChapterDownloaded(chapterId)
                 val localPages = if (isDownloaded) {
                     offlineDownloadStorage.getChapterPages(mangaId, chapterId)
                 } else {

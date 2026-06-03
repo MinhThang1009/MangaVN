@@ -80,13 +80,62 @@ class OfflineDownloadStorage @Inject constructor(
      */
     suspend fun getChapterPages(mangaId: String, chapterId: String): List<File> = withContext(ioDispatcher) {
         val chapterDir = chapterDirectory(mangaId, chapterId)
-        val pages = chapterDir
-            .listFiles { file -> file.isFile && file.name.startsWith(PAGE_PREFIX) && !file.name.endsWith(TEMP_SUFFIX) }
-            ?.sortedBy { file -> pageIndexFromName(file.name) }
-            .orEmpty()
+        val pages = getValidPageFiles(chapterDir)
 
         Timber.d("getChapterPages: mangaId=%s chapterId=%s pages=%d", mangaId, chapterId, pages.size)
         pages
+    }
+
+    /**
+     * Writes the marker used to distinguish a completed download from leftover partial pages.
+     */
+    suspend fun markChapterComplete(mangaId: String, chapterId: String) = withContext(ioDispatcher) {
+        val chapterDir = chapterDirectory(mangaId, chapterId)
+        if (getValidPageFiles(chapterDir).isEmpty()) {
+            throw IOException("Cannot complete offline chapter without pages: ${chapterDir.absolutePath}")
+        }
+        writeCompletionMarker(chapterDir)
+        Timber.d("markChapterComplete: mangaId=%s chapterId=%s", mangaId, chapterId)
+    }
+
+    /**
+     * Returns chapter ids whose directories contain both valid pages and a completion marker.
+     */
+    suspend fun scanDownloadedChapters(): Set<String> = withContext(ioDispatcher) {
+        val downloadedIds = rootDirectory()
+            .listFiles { file -> file.isDirectory }
+            .orEmpty()
+            .flatMap { mangaDir -> mangaDir.listFiles { file -> file.isDirectory }.orEmpty().asList() }
+            .filter { chapterDir ->
+                File(chapterDir, COMPLETION_MARKER).isFile && getValidPageFiles(chapterDir).isNotEmpty()
+            }
+            .mapTo(linkedSetOf()) { chapterDir -> chapterDir.name }
+        Timber.d("scanDownloadedChapters: count=%d", downloadedIds.size)
+        downloadedIds
+    }
+
+    /**
+     * Adds completion markers for downloads created before filesystem tracking existed.
+     */
+    suspend fun backfillCompletionMarkers(legacyDownloadedIds: Set<String>): Int = withContext(ioDispatcher) {
+        if (legacyDownloadedIds.isEmpty()) return@withContext 0
+
+        var createdMarkers = 0
+        rootDirectory()
+            .listFiles { file -> file.isDirectory }
+            .orEmpty()
+            .flatMap { mangaDir -> mangaDir.listFiles { file -> file.isDirectory }.orEmpty().asList() }
+            .filter { chapterDir ->
+                chapterDir.name in legacyDownloadedIds &&
+                    getValidPageFiles(chapterDir).isNotEmpty() &&
+                    !File(chapterDir, COMPLETION_MARKER).exists()
+            }
+            .forEach { chapterDir ->
+                writeCompletionMarker(chapterDir)
+                createdMarkers += 1
+            }
+        Timber.d("backfillCompletionMarkers: legacy=%d created=%d", legacyDownloadedIds.size, createdMarkers)
+        createdMarkers
     }
 
     /**
@@ -107,7 +156,25 @@ class OfflineDownloadStorage @Inject constructor(
     }
 
     private fun chapterDirectory(mangaId: String, chapterId: String): File {
-        return File(File(File(context.filesDir, ROOT_DIRECTORY), safeSegment(mangaId)), safeSegment(chapterId))
+        return File(File(rootDirectory(), safeSegment(mangaId)), safeSegment(chapterId))
+    }
+
+    private fun rootDirectory(): File {
+        return File(context.filesDir, ROOT_DIRECTORY)
+    }
+
+    private fun getValidPageFiles(chapterDir: File): List<File> {
+        return chapterDir
+            .listFiles { file -> file.isFile && file.name.startsWith(PAGE_PREFIX) && !file.name.endsWith(TEMP_SUFFIX) }
+            ?.sortedBy { file -> pageIndexFromName(file.name) }
+            .orEmpty()
+    }
+
+    private fun writeCompletionMarker(chapterDir: File) {
+        val marker = File(chapterDir, COMPLETION_MARKER)
+        if (!marker.exists() && !marker.createNewFile()) {
+            throw IOException("Cannot create offline chapter completion marker: ${marker.absolutePath}")
+        }
     }
 
     private fun pageFileName(pageIndex: Int, extension: String): String {
@@ -138,6 +205,7 @@ class OfflineDownloadStorage @Inject constructor(
         const val PAGE_INDEX_WIDTH = 5
         const val DEFAULT_EXTENSION = "img"
         const val TEMP_SUFFIX = ".tmp"
+        const val COMPLETION_MARKER = ".complete"
         const val UNKNOWN_SEGMENT = "unknown"
     }
 }
