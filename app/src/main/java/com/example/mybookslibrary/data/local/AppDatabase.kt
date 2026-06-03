@@ -18,7 +18,7 @@ import com.example.mybookslibrary.data.local.dao.UserDao
         DownloadQueueEntity::class
     ],
     version = 3,
-    exportSchema = false
+    exportSchema = true
 )
 @TypeConverters(LibraryStatusConverters::class)
 abstract class AppDatabase : RoomDatabase() {
@@ -45,7 +45,8 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "mybooks_library.db"
                 )
-                    .fallbackToDestructiveMigration(true)
+                    // Không dùng fallbackToDestructiveMigration: thiếu migration khi bump version
+                    // sẽ fail loud (giữ nguyên dữ liệu trên đĩa) thay vì xóa sạch thư viện người dùng.
                     .build()
 
                 INSTANCE = created
