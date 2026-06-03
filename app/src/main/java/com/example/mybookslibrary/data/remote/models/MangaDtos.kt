@@ -132,13 +132,15 @@ fun ChapterDto.toDomainModel(fallbackMangaId: String): ChapterModel {
 
 // At-Home Server DTOs for Reader
 data class AtHomeResponseDto(
-    @SerializedName("result") val result: String,
-    @SerializedName("baseUrl") val baseUrl: String,
-    @SerializedName("chapter") val chapter: AtHomeChapterDto
+    // Nullable + default: MangaDex có thể trả error-envelope (HTTP 200) thiếu các field này;
+    // Gson dùng Unsafe nên khai non-null vẫn ra null → validate ở getChapterDelivery.
+    @SerializedName("result") val result: String? = null,
+    @SerializedName("baseUrl") val baseUrl: String? = null,
+    @SerializedName("chapter") val chapter: AtHomeChapterDto? = null
 )
 
 data class AtHomeChapterDto(
-    @SerializedName("hash") val hash: String,
+    @SerializedName("hash") val hash: String? = null,
     @SerializedName("data") val data: List<String> = emptyList(),
     @SerializedName("dataSaver") val dataSaver: List<String> = emptyList()
 )
