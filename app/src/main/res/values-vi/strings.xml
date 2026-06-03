@@ -16,6 +16,9 @@
     <string name="action_see_all">Xem tất cả</string>
     <string name="action_collapse">Thu gọn</string>
     <string name="error_prefix">Lỗi: %1$s</string>
+    <string name="discover_error_title">Không thể tải trang chủ</string>
+    <string name="discover_error_subtitle">Kiểm tra kết nối mạng và thử lại</string>
+    <string name="action_retry">Thử lại</string>
 
     <!-- Top Bar -->
     <string name="cd_menu">Menu</string>
