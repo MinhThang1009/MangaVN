@@ -111,7 +111,7 @@ class LibraryRepository(
                 boundedPageIndex,
                 boundedTotalPages
             )
-            chapterDao.upsertChapterProgress(
+            chapterDao.upsertReadingProgress(
                 ChapterProgressEntity(
                     chapter_id = chapterId,
                     manga_id = mangaId,
@@ -144,7 +144,7 @@ class LibraryRepository(
             chapterId,
             boundedTotalPages
         )
-        chapterDao.upsertChapterProgress(
+        chapterDao.upsertReadingProgress(
             ChapterProgressEntity(
                 chapter_id = chapterId,
                 manga_id = mangaId,
@@ -167,7 +167,7 @@ class LibraryRepository(
             chapterId,
             totalPages.coerceAtLeast(0)
         )
-        chapterDao.upsertChapterProgress(
+        chapterDao.upsertReadingProgress(
             ChapterProgressEntity(
                 chapter_id = chapterId,
                 manga_id = mangaId,
