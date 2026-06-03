@@ -10,6 +10,7 @@ import com.example.mybookslibrary.data.repository.LibraryRepository
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import com.example.mybookslibrary.di.IoDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -103,6 +104,8 @@ class SettingsViewModel @Inject constructor(
                 preferencesDataStore.setLoggedInUserId(null)
                 libraryRepository.clearAll()
                 _uiState.update { it.copy(signedOut = true, quality = "data") }
+            } catch (c: CancellationException) {
+                throw c
             } catch (e: Exception) {
                 // Tránh crash app do exception không bắt trong viewModelScope (Room/IO có thể ném)
                 Timber.e(e, "signOut thất bại")
