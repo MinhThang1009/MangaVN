@@ -8,6 +8,7 @@
 .externalNativeBuild
 .cxx
 local.properties
+HANDOFF.md
 app/src/main/java/com/example/mybookslibrary/util/AuthSecrets.kt
 
 # Test chứng minh bug từ deep-scan audit (cố ý FAIL) — không commit vào repo chính
