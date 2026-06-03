@@ -115,11 +115,19 @@ class ChapterDownloadWorker @AssistedInject constructor(
                 mangaId = mangaId,
                 chapterId = chapterId
             )
-            offlineDownloadRepository.markChapterDownloaded(
-                mangaId = mangaId,
-                chapterId = chapterId,
-                totalPages = failoverCoordinator.totalPages
-            )
+            // Marker filesystem là nguồn sự thật (đã tải xong). Cập nhật DB/cache là dẫn xuất;
+            // nếu lỗi, scan lúc khởi động dựng lại từ marker → KHÔNG coi là tải thất bại.
+            try {
+                offlineDownloadRepository.markChapterDownloaded(
+                    mangaId = mangaId,
+                    chapterId = chapterId,
+                    totalPages = failoverCoordinator.totalPages
+                )
+            } catch (cancellationException: CancellationException) {
+                throw cancellationException
+            } catch (e: Exception) {
+                Timber.w(e, "markChapterDownloaded lỗi sau khi đã ghi marker (scan sẽ tự sửa): chapterId=%s", chapterId)
+            }
             setProgress(workDataOf(KEY_PROGRESS_PERCENT to 100))
             setForeground(createForegroundInfo(chapterId, progressPercent = 100, indeterminate = false))
             showFinishedNotification(chapterId, success = true, message = "Chapter download complete")
