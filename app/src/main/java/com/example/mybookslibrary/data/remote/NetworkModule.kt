@@ -18,6 +18,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import timber.log.Timber
 import javax.inject.Named
 import javax.inject.Singleton
+import java.util.concurrent.TimeUnit
 
 // Hilt module cung cấp OkHttpClient, Retrofit và MangaDexApi singleton
 @Module
@@ -39,6 +40,9 @@ object NetworkModule {
     fun provideOkHttpClient(loggingInterceptor: HttpLoggingInterceptor): OkHttpClient =
         OkHttpClient.Builder()
             .addInterceptor(loggingInterceptor)
+            .connectTimeout(15, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS)
+            .callTimeout(60, TimeUnit.SECONDS)
             .build()
 
     /**
@@ -62,6 +66,9 @@ object NetworkModule {
         return OkHttpClient.Builder()
             .cache(Cache(cacheDir, IMAGE_HTTP_CACHE_SIZE_BYTES))
             .addInterceptor(atHomeReportInterceptor)
+            .connectTimeout(15, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS)
+            .callTimeout(60, TimeUnit.SECONDS)
             .build()
     }
 

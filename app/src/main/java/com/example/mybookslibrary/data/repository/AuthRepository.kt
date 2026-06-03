@@ -13,6 +13,9 @@ import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import kotlinx.coroutines.flow.Flow
 import java.security.MessageDigest
+import java.security.SecureRandom
+import javax.crypto.SecretKeyFactory
+import javax.crypto.spec.PBEKeySpec
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -47,8 +50,13 @@ class AuthRepository @Inject constructor(
         val user = userDao.getByUsername(username)
             ?: return Result.failure(Exception("Invalid username or password"))
 
-        if (user.password != hashPassword(password)) {
+        if (!verifyPassword(password, user.password)) {
             return Result.failure(Exception("Invalid username or password"))
+        }
+
+        // Migrate dần: user còn lưu hash SHA-256 cũ → re-hash bằng PBKDF2 khi đăng nhập đúng.
+        if (!user.password.startsWith("$PBKDF2_PREFIX:")) {
+            userDao.upsert(user.copy(password = hashPassword(password)))
         }
 
         preferencesDataStore.setLoggedInUserId(user.id.toString())
@@ -111,10 +119,46 @@ class AuthRepository @Inject constructor(
         }
     }
 
+    // Hash mật khẩu bằng PBKDF2 + salt ngẫu nhiên per-user. Format: "pbkdf2:<iter>:<saltHex>:<hashHex>".
     private fun hashPassword(password: String): String {
-        val bytes = password.toByteArray()
-        val md = MessageDigest.getInstance("SHA-256")
-        val digest = md.digest(bytes)
-        return digest.fold("") { str, it -> str + "%02x".format(it) }
+        val salt = ByteArray(SALT_BYTES).also { SecureRandom().nextBytes(it) }
+        val hash = pbkdf2(password.toCharArray(), salt, PBKDF2_ITERATIONS)
+        return listOf(PBKDF2_PREFIX, PBKDF2_ITERATIONS.toString(), salt.toHex(), hash.toHex())
+            .joinToString(":")
+    }
+
+    // Xác minh mật khẩu, hỗ trợ cả hash PBKDF2 mới lẫn SHA-256 cũ (legacy) để migrate dần.
+    private fun verifyPassword(password: String, stored: String): Boolean {
+        if (!stored.startsWith("$PBKDF2_PREFIX:")) {
+            return legacySha256(password) == stored
+        }
+        val parts = stored.split(":")
+        if (parts.size != 4) return false
+        val iterations = parts[1].toIntOrNull() ?: return false
+        val salt = parts[2].hexToBytes()
+        val expected = parts[3].hexToBytes()
+        val actual = pbkdf2(password.toCharArray(), salt, iterations)
+        return MessageDigest.isEqual(actual, expected)
+    }
+
+    private fun pbkdf2(password: CharArray, salt: ByteArray, iterations: Int): ByteArray {
+        val spec = PBEKeySpec(password, salt, iterations, PBKDF2_KEY_LENGTH_BITS)
+        return SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256").generateSecret(spec).encoded
+    }
+
+    private fun legacySha256(password: String): String =
+        MessageDigest.getInstance("SHA-256").digest(password.toByteArray())
+            .joinToString("") { "%02x".format(it) }
+
+    private fun ByteArray.toHex(): String = joinToString("") { "%02x".format(it) }
+
+    private fun String.hexToBytes(): ByteArray =
+        chunked(2).map { it.toInt(16).toByte() }.toByteArray()
+
+    private companion object {
+        private const val PBKDF2_PREFIX = "pbkdf2"
+        private const val PBKDF2_ITERATIONS = 600_000
+        private const val PBKDF2_KEY_LENGTH_BITS = 256
+        private const val SALT_BYTES = 16
     }
 }

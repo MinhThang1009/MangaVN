@@ -23,6 +23,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -151,6 +152,23 @@ fun MainNavHost(loggedInUserId: String?) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
 
     val currentDestination = navBackStackEntry?.destination
+
+    // Khi đăng xuất (loggedInUserId -> null) đẩy người dùng về Login và xóa back stack.
+    // NavHost.startDestination chỉ đọc một lần nên không tự điều hướng khi state đổi sau đó.
+    LaunchedEffect(loggedInUserId) {
+        if (loggedInUserId == null) {
+            val current = currentDestination?.route
+            if (current != null &&
+                current != AuthDestination.Login &&
+                current != AuthDestination.Register
+            ) {
+                navController.navigate(AuthDestination.Login) {
+                    popUpTo(0) { inclusive = true }
+                    launchSingleTop = true
+                }
+            }
+        }
+    }
 
     val showBottomBar = currentDestination?.hierarchy?.none { dest ->
         dest.route == AuthDestination.Login ||

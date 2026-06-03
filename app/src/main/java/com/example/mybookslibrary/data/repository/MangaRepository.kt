@@ -101,16 +101,31 @@ class MangaRepository(
     suspend fun getChapterDelivery(chapterId: String): Result<ChapterDelivery> = runCatching {
         val quality = preferencesDataStore.getReaderQuality()
         val atHomeResponse = api.getAtHomeServer(chapterId)
+
+        // Validate error-envelope (HTTP 200 nhưng thiếu baseUrl/chapter) trước khi build URL,
+        // tránh NullPointerException khó debug ở reader.
+        if (atHomeResponse.result != "ok") {
+            throw IllegalStateException(
+                "Phản hồi At-Home không hợp lệ cho chapter $chapterId (result=${atHomeResponse.result})"
+            )
+        }
+        val baseUrl = atHomeResponse.baseUrl
+            ?: throw IllegalStateException("Phản hồi At-Home thiếu baseUrl cho chapter $chapterId")
+        val chapter = atHomeResponse.chapter
+            ?: throw IllegalStateException("Phản hồi At-Home thiếu chapter cho chapter $chapterId")
+        val hash = chapter.hash
+            ?: throw IllegalStateException("Phản hồi At-Home thiếu hash cho chapter $chapterId")
+
         val filenames = when {
-            quality == MangaDexConstants.QUALITY_DATA_SAVER && atHomeResponse.chapter.dataSaver.isNotEmpty() ->
-                atHomeResponse.chapter.dataSaver
-            else -> atHomeResponse.chapter.data
+            quality == MangaDexConstants.QUALITY_DATA_SAVER && chapter.dataSaver.isNotEmpty() ->
+                chapter.dataSaver
+            else -> chapter.data
         }
 
         ChapterDelivery(
-            baseUrl = atHomeResponse.baseUrl,
+            baseUrl = baseUrl,
             quality = quality,
-            hash = atHomeResponse.chapter.hash,
+            hash = hash,
             filenames = filenames
         )
     }
@@ -141,7 +156,13 @@ data class ChapterDelivery(
     val hash: String,
     val filenames: List<String>
 ) {
-    fun pageUrl(pageIndex: Int): String = "$baseUrl/$quality/$hash/${filenames[pageIndex]}"
+    fun pageUrl(pageIndex: Int): String {
+        val name = filenames.getOrNull(pageIndex)
+            ?: throw IllegalArgumentException(
+                "pageIndex $pageIndex ngoài phạm vi (chapter có ${filenames.size} trang)"
+            )
+        return "$baseUrl/$quality/$hash/$name"
+    }
 
     fun pageUrls(): List<String> = filenames.indices.map(::pageUrl)
 }

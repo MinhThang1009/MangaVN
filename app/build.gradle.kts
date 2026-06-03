@@ -41,6 +41,11 @@ android {
     }
 }
 
+ksp {
+    // Xuất schema Room để viết migration cho các version sau (đã bỏ destructive migration).
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
+
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
