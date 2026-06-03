@@ -16,6 +16,9 @@
     <string name="action_see_all">See all</string>
     <string name="action_collapse">Collapse</string>
     <string name="error_prefix">Error: %1$s</string>
+    <string name="discover_error_title">Couldn\'t load home screen</string>
+    <string name="discover_error_subtitle">Check your internet connection and try again</string>
+    <string name="action_retry">Retry</string>
 
     <!-- Top Bar -->
     <string name="cd_menu">Menu</string>
