@@ -11,6 +11,7 @@ import com.example.mybookslibrary.domain.model.MangaModel
 import com.example.mybookslibrary.domain.usecase.GetChapterListWithProgressUseCase
 import com.example.mybookslibrary.ui.navigation.MangaDetailDestination
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import com.example.mybookslibrary.di.IoDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -61,6 +62,8 @@ class MangaDetailViewModel @Inject constructor(
         viewModelScope.launch(ioDispatcher) {
             try {
                 block()
+            } catch (c: CancellationException) {
+                throw c
             } catch (e: Exception) {
                 Timber.e(e, "MangaDetailViewModel: tác vụ thất bại")
             }
