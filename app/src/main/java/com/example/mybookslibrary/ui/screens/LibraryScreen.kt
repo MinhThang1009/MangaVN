@@ -53,9 +53,9 @@ import com.example.mybookslibrary.ui.viewmodel.LibraryViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LibraryScreenContent(
-    onOpenDetail: (mangaId: String, title: String, coverUrl: String) -> Unit
+    onOpenDetail: (mangaId: String, title: String, coverUrl: String) -> Unit = { _, _, _ -> },
+    vm: LibraryViewModel = hiltViewModel()
 ) {
-    val vm: LibraryViewModel = hiltViewModel()
     val items by vm.libraryItems.collectAsStateWithLifecycle(initialValue = emptyList())
     var pendingRemoval by remember { mutableStateOf<LibraryItemEntity?>(null) }
 

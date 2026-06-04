@@ -66,9 +66,9 @@ fun DiscoverScreenContent(
     onMangaClick: (MangaModel) -> Unit = {},
     onSearchClick: () -> Unit = {},
     onLibraryClick: () -> Unit = {},
-    onProfileClick: () -> Unit = {}
+    onProfileClick: () -> Unit = {},
+    vm: DiscoverViewModel = hiltViewModel()
 ) {
-    val vm: DiscoverViewModel = hiltViewModel()
     val uiState by vm.uiState.collectAsStateWithLifecycle()
     val expandedPopular = remember { androidx.compose.runtime.mutableStateOf(false) }
     val expandedNew = remember { androidx.compose.runtime.mutableStateOf(false) }

@@ -876,7 +876,7 @@
         <error line="3" column="1" source="standard:import-ordering" />
         <error line="51" column="1" source="standard:no-unused-imports" />
         <error line="65" column="5" source="standard:function-naming" />
-        <error line="69" column="36" source="standard:trailing-comma-on-declaration-site" />
+        <error line="70" column="44" source="standard:trailing-comma-on-declaration-site" />
         <error line="84" column="62" source="standard:trailing-comma-on-call-site" />
         <error line="94" column="32" source="standard:multiline-expression-wrapping" />
         <error line="98" column="56" source="standard:trailing-comma-on-call-site" />
@@ -999,9 +999,7 @@
     <file name="src/main/java/com/example/mybookslibrary/ui/screens/LibraryScreen.kt">
         <error line="3" column="1" source="standard:import-ordering" />
         <error line="55" column="5" source="standard:function-naming" />
-        <error line="56" column="5" source="standard:function-signature" />
-        <error line="56" column="77" source="standard:function-signature" />
-        <error line="56" column="77" source="standard:trailing-comma-on-declaration-site" />
+        <error line="57" column="43" source="standard:trailing-comma-on-declaration-site" />
         <error line="66" column="26" source="standard:argument-list-wrapping" />
         <error line="66" column="36" source="standard:argument-list-wrapping" />
         <error line="66" column="64" source="standard:argument-list-wrapping" />
@@ -2292,6 +2290,64 @@
         <error line="16" column="80" source="standard:multiline-expression-wrapping" />
         <error line="16" column="80" source="standard:function-signature" />
         <error line="28" column="1" source="standard:no-consecutive-blank-lines" />
+    </file>
+    <file name="src/test/java/com/example/mybookslibrary/ui/screens/DiscoverScreenContentTest.kt">
+        <error line="7" column="1" source="standard:no-unused-imports" />
+        <error line="33" column="1" source="standard:spacing-between-declarations-with-annotations" />
+        <error line="33" column="5" source="standard:blank-line-before-declaration" />
+    </file>
+    <file name="src/test/java/com/example/mybookslibrary/ui/screens/LibraryScreenContentTest.kt">
+        <error line="31" column="1" source="standard:spacing-between-declarations-with-annotations" />
+        <error line="31" column="5" source="standard:blank-line-before-declaration" />
+        <error line="41" column="54" source="standard:multiline-expression-wrapping" />
+        <error line="44" column="39" source="standard:argument-list-wrapping" />
+        <error line="44" column="50" source="standard:argument-list-wrapping" />
+        <error line="45" column="53" source="standard:argument-list-wrapping" />
+        <error line="45" column="75" source="standard:trailing-comma-on-call-site" />
+        <error line="47" column="14" source="standard:trailing-comma-on-call-site" />
+    </file>
+    <file name="src/test/java/com/example/mybookslibrary/ui/screens/MangaDetailScreenTest.kt">
+        <error line="3" column="1" source="standard:import-ordering" />
+        <error line="6" column="1" source="standard:no-unused-imports" />
+        <error line="43" column="1" source="standard:spacing-between-declarations-with-annotations" />
+        <error line="43" column="5" source="standard:blank-line-before-declaration" />
+        <error line="58" column="65" source="standard:multiline-expression-wrapping" />
+        <error line="59" column="74" source="standard:trailing-comma-on-call-site" />
+        <error line="76" column="26" source="standard:parameter-list-wrapping" />
+        <error line="76" column="26" source="standard:function-signature" />
+        <error line="76" column="73" source="standard:parameter-list-wrapping" />
+        <error line="76" column="73" source="standard:function-signature" />
+        <error line="98" column="109" source="standard:trailing-comma-on-call-site" />
+        <error line="165" column="25" source="standard:function-signature" />
+        <error line="165" column="37" source="standard:function-signature" />
+        <error line="165" column="48" source="standard:function-signature" />
+        <error line="165" column="52" source="standard:multiline-expression-wrapping" />
+        <error line="165" column="52" source="standard:function-signature" />
+        <error line="166" column="25" source="standard:argument-list-wrapping" />
+        <error line="167" column="24" source="standard:argument-list-wrapping" />
+        <error line="167" column="45" source="standard:argument-list-wrapping" />
+        <error line="168" column="47" source="standard:argument-list-wrapping" />
+        <error line="168" column="65" source="standard:argument-list-wrapping" />
+    </file>
+    <file name="src/test/java/com/example/mybookslibrary/ui/screens/SearchScreenContentTest.kt">
+        <error line="31" column="1" source="standard:spacing-between-declarations-with-annotations" />
+        <error line="31" column="5" source="standard:blank-line-before-declaration" />
+        <error line="33" column="20" source="standard:parameter-list-wrapping" />
+        <error line="33" column="20" source="standard:wrapping" />
+        <error line="33" column="20" source="standard:function-signature" />
+        <error line="33" column="50" source="standard:multiline-expression-wrapping" />
+        <error line="36" column="5" source="standard:wrapping" />
+        <error line="36" column="6" source="standard:parameter-list-wrapping" />
+        <error line="36" column="6" source="standard:function-signature" />
+        <error line="36" column="6" source="standard:trailing-comma-on-declaration-site" />
+    </file>
+    <file name="src/test/java/com/example/mybookslibrary/ui/util/FakeImageLoader.kt">
+        <error line="10" column="1" source="standard:no-unused-imports" />
+        <error line="23" column="24" source="standard:chain-method-continuation" />
+        <error line="25" column="25" source="standard:multiline-expression-wrapping" />
+        <error line="25" column="25" source="standard:wrapping" />
+        <error line="31" column="21" source="standard:wrapping" />
+        <error line="33" column="17" source="standard:chain-method-continuation" />
     </file>
     <file name="src/test/java/com/example/mybookslibrary/ui/util/LazyListLayoutInfoExtTest.kt">
         <error line="11" column="1" source="standard:no-empty-first-line-in-class-body" />
