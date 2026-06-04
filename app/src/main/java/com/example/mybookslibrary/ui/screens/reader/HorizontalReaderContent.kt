@@ -6,16 +6,22 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
+import com.example.mybookslibrary.domain.model.ReaderTapAction
 import com.example.mybookslibrary.domain.model.ReadingMode
 import com.example.mybookslibrary.ui.viewmodel.ReaderEvent
 import com.example.mybookslibrary.ui.theme.MyBooksLibraryTheme
+import timber.log.Timber
 
 /**
  * Horizontal page-by-page reader content using [HorizontalPager].
@@ -40,16 +46,66 @@ fun HorizontalReaderContent(
     onEvent: (ReaderEvent) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val scope = rememberCoroutineScope()
+    val viewConfiguration = LocalViewConfiguration.current
+    val navigationCoordinator = remember(pagerState, scope) {
+        HorizontalPagerNavigationCoordinator(
+            scope = scope,
+            currentPage = { pagerState.currentPage },
+            lastPageIndex = { pagerState.pageCount - 1 },
+            animateToPage = { nextPage, pendingTargetPage ->
+                val durationMillis = horizontalPageAnimationDurationMillis(
+                    currentPage = pagerState.currentPage,
+                    nextPage = pendingTargetPage
+                )
+                Timber.d(
+                    "Reader pager animateScrollToPage: current=%d settled=%d target=%d next=%d duration=%d",
+                    pagerState.currentPage,
+                    pagerState.settledPage,
+                    pagerState.targetPage,
+                    nextPage,
+                    durationMillis
+                )
+                pagerState.animateScrollToPage(
+                    page = nextPage,
+                    animationSpec = tween(durationMillis = durationMillis)
+                )
+            }
+        )
+    }
     // RTL mode: flip layout direction so HorizontalPager swipes right-to-left for "next"
     val layoutDirection = when (readingMode) {
         ReadingMode.RTL -> LayoutDirection.Rtl
         else -> LayoutDirection.Ltr
     }
+    val onConfirmedEdgeTap: (Float, Float) -> Unit = { x, width ->
+        when (val action = evaluateHorizontalTap(x, width, readingMode)) {
+            ReaderTapAction.NEXT_PAGE,
+            ReaderTapAction.PREVIOUS_PAGE -> {
+                Timber.d(
+                    "Reader pager confirmed edge tap: action=%s current=%d settled=%d target=%d",
+                    action,
+                    pagerState.currentPage,
+                    pagerState.settledPage,
+                    pagerState.targetPage
+                )
+                navigationCoordinator.enqueue(action)
+            }
+            ReaderTapAction.TOGGLE_OVERLAY,
+            ReaderTapAction.NONE -> Unit
+        }
+    }
 
     CompositionLocalProvider(LocalLayoutDirection provides layoutDirection) {
         HorizontalPager(
             state = pagerState,
-            modifier = modifier,
+            modifier = modifier.observeConfirmedEdgeTaps(
+                viewConfiguration = viewConfiguration,
+                onConfirmedEdgeTap = { offset ->
+                    onConfirmedEdgeTap(offset.x, pagerState.layoutInfo.viewportSize.width.toFloat())
+                },
+                onManualDrag = navigationCoordinator::cancelPendingNavigation
+            ),
             // Giữ 1 trang trước/sau (không phải 2) để giảm số bitmap thường trú → tránh OOM máy RAM thấp
             beyondViewportPageCount = 1,
             key = { index -> pages.getOrNull(index) ?: "missing-page-$index" }
@@ -58,8 +114,10 @@ fun HorizontalReaderContent(
                 MangaPageItem(
                     imageUrl = pageUrl,
                     index = pageIndex,
-                    onTap = { x, y, width, height ->
-                        onEvent(ReaderEvent.TapOnScreen(x, y, width, height))
+                    onConfirmedTap = { x, _, width, _ ->
+                        if (evaluateHorizontalTap(x, width, readingMode) == ReaderTapAction.TOGGLE_OVERLAY) {
+                            onEvent(ReaderEvent.ToggleOverlay)
+                        }
                     },
                     onLongPress = { url, index ->
                         onEvent(ReaderEvent.PageLongPressed(url, index))
