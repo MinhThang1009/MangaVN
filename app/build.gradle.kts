@@ -5,14 +5,16 @@ plugins {
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.detekt)
     alias(libs.plugins.ktlint)
+    jacoco
 }
 
 android {
     namespace = "com.example.mybookslibrary"
     compileSdk {
-        version = release(36) {
-            minorApiLevel = 1
-        }
+        version =
+            release(36) {
+                minorApiLevel = 1
+            }
     }
 
     defaultConfig {
@@ -30,7 +32,7 @@ android {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
         }
     }
@@ -43,12 +45,17 @@ android {
     }
 }
 
+// Toolchain: ép compile/test bằng JDK 21 trên mọi máy, không phụ thuộc JAVA_HOME của contributor.
+kotlin {
+    jvmToolchain(21)
+}
+
 ksp {
     // Xuất schema Room để viết migration cho các version sau (đã bỏ destructive migration).
     arg("room.schemaLocation", "$projectDir/schemas")
 }
 
-// Static analysis — baseline cho code cũ để không chặn CI, fix dần (xem .claude/test-plan.md §1.1).
+// Static analysis — baseline cho code cũ để không chặn CI, fix dần.
 detekt {
     buildUponDefaultConfig = true
     config.setFrom(files("$rootDir/config/detekt/detekt.yml"))
@@ -62,6 +69,68 @@ ktlint {
         exclude { it.file.path.contains("generated") }
         exclude { it.file.path.contains("build/") }
     }
+}
+
+// JaCoCo: báo cáo + ngưỡng coverage cho unit test JVM.
+// Loại trừ code sinh tự động (Hilt/Room/Dagger/Navigation) và lớp test.
+val jacocoGeneratedFilter =
+    listOf(
+        "**/R.class",
+        "**/R$*.class",
+        "**/BuildConfig.*",
+        "**/Manifest*.*",
+        "**/*Test*.*",
+        "android/**/*.*",
+        "**/*_Hilt*.*",
+        "**/Hilt_*.*",
+        "**/*_Factory.*",
+        "**/*_MembersInjector.*",
+        "**/*Module_*.*",
+        "**/*_Impl.*",
+        "**/Dagger*.*",
+        "**/*Args.*",
+        "**/*Directions.*",
+    )
+
+// AGP 9 "built-in Kotlin" xuất class compile ở built_in_kotlinc (không phải tmp/kotlin-classes).
+fun jacocoClassTree() =
+    fileTree("${layout.buildDirectory.get()}/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes") {
+        exclude(jacocoGeneratedFilter)
+    }
+
+// Trỏ đúng file .exec (không quét cả build/) để tránh implicit-dependency với task ktlint.
+fun jacocoExec() = files(layout.buildDirectory.file("jacoco/testDebugUnitTest.exec"))
+
+tasks.register<JacocoReport>("jacocoTestReport") {
+    dependsOn("testDebugUnitTest")
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+    }
+    classDirectories.setFrom(jacocoClassTree())
+    sourceDirectories.setFrom(files("src/main/java"))
+    executionData.setFrom(jacocoExec())
+}
+
+// Ngưỡng coverage RATCHET: sàn = mức hiện tại (~10%), chỉ chặn khi coverage TỤT. Siết dần đợt sau.
+tasks.register<JacocoCoverageVerification>("jacocoCoverageVerification") {
+    dependsOn("testDebugUnitTest")
+    classDirectories.setFrom(jacocoClassTree())
+    sourceDirectories.setFrom(files("src/main/java"))
+    executionData.setFrom(jacocoExec())
+    violationRules {
+        rule {
+            limit {
+                counter = "LINE"
+                value = "COVEREDRATIO"
+                minimum = "0.10".toBigDecimal()
+            }
+        }
+    }
+}
+
+tasks.named("check") {
+    dependsOn("jacocoCoverageVerification")
 }
 
 dependencies {

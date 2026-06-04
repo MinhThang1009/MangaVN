@@ -1,9 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <baseline version="1.0">
-    <file name="build.gradle.kts">
-        <error line="13" column="19" source="standard:multiline-expression-wrapping" />
-        <error line="33" column="37" source="standard:trailing-comma-on-call-site" />
-    </file>
     <file name="src/androidTest/java/com/example/mybookslibrary/ExampleInstrumentedTest.kt">
         <error line="3" column="1" source="standard:import-ordering" />
         <error line="9" column="1" source="standard:no-wildcard-imports" />
@@ -2186,24 +2182,6 @@
         <error line="51" column="53" source="standard:function-signature" />
         <error line="53" column="50" source="standard:trailing-comma-on-call-site" />
     </file>
-    <file name="src/test/java/com/example/mybookslibrary/data/local/AppDatabaseDestructiveMigrationTest.kt">
-        <error line="22" column="1" source="standard:no-empty-first-line-in-class-body" />
-        <error line="24" column="68" source="standard:multiline-expression-wrapping" />
-        <error line="24" column="68" source="standard:function-signature" />
-        <error line="36" column="47" source="standard:trailing-comma-on-call-site" />
-        <error line="43" column="21" source="standard:multiline-expression-wrapping" />
-    </file>
-    <file name="src/test/java/com/example/mybookslibrary/data/local/UserPreferencesDataStoreErrorTest.kt">
-        <error line="20" column="1" source="standard:no-empty-first-line-in-class-body" />
-        <error line="22" column="37" source="standard:multiline-expression-wrapping" />
-        <error line="24" column="9" source="standard:blank-line-before-declaration" />
-        <error line="25" column="13" source="standard:function-signature" />
-        <error line="25" column="63" source="standard:function-signature" />
-        <error line="25" column="63" source="standard:trailing-comma-on-declaration-site" />
-        <error line="26" column="26" source="standard:function-signature" />
-        <error line="30" column="76" source="standard:multiline-expression-wrapping" />
-        <error line="30" column="76" source="standard:function-signature" />
-    </file>
     <file name="src/test/java/com/example/mybookslibrary/data/remote/AtHomeReportInterceptorTest.kt">
         <error line="23" column="1" source="standard:no-empty-first-line-in-class-body" />
         <error line="25" column="55" source="standard:multiline-expression-wrapping" />
@@ -2231,54 +2209,6 @@
         <error line="132" column="49" source="standard:multiline-expression-wrapping" />
         <error line="132" column="49" source="standard:function-signature" />
         <error line="132" column="56" source="standard:chain-method-continuation" />
-    </file>
-    <file name="src/test/java/com/example/mybookslibrary/data/remote/OkHttpTimeoutTest.kt">
-        <error line="13" column="1" source="standard:no-empty-first-line-in-class-body" />
-        <error line="22" column="41" source="standard:trailing-comma-on-call-site" />
-    </file>
-    <file name="src/test/java/com/example/mybookslibrary/data/remote/models/AtHomeResponseDtoParsingTest.kt">
-        <error line="22" column="1" source="standard:no-empty-first-line-in-class-body" />
-        <error line="24" column="69" source="standard:multiline-expression-wrapping" />
-        <error line="24" column="69" source="standard:function-signature" />
-        <error line="28" column="56" source="standard:multiline-expression-wrapping" />
-        <error line="31" column="27" source="standard:trailing-comma-on-call-site" />
-    </file>
-    <file name="src/test/java/com/example/mybookslibrary/data/repository/AuthRepositoryPasswordHashTest.kt">
-        <error line="21" column="1" source="standard:no-empty-first-line-in-class-body" />
-        <error line="27" column="66" source="standard:multiline-expression-wrapping" />
-        <error line="27" column="66" source="standard:function-signature" />
-        <error line="39" column="33" source="standard:trailing-comma-on-call-site" />
-    </file>
-    <file name="src/test/java/com/example/mybookslibrary/data/repository/ChapterDeliveryBoundsTest.kt">
-        <error line="15" column="1" source="standard:no-empty-first-line-in-class-body" />
-        <error line="18" column="24" source="standard:multiline-expression-wrapping" />
-        <error line="22" column="51" source="standard:trailing-comma-on-call-site" />
-        <error line="32" column="24" source="standard:multiline-expression-wrapping" />
-        <error line="36" column="51" source="standard:trailing-comma-on-call-site" />
-    </file>
-    <file name="src/test/java/com/example/mybookslibrary/data/repository/LibraryRepositoryDownloadFlagTest.kt">
-        <error line="26" column="1" source="standard:no-empty-first-line-in-class-body" />
-        <error line="33" column="14" source="standard:multiline-expression-wrapping" />
-        <error line="33" column="18" source="standard:chain-method-continuation" />
-        <error line="35" column="36" source="standard:trailing-comma-on-call-site" />
-        <error line="36" column="35" source="standard:chain-method-continuation" />
-        <error line="47" column="60" source="standard:multiline-expression-wrapping" />
-        <error line="47" column="60" source="standard:function-signature" />
-        <error line="60" column="37" source="standard:trailing-comma-on-call-site" />
-        <error line="61" column="14" source="standard:trailing-comma-on-call-site" />
-        <error line="71" column="41" source="standard:trailing-comma-on-call-site" />
-    </file>
-    <file name="src/test/java/com/example/mybookslibrary/data/repository/LibraryRepositoryRestoreTest.kt">
-        <error line="27" column="1" source="standard:no-empty-first-line-in-class-body" />
-        <error line="33" column="14" source="standard:multiline-expression-wrapping" />
-        <error line="33" column="18" source="standard:chain-method-continuation" />
-        <error line="35" column="36" source="standard:trailing-comma-on-call-site" />
-        <error line="36" column="35" source="standard:chain-method-continuation" />
-        <error line="46" column="65" source="standard:multiline-expression-wrapping" />
-        <error line="46" column="65" source="standard:function-signature" />
-        <error line="57" column="37" source="standard:trailing-comma-on-call-site" />
-        <error line="58" column="14" source="standard:trailing-comma-on-call-site" />
-        <error line="63" column="91" source="standard:trailing-comma-on-call-site" />
     </file>
     <file name="src/test/java/com/example/mybookslibrary/data/repository/LibraryRepositoryTest.kt">
         <error line="21" column="1" source="standard:no-empty-first-line-in-class-body" />
