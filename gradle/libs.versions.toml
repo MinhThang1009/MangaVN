@@ -2,7 +2,7 @@
 # Build & Kotlin
 agp = "9.2.1"
 kotlin = "2.3.21"
-ksp = "2.3.7"
+ksp = "2.3.9"
 
 # AndroidX & Core
 coreKtx = "1.18.0"
