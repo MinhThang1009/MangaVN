@@ -2299,32 +2299,57 @@
         <error line="28" column="1" source="standard:no-consecutive-blank-lines" />
     </file>
     <file name="src/test/java/com/example/mybookslibrary/ui/screens/ChapterComponentsTest.kt">
-        <error line="38" column="70" source="standard:trailing-comma-on-call-site" />
-        <error line="59" column="31" source="standard:argument-list-wrapping" />
-        <error line="59" column="53" source="standard:argument-list-wrapping" />
-        <error line="60" column="39" source="standard:argument-list-wrapping" />
-        <error line="60" column="62" source="standard:argument-list-wrapping" />
-        <error line="60" column="83" source="standard:trailing-comma-on-call-site" />
-        <error line="73" column="31" source="standard:argument-list-wrapping" />
-        <error line="73" column="53" source="standard:argument-list-wrapping" />
-        <error line="74" column="39" source="standard:argument-list-wrapping" />
-        <error line="74" column="62" source="standard:argument-list-wrapping" />
-        <error line="74" column="83" source="standard:trailing-comma-on-call-site" />
-        <error line="88" column="31" source="standard:argument-list-wrapping" />
-        <error line="88" column="53" source="standard:argument-list-wrapping" />
-        <error line="89" column="39" source="standard:argument-list-wrapping" />
-        <error line="89" column="62" source="standard:argument-list-wrapping" />
-        <error line="89" column="83" source="standard:trailing-comma-on-call-site" />
-        <error line="101" column="31" source="standard:argument-list-wrapping" />
-        <error line="101" column="53" source="standard:argument-list-wrapping" />
-        <error line="102" column="39" source="standard:argument-list-wrapping" />
-        <error line="102" column="62" source="standard:argument-list-wrapping" />
-        <error line="102" column="83" source="standard:trailing-comma-on-call-site" />
-        <error line="115" column="31" source="standard:argument-list-wrapping" />
-        <error line="115" column="53" source="standard:argument-list-wrapping" />
-        <error line="116" column="39" source="standard:argument-list-wrapping" />
-        <error line="116" column="62" source="standard:argument-list-wrapping" />
-        <error line="116" column="83" source="standard:trailing-comma-on-call-site" />
+        <error line="39" column="70" source="standard:trailing-comma-on-call-site" />
+        <error line="60" column="31" source="standard:argument-list-wrapping" />
+        <error line="60" column="53" source="standard:argument-list-wrapping" />
+        <error line="61" column="39" source="standard:argument-list-wrapping" />
+        <error line="61" column="62" source="standard:argument-list-wrapping" />
+        <error line="61" column="83" source="standard:trailing-comma-on-call-site" />
+        <error line="74" column="31" source="standard:argument-list-wrapping" />
+        <error line="74" column="53" source="standard:argument-list-wrapping" />
+        <error line="75" column="39" source="standard:argument-list-wrapping" />
+        <error line="75" column="62" source="standard:argument-list-wrapping" />
+        <error line="75" column="83" source="standard:trailing-comma-on-call-site" />
+        <error line="89" column="31" source="standard:argument-list-wrapping" />
+        <error line="89" column="53" source="standard:argument-list-wrapping" />
+        <error line="90" column="39" source="standard:argument-list-wrapping" />
+        <error line="90" column="62" source="standard:argument-list-wrapping" />
+        <error line="90" column="83" source="standard:trailing-comma-on-call-site" />
+        <error line="102" column="31" source="standard:argument-list-wrapping" />
+        <error line="102" column="53" source="standard:argument-list-wrapping" />
+        <error line="103" column="39" source="standard:argument-list-wrapping" />
+        <error line="103" column="62" source="standard:argument-list-wrapping" />
+        <error line="103" column="83" source="standard:trailing-comma-on-call-site" />
+        <error line="116" column="31" source="standard:argument-list-wrapping" />
+        <error line="116" column="53" source="standard:argument-list-wrapping" />
+        <error line="117" column="39" source="standard:argument-list-wrapping" />
+        <error line="117" column="62" source="standard:argument-list-wrapping" />
+        <error line="117" column="83" source="standard:trailing-comma-on-call-site" />
+        <error line="132" column="31" source="standard:argument-list-wrapping" />
+        <error line="132" column="53" source="standard:argument-list-wrapping" />
+        <error line="133" column="39" source="standard:argument-list-wrapping" />
+        <error line="133" column="62" source="standard:argument-list-wrapping" />
+        <error line="133" column="83" source="standard:trailing-comma-on-call-site" />
+        <error line="145" column="31" source="standard:argument-list-wrapping" />
+        <error line="145" column="53" source="standard:argument-list-wrapping" />
+        <error line="146" column="39" source="standard:argument-list-wrapping" />
+        <error line="146" column="62" source="standard:argument-list-wrapping" />
+        <error line="146" column="83" source="standard:trailing-comma-on-call-site" />
+        <error line="158" column="31" source="standard:argument-list-wrapping" />
+        <error line="158" column="53" source="standard:argument-list-wrapping" />
+        <error line="159" column="39" source="standard:argument-list-wrapping" />
+        <error line="159" column="62" source="standard:argument-list-wrapping" />
+        <error line="159" column="83" source="standard:trailing-comma-on-call-site" />
+        <error line="171" column="31" source="standard:argument-list-wrapping" />
+        <error line="171" column="53" source="standard:argument-list-wrapping" />
+        <error line="172" column="39" source="standard:argument-list-wrapping" />
+        <error line="172" column="62" source="standard:argument-list-wrapping" />
+        <error line="172" column="83" source="standard:trailing-comma-on-call-site" />
+        <error line="185" column="31" source="standard:argument-list-wrapping" />
+        <error line="185" column="53" source="standard:argument-list-wrapping" />
+        <error line="186" column="39" source="standard:argument-list-wrapping" />
+        <error line="186" column="62" source="standard:argument-list-wrapping" />
+        <error line="186" column="83" source="standard:trailing-comma-on-call-site" />
     </file>
     <file name="src/test/java/com/example/mybookslibrary/ui/screens/DiscoverScreenContentTest.kt">
         <error line="7" column="1" source="standard:no-unused-imports" />
@@ -2340,6 +2365,15 @@
         <error line="45" column="53" source="standard:argument-list-wrapping" />
         <error line="45" column="75" source="standard:trailing-comma-on-call-site" />
         <error line="47" column="14" source="standard:trailing-comma-on-call-site" />
+    </file>
+    <file name="src/test/java/com/example/mybookslibrary/ui/screens/MainScreensTest.kt">
+        <error line="3" column="1" source="standard:import-ordering" />
+        <error line="37" column="1" source="standard:spacing-between-declarations-with-annotations" />
+        <error line="37" column="5" source="standard:blank-line-before-declaration" />
+        <error line="57" column="27" source="standard:wrapping" />
+        <error line="57" column="39" source="standard:multiline-expression-wrapping" />
+        <error line="61" column="58" source="standard:trailing-comma-on-call-site" />
+        <error line="62" column="13" source="standard:wrapping" />
     </file>
     <file name="src/test/java/com/example/mybookslibrary/ui/screens/MangaDetailScreenTest.kt">
         <error line="3" column="1" source="standard:import-ordering" />
@@ -2445,6 +2479,20 @@
     <file name="src/test/java/com/example/mybookslibrary/ui/screens/reader/ReaderPageActionMappingTest.kt">
         <error line="32" column="28" source="standard:multiline-expression-wrapping" />
     </file>
+    <file name="src/test/java/com/example/mybookslibrary/ui/screens/reader/ReaderProgressEffectsTest.kt">
+        <error line="28" column="57" source="standard:comma-spacing" />
+        <error line="28" column="62" source="standard:comma-spacing" />
+        <error line="33" column="29" source="standard:trailing-comma-on-call-site" />
+        <error line="45" column="57" source="standard:comma-spacing" />
+        <error line="45" column="62" source="standard:comma-spacing" />
+        <error line="50" column="29" source="standard:trailing-comma-on-call-site" />
+        <error line="67" column="29" source="standard:trailing-comma-on-call-site" />
+        <error line="79" column="57" source="standard:comma-spacing" />
+        <error line="84" column="29" source="standard:trailing-comma-on-call-site" />
+        <error line="97" column="57" source="standard:comma-spacing" />
+        <error line="97" column="62" source="standard:comma-spacing" />
+        <error line="102" column="45" source="standard:trailing-comma-on-call-site" />
+    </file>
     <file name="src/test/java/com/example/mybookslibrary/ui/screens/reader/ReaderScreenTest.kt">
         <error line="3" column="1" source="standard:import-ordering" />
         <error line="36" column="1" source="standard:spacing-between-declarations-with-annotations" />
@@ -2471,6 +2519,15 @@
         <error line="107" column="63" source="standard:trailing-comma-on-call-site" />
         <error line="108" column="13" source="standard:wrapping" />
         <error line="114" column="54" source="standard:trailing-comma-on-call-site" />
+    </file>
+    <file name="src/test/java/com/example/mybookslibrary/ui/screens/reader/VerticalReaderContentTest.kt">
+        <error line="3" column="1" source="standard:import-ordering" />
+        <error line="24" column="1" source="standard:spacing-between-declarations-with-annotations" />
+        <error line="24" column="5" source="standard:blank-line-before-declaration" />
+        <error line="33" column="50" source="standard:trailing-comma-on-call-site" />
+        <error line="46" column="50" source="standard:trailing-comma-on-call-site" />
+        <error line="59" column="50" source="standard:trailing-comma-on-call-site" />
+        <error line="72" column="44" source="standard:trailing-comma-on-call-site" />
     </file>
     <file name="src/test/java/com/example/mybookslibrary/ui/screens/reader/WebtoonPageItemTest.kt">
         <error line="3" column="1" source="standard:import-ordering" />
