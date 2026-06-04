@@ -45,6 +45,13 @@ android {
     buildFeatures {
         compose = true
     }
+    // Robolectric cần merged manifest + resources (vd ComponentActivity của ui-test-manifest)
+    // để chạy Compose UI test trên JVM.
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+        }
+    }
 }
 
 // Toolchain: ép compile/test bằng JDK 21 trên mọi máy, không phụ thuộc JAVA_HOME của contributor.
@@ -204,6 +211,8 @@ dependencies {
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.work.testing)
     testImplementation(libs.okhttp.mockwebserver)
+    testImplementation(libs.androidx.compose.ui.test.junit4)
+    testImplementation(libs.androidx.compose.ui.test.manifest)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
