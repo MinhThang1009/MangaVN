@@ -8,10 +8,12 @@ on:
     branches: [main]
   pull_request:
 
-# Hủy run cũ khi có push mới trên cùng ref để tiết kiệm runner.
+# Hủy run cũ khi có commit mới trên CÙNG PR để tiết kiệm runner.
+# KHÔNG hủy run trên push main → mỗi commit main giữ được check đầy đủ
+# (tránh hiển thị "cancelled" khi merge nhiều PR dồn dập).
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   build-test:
