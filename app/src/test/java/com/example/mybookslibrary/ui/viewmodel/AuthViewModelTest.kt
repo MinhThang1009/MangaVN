@@ -1,0 +1,235 @@
+package com.example.mybookslibrary.ui.viewmodel
+
+import android.content.Context
+import com.example.mybookslibrary.data.repository.AuthRepository
+import com.example.mybookslibrary.test.MainDispatcherRule
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.mockk
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Rule
+import org.junit.Test
+
+@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+class AuthViewModelTest {
+    @get:Rule
+    val mainDispatcherRule = MainDispatcherRule()
+
+    private val repository = mockk<AuthRepository>()
+
+    @Test
+    fun login_inputRong_baoLoiVaKhongGoiRepository() =
+        runTest(mainDispatcherRule.dispatcher.scheduler) {
+            val vm = AuthViewModel(repository)
+
+            vm.login("", "pass")
+            advanceUntilIdle()
+
+            assertEquals(AuthState.Error("Username and password cannot be empty"), vm.uiState.value)
+            coVerify(exactly = 0) { repository.login(any(), any()) }
+        }
+
+    @Test
+    fun login_thanhCong_phatSuccess() =
+        runTest(mainDispatcherRule.dispatcher.scheduler) {
+            coEvery { repository.login("u", "p") } returns Result.success(Unit)
+            val vm = AuthViewModel(repository)
+
+            vm.login("u", "p")
+            advanceUntilIdle()
+
+            assertEquals(AuthState.Success, vm.uiState.value)
+        }
+
+    @Test
+    fun login_thatBaiCoMessage_phatErrorMessage() =
+        runTest(mainDispatcherRule.dispatcher.scheduler) {
+            coEvery { repository.login("u", "p") } returns Result.failure(IllegalStateException("sai mật khẩu"))
+            val vm = AuthViewModel(repository)
+
+            vm.login("u", "p")
+            advanceUntilIdle()
+
+            assertEquals(AuthState.Error("sai mật khẩu"), vm.uiState.value)
+        }
+
+    @Test
+    fun login_thatBaiNullMessage_dungFallback() =
+        runTest(mainDispatcherRule.dispatcher.scheduler) {
+            coEvery { repository.login("u", "p") } returns Result.failure(RuntimeException())
+            val vm = AuthViewModel(repository)
+
+            vm.login("u", "p")
+            advanceUntilIdle()
+
+            assertEquals(AuthState.Error("Login failed"), vm.uiState.value)
+        }
+
+    @Test
+    fun login_dangLoading_boQuaLanGoiThuHai() =
+        runTest(mainDispatcherRule.dispatcher.scheduler) {
+            coEvery { repository.login("u", "p") } returns Result.success(Unit)
+            val vm = AuthViewModel(repository)
+
+            // Lần 1 set Loading (chưa advance); lần 2 trúng guard `is Loading -> return`
+            vm.login("u", "p")
+            vm.login("u", "p")
+            advanceUntilIdle()
+
+            coVerify(exactly = 1) { repository.login("u", "p") }
+        }
+
+    @Test
+    fun login_blankPassword_baoLoi() =
+        runTest(mainDispatcherRule.dispatcher.scheduler) {
+            val vm = AuthViewModel(repository)
+
+            // username hợp lệ + password rỗng -> nhánh phải của `||`
+            vm.login("user", "")
+            advanceUntilIdle()
+
+            assertEquals(AuthState.Error("Username and password cannot be empty"), vm.uiState.value)
+        }
+
+    @Test
+    fun register_inputRong_baoLoi() =
+        runTest(mainDispatcherRule.dispatcher.scheduler) {
+            val vm = AuthViewModel(repository)
+
+            vm.register("user", "")
+            advanceUntilIdle()
+
+            assertEquals(AuthState.Error("Username and password cannot be empty"), vm.uiState.value)
+            coVerify(exactly = 0) { repository.register(any(), any()) }
+        }
+
+    @Test
+    fun register_thanhCong_phatSuccess() =
+        runTest(mainDispatcherRule.dispatcher.scheduler) {
+            coEvery { repository.register("u", "p") } returns Result.success(Unit)
+            val vm = AuthViewModel(repository)
+
+            vm.register("u", "p")
+            advanceUntilIdle()
+
+            assertEquals(AuthState.Success, vm.uiState.value)
+        }
+
+    @Test
+    fun register_thatBaiNullMessage_dungFallback() =
+        runTest(mainDispatcherRule.dispatcher.scheduler) {
+            coEvery { repository.register("u", "p") } returns Result.failure(RuntimeException())
+            val vm = AuthViewModel(repository)
+
+            vm.register("u", "p")
+            advanceUntilIdle()
+
+            assertEquals(AuthState.Error("Registration failed"), vm.uiState.value)
+        }
+
+    @Test
+    fun register_thatBaiCoMessage_phatErrorMessage() =
+        runTest(mainDispatcherRule.dispatcher.scheduler) {
+            coEvery { repository.register("u", "p") } returns Result.failure(IllegalStateException("user tồn tại"))
+            val vm = AuthViewModel(repository)
+
+            vm.register("u", "p")
+            advanceUntilIdle()
+
+            assertEquals(AuthState.Error("user tồn tại"), vm.uiState.value)
+        }
+
+    @Test
+    fun googleSignIn_thatBaiCoMessage_phatErrorMessage() =
+        runTest(mainDispatcherRule.dispatcher.scheduler) {
+            val context = mockk<Context>()
+            coEvery { repository.googleSignIn(context) } returns Result.failure(IllegalStateException("huỷ đăng nhập"))
+            val vm = AuthViewModel(repository)
+
+            vm.googleSignIn(context)
+            advanceUntilIdle()
+
+            assertEquals(AuthState.Error("huỷ đăng nhập"), vm.uiState.value)
+        }
+
+    @Test
+    fun googleSignIn_thanhCong_phatSuccess() =
+        runTest(mainDispatcherRule.dispatcher.scheduler) {
+            val context = mockk<Context>()
+            coEvery { repository.googleSignIn(context) } returns Result.success(Unit)
+            val vm = AuthViewModel(repository)
+
+            vm.googleSignIn(context)
+            advanceUntilIdle()
+
+            assertEquals(AuthState.Success, vm.uiState.value)
+        }
+
+    @Test
+    fun googleSignIn_thatBaiNullMessage_dungFallback() =
+        runTest(mainDispatcherRule.dispatcher.scheduler) {
+            val context = mockk<Context>()
+            coEvery { repository.googleSignIn(context) } returns Result.failure(RuntimeException())
+            val vm = AuthViewModel(repository)
+
+            vm.googleSignIn(context)
+            advanceUntilIdle()
+
+            assertEquals(AuthState.Error("Google Sign-In failed"), vm.uiState.value)
+        }
+
+    @Test
+    fun register_blankUsername_baoLoi() =
+        runTest(mainDispatcherRule.dispatcher.scheduler) {
+            val vm = AuthViewModel(repository)
+
+            vm.register("", "p") // username rỗng -> nhánh trái của `||`
+            advanceUntilIdle()
+
+            assertEquals(AuthState.Error("Username and password cannot be empty"), vm.uiState.value)
+        }
+
+    @Test
+    fun register_dangLoading_boQuaLanGoiThuHai() =
+        runTest(mainDispatcherRule.dispatcher.scheduler) {
+            coEvery { repository.register("u", "p") } returns Result.success(Unit)
+            val vm = AuthViewModel(repository)
+
+            vm.register("u", "p")
+            vm.register("u", "p") // trúng guard is Loading -> return
+            advanceUntilIdle()
+
+            coVerify(exactly = 1) { repository.register("u", "p") }
+        }
+
+    @Test
+    fun googleSignIn_dangLoading_boQuaLanGoiThuHai() =
+        runTest(mainDispatcherRule.dispatcher.scheduler) {
+            val context = mockk<Context>()
+            coEvery { repository.googleSignIn(context) } returns Result.success(Unit)
+            val vm = AuthViewModel(repository)
+
+            vm.googleSignIn(context)
+            vm.googleSignIn(context) // trúng guard is Loading -> return
+            advanceUntilIdle()
+
+            coVerify(exactly = 1) { repository.googleSignIn(context) }
+        }
+
+    @Test
+    fun resetState_veIdle() =
+        runTest(mainDispatcherRule.dispatcher.scheduler) {
+            coEvery { repository.login("u", "p") } returns Result.success(Unit)
+            val vm = AuthViewModel(repository)
+            vm.login("u", "p")
+            advanceUntilIdle()
+            assertEquals(AuthState.Success, vm.uiState.value)
+
+            vm.resetState()
+
+            assertTrue(vm.uiState.value is AuthState.Idle)
+        }
+}
