@@ -7,6 +7,8 @@ import com.example.mybookslibrary.test.MainDispatcherRule
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -134,5 +136,32 @@ class SearchViewModelTest {
                 viewModel.uiState.value.selectedLanguages
                     .isEmpty(),
             )
+        }
+
+    // Guard regression: rút query về <2 ký tự khi search đang chạy thì kết quả cũ KHÔNG được
+    // ghi đè state đã xoá (flatMapLatest phải huỷ search trước). Dùng flow có delay để mô phỏng
+    // search còn treo — flowOf emit tức thì không tái hiện được race này.
+    @Test
+    fun staleResultDoesNotOverwriteAfterQueryShortened() =
+        runTest(mainDispatcherRule.dispatcher.scheduler) {
+            val manga = MangaModel("m1", "Naruto", "Desc", null, listOf("tag"))
+            val repository = repositoryWithEmptyTags()
+            every { repository.searchManga("naruto", any()) } returns
+                flow {
+                    delay(1000)
+                    emit(Result.success(listOf(manga)))
+                }
+
+            val viewModel = SearchViewModel(repository)
+            viewModel.onQueryChange("naruto")
+            advanceTimeBy(500) // qua debounce, search đang treo (chưa emit)
+            viewModel.onQueryChange("n") // rút ngắn → nhánh idle, phải huỷ search cũ
+            advanceUntilIdle()
+
+            assertTrue(
+                viewModel.uiState.value.results
+                    .isEmpty(),
+            )
+            assertFalse(viewModel.uiState.value.isLoading)
         }
 }
