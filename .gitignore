@@ -10,13 +10,3 @@
 local.properties
 HANDOFF.md
 app/src/main/java/com/example/mybookslibrary/util/AuthSecrets.kt
-
-# Test chứng minh bug từ deep-scan audit (cố ý FAIL) — không commit vào repo chính
-app/src/test/java/com/example/mybookslibrary/data/repository/AuthRepositoryPasswordHashTest.kt
-app/src/test/java/com/example/mybookslibrary/data/local/UserPreferencesDataStoreErrorTest.kt
-app/src/test/java/com/example/mybookslibrary/data/repository/LibraryRepositoryDownloadFlagTest.kt
-app/src/test/java/com/example/mybookslibrary/data/remote/OkHttpTimeoutTest.kt
-app/src/test/java/com/example/mybookslibrary/data/repository/ChapterDeliveryBoundsTest.kt
-app/src/test/java/com/example/mybookslibrary/data/remote/models/AtHomeResponseDtoParsingTest.kt
-app/src/test/java/com/example/mybookslibrary/data/local/AppDatabaseDestructiveMigrationTest.kt
-app/src/test/java/com/example/mybookslibrary/data/repository/LibraryRepositoryRestoreTest.kt
