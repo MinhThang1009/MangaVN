@@ -138,15 +138,17 @@ tasks.register<JacocoCoverageVerification>("jacocoCoverageVerification") {
     sourceDirectories.setFrom(files("src/main/java"))
     executionData.setFrom(jacocoExec())
     violationRules {
-        // Sàn ratchet toàn project (UI/ViewModel kéo xuống) — chỉ chặn khi tụt.
+        // Sàn ratchet toàn project — siết 0.20 -> 0.30 (mức thật ~41% sau khi phủ ViewModel),
+        // chặn backslide; UI screens/nav chưa test nên chưa nâng cao hơn.
         rule {
             limit {
                 counter = "LINE"
                 value = "COVEREDRATIO"
-                minimum = "0.20".toBigDecimal()
+                minimum = "0.30".toBigDecimal()
             }
         }
-        // Lớp logic (data.repository + domain) đã phủ kỹ → giữ ngưỡng cao.
+        // Lớp logic (data.repository + domain + ui.viewmodel) đã phủ kỹ → giữ ngưỡng LINE cao.
+        // ui.viewmodel chỉ gate LINE (branch ~71% do nhánh defensive/effect khó ép).
         rule {
             element = "PACKAGE"
             includes =
@@ -154,6 +156,7 @@ tasks.register<JacocoCoverageVerification>("jacocoCoverageVerification") {
                     "com.example.mybookslibrary.data.repository",
                     "com.example.mybookslibrary.domain.usecase",
                     "com.example.mybookslibrary.domain.model",
+                    "com.example.mybookslibrary.ui.viewmodel",
                 )
             limit {
                 counter = "LINE"
