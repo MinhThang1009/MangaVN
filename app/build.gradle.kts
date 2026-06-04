@@ -92,6 +92,8 @@ val jacocoGeneratedFilter =
         "**/Dagger*.*",
         "**/*Args.*",
         "**/*Directions.*",
+        // Android-glue (Credential Manager) — không unit test được, đã tách khỏi AuthRepository.
+        "**/CredentialManagerGoogleSignInClient.*",
     )
 
 // AGP 9 "built-in Kotlin" xuất class compile ở built_in_kotlinc (không phải tmp/kotlin-classes).
@@ -121,11 +123,22 @@ tasks.register<JacocoCoverageVerification>("jacocoCoverageVerification") {
     sourceDirectories.setFrom(files("src/main/java"))
     executionData.setFrom(jacocoExec())
     violationRules {
+        // Sàn ratchet toàn project (UI/ViewModel kéo xuống) — chỉ chặn khi tụt.
         rule {
             limit {
                 counter = "LINE"
                 value = "COVEREDRATIO"
                 minimum = "0.20".toBigDecimal()
+            }
+        }
+        // Lớp logic data.repository đã phủ kỹ → giữ ngưỡng cao.
+        rule {
+            element = "PACKAGE"
+            includes = listOf("com.example.mybookslibrary.data.repository")
+            limit {
+                counter = "LINE"
+                value = "COVEREDRATIO"
+                minimum = "0.90".toBigDecimal()
             }
         }
     }
