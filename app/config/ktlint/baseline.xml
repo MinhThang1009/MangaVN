@@ -2278,6 +2278,13 @@
         <error line="175" column="32" source="standard:function-signature" />
         <error line="181" column="43" source="standard:trailing-comma-on-call-site" />
     </file>
+    <file name="src/test/java/com/example/mybookslibrary/domain/usecase/TapZoneEvaluatorPropertyTestExtended.kt">
+        <error line="42" column="55" source="standard:trailing-comma-on-call-site" />
+        <error line="54" column="79" source="standard:trailing-comma-on-call-site" />
+        <error line="80" column="72" source="standard:trailing-comma-on-call-site" />
+        <error line="84" column="73" source="standard:trailing-comma-on-call-site" />
+        <error line="96" column="72" source="standard:trailing-comma-on-call-site" />
+    </file>
     <file name="src/test/java/com/example/mybookslibrary/domain/usecase/TapZoneEvaluatorTest.kt">
         <error line="20" column="1" source="standard:no-empty-first-line-in-class-body" />
     </file>
@@ -2434,6 +2441,9 @@
         <error line="32" column="77" source="standard:function-signature" />
         <error line="41" column="34" source="standard:trailing-comma-on-call-site" />
         <error line="100" column="37" source="standard:trailing-comma-on-call-site" />
+    </file>
+    <file name="src/test/java/com/example/mybookslibrary/ui/screens/reader/ReaderPageActionMappingTest.kt">
+        <error line="32" column="28" source="standard:multiline-expression-wrapping" />
     </file>
     <file name="src/test/java/com/example/mybookslibrary/ui/screens/reader/ReaderScreenTest.kt">
         <error line="3" column="1" source="standard:import-ordering" />
