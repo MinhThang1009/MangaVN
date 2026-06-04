@@ -138,13 +138,14 @@ tasks.register<JacocoCoverageVerification>("jacocoCoverageVerification") {
     sourceDirectories.setFrom(files("src/main/java"))
     executionData.setFrom(jacocoExec())
     violationRules {
-        // Sàn ratchet toàn project — siết 0.20 -> 0.30 (mức thật ~41% sau khi phủ ViewModel),
-        // chặn backslide; UI screens/nav chưa test nên chưa nâng cao hơn.
+        // Sàn ratchet toàn project — siết dần theo mức thật:
+        //   0.20 (2026-06-05, data) → 0.30 (sau ui.viewmodel) → 0.70 (sau ui.screens + reader).
+        // ~3pp headroom dưới 73.3% thật; UI nav/emulator chưa test → chưa nâng cao hơn.
         rule {
             limit {
                 counter = "LINE"
                 value = "COVEREDRATIO"
-                minimum = "0.30".toBigDecimal()
+                minimum = "0.70".toBigDecimal()
             }
         }
         // Lớp logic (data.repository + domain + ui.viewmodel) đã phủ kỹ → giữ ngưỡng LINE cao.
