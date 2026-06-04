@@ -13,7 +13,8 @@ on:
 
 concurrency:
   group: codeql-${{ github.ref }}
-  cancel-in-progress: true
+  # Chỉ hủy run cũ trên PR; giữ run đầy đủ cho mỗi commit push main.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   analyze:
