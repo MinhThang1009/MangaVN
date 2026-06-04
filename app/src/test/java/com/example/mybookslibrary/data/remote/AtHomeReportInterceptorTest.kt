@@ -118,6 +118,67 @@ class AtHomeReportInterceptorTest {
         coVerify(exactly = 0) { repository.sendAtHomeReport(any()) }
     }
 
+    @Test
+    fun skipHeader_goBoHeaderVaKhongReport() = runTest {
+        val repository = mockk<MangaRepository>(relaxed = true)
+        val scope = TestScope(testScheduler)
+        var seenSkipHeader: String? = "unset"
+        val client = client(
+            repository = repository,
+            scope = scope,
+            terminalInterceptor = Interceptor { chain ->
+                // Header skip phải bị gỡ trước khi đi tiếp
+                seenSkipHeader = chain.request().header(AtHomeReportPolicy.SKIP_REPORT_HEADER)
+                Response.Builder()
+                    .request(chain.request())
+                    .protocol(Protocol.HTTP_1_1)
+                    .code(200)
+                    .message("OK")
+                    .body("img".toResponseBody("image/png".toMediaType()))
+                    .build()
+            }
+        )
+
+        val request = Request.Builder()
+            .url("https://node.example.net/data/hash/page.png")
+            .header(AtHomeReportPolicy.SKIP_REPORT_HEADER, "true")
+            .build()
+        client.newCall(request).execute().use { it.body.string() }
+        scope.advanceUntilIdle()
+
+        assertEquals(null, seenSkipHeader)
+        coVerify(exactly = 0) { repository.sendAtHomeReport(any()) }
+    }
+
+    @Test
+    fun success_khongCoXCache_reportCachedFalse() = runTest {
+        val repository = mockk<MangaRepository>(relaxed = true)
+        val scope = TestScope(testScheduler)
+        val client = client(
+            repository = repository,
+            scope = scope,
+            terminalInterceptor = Interceptor { chain ->
+                // Không header X-Cache -> cached = false (nhánh ?.startsWith == true là false)
+                Response.Builder()
+                    .request(chain.request())
+                    .protocol(Protocol.HTTP_1_1)
+                    .code(200)
+                    .message("OK")
+                    .body("abc".toResponseBody("image/png".toMediaType()))
+                    .build()
+            }
+        )
+
+        client.newCall(request("https://node.example.net/data/hash/page.png")).execute().use {
+            it.body.string()
+        }
+        scope.advanceUntilIdle()
+
+        coVerify(exactly = 1) {
+            repository.sendAtHomeReport(match { report -> !report.cached && report.success })
+        }
+    }
+
     private fun client(
         repository: MangaRepository,
         scope: TestScope,

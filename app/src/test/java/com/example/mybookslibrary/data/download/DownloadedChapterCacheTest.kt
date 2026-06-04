@@ -36,6 +36,37 @@ class DownloadedChapterCacheTest {
     }
 
     @Test
+    fun isChapterDownloaded_doiInitRoiTraVeKetQua() = runTest {
+        val chapterDao = mockk<ChapterDao>()
+        val storage = mockk<OfflineDownloadStorage>()
+        coEvery { chapterDao.getDownloadedChapterIds() } returns emptyList()
+        coEvery { storage.backfillCompletionMarkers(emptySet()) } returns 0
+        coEvery { chapterDao.clearDownloadedChapterFlags() } returns Unit
+        coEvery { storage.scanDownloadedChapters() } returns setOf("chapter-1")
+
+        val cache = DownloadedChapterCache(chapterDao, storage, TestScope(testScheduler))
+        advanceUntilIdle()
+
+        assertTrue(cache.isChapterDownloaded("chapter-1"))
+        assertFalse(cache.isChapterDownloaded("chapter-x"))
+    }
+
+    @Test
+    fun init_khiDaoNem_khongCrashVaTrangThaiRong() = runTest {
+        val chapterDao = mockk<ChapterDao>()
+        val storage = mockk<OfflineDownloadStorage>()
+        // getDownloadedChapterIds ném -> init catch (Throwable) -> Timber.e -> finally complete
+        coEvery { chapterDao.getDownloadedChapterIds() } throws RuntimeException("db lỗi")
+
+        val cache = DownloadedChapterCache(chapterDao, storage, TestScope(testScheduler))
+        advanceUntilIdle()
+
+        // initialization vẫn complete ở finally -> isChapterDownloaded không treo
+        assertFalse(cache.isChapterDownloaded("chapter-1"))
+        assertEquals(emptySet<String>(), cache.downloadedChapterIds.value)
+    }
+
+    @Test
     fun addChapterAndRemoveChapter_emitUpdatedState() = runTest {
         val chapterDao = mockk<ChapterDao>()
         val storage = mockk<OfflineDownloadStorage>()
