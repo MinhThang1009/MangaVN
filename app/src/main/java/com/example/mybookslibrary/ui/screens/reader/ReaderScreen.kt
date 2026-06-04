@@ -8,6 +8,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -30,6 +32,8 @@ fun ReaderScreen(
     val context = LocalContext.current
     val activity = remember(context) { context.findActivity() }
     val backgroundIsLight = MaterialTheme.colorScheme.background.luminance() > 0.5f
+    val readerBarColors = readerBarColors(isLightTheme = backgroundIsLight)
+    val readerBarIsLight = readerBarColors.container.compositeOver(Color.Black).luminance() > 0.5f
     val listState = rememberLazyListState()
     val hasRestoredInitialPage = remember { mutableStateOf(false) }
     val latestActivePageIndex = remember { mutableStateOf<Int?>(null) }
@@ -47,7 +51,9 @@ fun ReaderScreen(
 
     ConfigureReaderSystemBars(
         activity = activity,
-        backgroundIsLight = backgroundIsLight
+        backgroundIsLight = backgroundIsLight,
+        overlayIsVisible = state.isOverlayVisible,
+        overlayIsLight = readerBarIsLight
     )
 
     ReaderEffectHandler(
@@ -70,6 +76,7 @@ fun ReaderScreen(
         state = state,
         listState = listState,
         pagerState = pagerState,
+        readerBarColors = readerBarColors,
         onBackClick = onBackClick,
         onEvent = onEvent,
         modifier = modifier

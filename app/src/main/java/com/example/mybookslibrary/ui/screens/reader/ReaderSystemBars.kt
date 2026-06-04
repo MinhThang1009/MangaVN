@@ -12,15 +12,18 @@ import androidx.compose.runtime.DisposableEffect
 @Composable
 internal fun ConfigureReaderSystemBars(
     activity: ComponentActivity?,
-    backgroundIsLight: Boolean
+    backgroundIsLight: Boolean,
+    overlayIsVisible: Boolean,
+    overlayIsLight: Boolean
 ) {
-    DisposableEffect(activity, backgroundIsLight) {
+    DisposableEffect(activity, backgroundIsLight, overlayIsVisible, overlayIsLight) {
         val lightStyle = SystemBarStyle.light(AndroidColor.TRANSPARENT, AndroidColor.TRANSPARENT)
         val darkStyle = SystemBarStyle.dark(AndroidColor.TRANSPARENT)
+        val readerStyle = if (overlayIsVisible && overlayIsLight) lightStyle else darkStyle
 
         activity?.enableEdgeToEdge(
-            statusBarStyle = darkStyle,
-            navigationBarStyle = darkStyle
+            statusBarStyle = readerStyle,
+            navigationBarStyle = readerStyle
         )
 
         onDispose {

@@ -26,6 +26,7 @@ internal fun ReaderContentHost(
     state: ReaderState,
     listState: LazyListState,
     pagerState: PagerState,
+    readerBarColors: ReaderBarColors,
     onBackClick: () -> Unit,
     onEvent: (ReaderEvent) -> Unit,
     modifier: Modifier = Modifier
@@ -82,12 +83,18 @@ internal fun ReaderContentHost(
             }
         }
 
-        ReaderTopBar(state.chapterTitle, state.isOverlayVisible, onBackClick)
+        ReaderTopBar(
+            chapterTitle = state.chapterTitle,
+            isVisible = state.isOverlayVisible,
+            colors = readerBarColors,
+            onBackClick = onBackClick
+        )
         ReaderBottomBar(
             isVisible = state.isOverlayVisible,
             currentPage = state.lastReadPageIndex,
             totalPages = state.pages.size,
             currentReadingMode = state.currentReadingMode,
+            colors = readerBarColors,
             onToggleReadingMode = {
                 onEvent(ReaderEvent.CycleReadingMode)
             }
