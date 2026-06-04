@@ -1,0 +1,62 @@
+# CodeQL — static security scan cho code Kotlin/Java (Android).
+# build-mode manual: tự build (compileDebugKotlin) giữa init và analyze vì autobuild
+# hay vỡ với AGP. AuthSecrets.kt bị gitignore nên stub như ci.yml để compile được.
+name: CodeQL
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # Quét định kỳ hằng tuần (thứ Hai 05:23 UTC) để bắt advisory mới trên code cũ.
+    - cron: '23 5 * * 1'
+
+concurrency:
+  group: codeql-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    name: Analyze (java-kotlin)
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: java-kotlin
+          build-mode: manual
+
+      # Stub AuthSecrets (file thật bị gitignore) — giá trị test, không phải secret.
+      - name: Stub AuthSecrets
+        run: |
+          mkdir -p app/src/main/java/com/example/mybookslibrary/util
+          cat > app/src/main/java/com/example/mybookslibrary/util/AuthSecrets.kt <<'EOF'
+          package com.example.mybookslibrary.util
+
+          object AuthSecrets {
+              const val WEB_CLIENT_ID = "test-web-client-id.apps.googleusercontent.com"
+          }
+          EOF
+
+      - name: Build for analysis
+        run: ./gradlew :app:compileDebugKotlin --console=plain
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:java-kotlin"
