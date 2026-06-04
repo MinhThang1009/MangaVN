@@ -2429,11 +2429,11 @@
     </file>
     <file name="src/test/java/com/example/mybookslibrary/ui/screens/reader/MangaPageItemTest.kt">
         <error line="3" column="1" source="standard:import-ordering" />
-        <error line="25" column="1" source="standard:spacing-between-declarations-with-annotations" />
-        <error line="25" column="5" source="standard:blank-line-before-declaration" />
-        <error line="33" column="50" source="standard:trailing-comma-on-call-site" />
-        <error line="47" column="50" source="standard:trailing-comma-on-call-site" />
-        <error line="60" column="35" source="standard:trailing-comma-on-call-site" />
+        <error line="26" column="1" source="standard:spacing-between-declarations-with-annotations" />
+        <error line="26" column="5" source="standard:blank-line-before-declaration" />
+        <error line="34" column="50" source="standard:trailing-comma-on-call-site" />
+        <error line="48" column="50" source="standard:trailing-comma-on-call-site" />
+        <error line="61" column="35" source="standard:trailing-comma-on-call-site" />
     </file>
     <file name="src/test/java/com/example/mybookslibrary/ui/screens/reader/ReaderBarsTest.kt">
         <error line="34" column="37" source="standard:trailing-comma-on-call-site" />
@@ -2531,22 +2531,27 @@
     </file>
     <file name="src/test/java/com/example/mybookslibrary/ui/screens/reader/WebtoonPageItemTest.kt">
         <error line="3" column="1" source="standard:import-ordering" />
-        <error line="25" column="1" source="standard:spacing-between-declarations-with-annotations" />
-        <error line="25" column="5" source="standard:blank-line-before-declaration" />
-        <error line="33" column="50" source="standard:trailing-comma-on-call-site" />
-        <error line="45" column="26" source="standard:trailing-comma-on-call-site" />
-        <error line="59" column="57" source="standard:trailing-comma-on-call-site" />
+        <error line="26" column="1" source="standard:spacing-between-declarations-with-annotations" />
+        <error line="26" column="5" source="standard:blank-line-before-declaration" />
+        <error line="34" column="50" source="standard:trailing-comma-on-call-site" />
+        <error line="46" column="26" source="standard:trailing-comma-on-call-site" />
+        <error line="60" column="57" source="standard:trailing-comma-on-call-site" />
     </file>
     <file name="src/test/java/com/example/mybookslibrary/ui/screens/reader/components/PageActionBottomSheetTest.kt">
         <error line="6" column="1" source="standard:no-unused-imports" />
     </file>
     <file name="src/test/java/com/example/mybookslibrary/ui/util/FakeImageLoader.kt">
-        <error line="10" column="1" source="standard:no-unused-imports" />
-        <error line="23" column="24" source="standard:chain-method-continuation" />
-        <error line="25" column="25" source="standard:multiline-expression-wrapping" />
-        <error line="25" column="25" source="standard:wrapping" />
-        <error line="31" column="21" source="standard:wrapping" />
-        <error line="33" column="17" source="standard:chain-method-continuation" />
+        <error line="11" column="1" source="standard:no-unused-imports" />
+        <error line="24" column="24" source="standard:chain-method-continuation" />
+        <error line="26" column="25" source="standard:multiline-expression-wrapping" />
+        <error line="26" column="25" source="standard:wrapping" />
+        <error line="32" column="21" source="standard:wrapping" />
+        <error line="34" column="17" source="standard:chain-method-continuation" />
+        <error line="42" column="24" source="standard:chain-method-continuation" />
+        <error line="44" column="25" source="standard:multiline-expression-wrapping" />
+        <error line="44" column="25" source="standard:wrapping" />
+        <error line="50" column="21" source="standard:wrapping" />
+        <error line="52" column="17" source="standard:chain-method-continuation" />
     </file>
     <file name="src/test/java/com/example/mybookslibrary/ui/util/LazyListLayoutInfoExtTest.kt">
         <error line="11" column="1" source="standard:no-empty-first-line-in-class-body" />
