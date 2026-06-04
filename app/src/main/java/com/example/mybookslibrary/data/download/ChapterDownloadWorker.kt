@@ -18,6 +18,7 @@ import com.example.mybookslibrary.data.remote.AtHomeReportPolicy
 import com.example.mybookslibrary.data.remote.models.AtHomeReportRequest
 import com.example.mybookslibrary.data.repository.MangaRepository
 import com.example.mybookslibrary.data.repository.OfflineDownloadRepository
+import com.example.mybookslibrary.util.ExcludeFromGeneratedCoverage
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CancellationException
@@ -303,6 +304,7 @@ class ChapterDownloadWorker @AssistedInject constructor(
         }
     }
 
+    @ExcludeFromGeneratedCoverage // Notification/ForegroundInfo + nhánh Build.VERSION — Android glue
     private fun createForegroundInfo(
         chapterId: String,
         progressPercent: Int,
@@ -331,6 +333,7 @@ class ChapterDownloadWorker @AssistedInject constructor(
         }
     }
 
+    @ExcludeFromGeneratedCoverage // NotificationManager + nhánh Build.VERSION < O — Android glue
     private fun ensureNotificationChannel() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
         val manager = applicationContext.getSystemService(NotificationManager::class.java)
@@ -346,6 +349,7 @@ class ChapterDownloadWorker @AssistedInject constructor(
         )
     }
 
+    @ExcludeFromGeneratedCoverage // NotificationManagerCompat + permission/SecurityException — Android glue
     private fun showFinishedNotification(
         chapterId: String,
         success: Boolean,
