@@ -95,12 +95,20 @@ val jacocoGeneratedFilter =
         "**/*_Factory.*",
         "**/*_MembersInjector.*",
         "**/*Module_*.*",
-        "**/*_Impl.*",
+        // Dùng *_Impl* (không phải *_Impl.*) để bắt cả nested class Room generated
+        // (vd ChapterDao_Impl$1, AppDatabase_Impl$createOpenDelegate...): sau "_Impl" là "$"
+        // chứ không phải ".", nên pattern cũ "**/*_Impl.*" bỏ sót → kéo coverage xuống giả tạo.
+        "**/*_Impl*.*",
+        // Kotlin sinh $DefaultImpls cho default method/param của interface (vd MangaDexApi).
+        "**/*\$DefaultImpls.*",
         "**/Dagger*.*",
         "**/*Args.*",
         "**/*Directions.*",
-        // Android-glue (Credential Manager) — không unit test được, đã tách khỏi AuthRepository.
+        // Android/DI-glue không unit test được (chỉ wiring): Credential Manager,
+        // Hilt NetworkModule (dựng OkHttp/Retrofit), Retrofit interface MangaDexApi (chỉ khai báo).
         "**/CredentialManagerGoogleSignInClient.*",
+        "**/NetworkModule.*",
+        "**/MangaDexApi.*",
     )
 
 // AGP 9 "built-in Kotlin" xuất class compile ở built_in_kotlinc (không phải tmp/kotlin-classes).
@@ -151,6 +159,30 @@ tasks.register<JacocoCoverageVerification>("jacocoCoverageVerification") {
                 counter = "LINE"
                 value = "COVEREDRATIO"
                 minimum = "0.90".toBigDecimal()
+            }
+        }
+        // Tầng data còn lại (local/dao/remote/models/download) đã phủ test JVM kỹ:
+        // LINE ≥90% + BRANCH ≥80% (branch luôn thấp hơn line do nhánh platform/IO-error
+        // khó ép trong unit test — không chặn cao hơn để tránh fragile gate).
+        rule {
+            element = "PACKAGE"
+            includes =
+                listOf(
+                    "com.example.mybookslibrary.data.local",
+                    "com.example.mybookslibrary.data.local.dao",
+                    "com.example.mybookslibrary.data.remote",
+                    "com.example.mybookslibrary.data.remote.models",
+                    "com.example.mybookslibrary.data.download",
+                )
+            limit {
+                counter = "LINE"
+                value = "COVEREDRATIO"
+                minimum = "0.90".toBigDecimal()
+            }
+            limit {
+                counter = "BRANCH"
+                value = "COVEREDRATIO"
+                minimum = "0.80".toBigDecimal()
             }
         }
     }
