@@ -52,15 +52,19 @@ jobs:
           paths: ${{ github.workspace }}/app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
           token: ${{ secrets.GITHUB_TOKEN }}
           min-coverage-changed-files: 80
-          min-coverage-overall: 0
+          # Bật overall gate: PR không được làm tổng project tụt dưới 70%.
+          # Khớp với sàn trong jacocoCoverageVerification (build.gradle.kts).
+          min-coverage-overall: 70
           title: Coverage cho code mới (PR)
           update-comment: true
 
       # madrapps/jacoco-report không hỗ trợ fail-on-violation → đọc output và fail thủ công.
-      # Nếu coverage code mới < 80%, bước này exit 1 → job fail → PR bị chặn (khi branch
-      # protection bật require check "diff-coverage").
-      - name: Fail nếu coverage code mới dưới ngưỡng
-        if: ${{ steps.coverage-report.outputs.coverage-changed-files < 80.0 }}
+      # Bắt 2 vi phạm: (a) code mới < 80%, (b) tổng project tụt < 70%.
+      - name: Fail nếu coverage vi phạm ngưỡng
+        if: >
+          ${{ steps.coverage-report.outputs.coverage-changed-files < 80.0 ||
+              steps.coverage-report.outputs.coverage-overall < 70.0 }}
         run: |
-          echo "Coverage code mới ${{ steps.coverage-report.outputs.coverage-changed-files }}% thấp hơn ngưỡng 80%"
+          echo "Coverage code mới: ${{ steps.coverage-report.outputs.coverage-changed-files }}% (ngưỡng 80%)"
+          echo "Coverage tổng project: ${{ steps.coverage-report.outputs.coverage-overall }}% (ngưỡng 70%)"
           exit 1
