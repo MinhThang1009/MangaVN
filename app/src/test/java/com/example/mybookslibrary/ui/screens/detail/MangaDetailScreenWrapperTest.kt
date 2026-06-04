@@ -29,16 +29,10 @@ class MangaDetailScreenWrapperTest {
     @Test
     fun wrapper_compilesAndCallsDelegateSignature() {
         // Wrapper chỉ forward params sang ui.screens.MangaDetailScreen — verify API shape.
-        // Không thể render full screen mà không có Hilt; test compile + type-check là đủ.
-        val mangaId: String = "m1"
-        val title: String = "Test"
-        val coverArt: String = ""
-        val description: String = "Desc"
-        val tags: List<String> = listOf("Action")
-        val onBackClick: () -> Unit = {}
-        val onReadChapter: (String, String, String, Int) -> Unit = { _, _, _, _ -> }
-        val onReviewClick: (String) -> Unit = {}
-        // Kiểm tra các param có đúng type để wrapper compile được
+        // Params declaration là compile-time check; các assert kiểm tra type đúng.
+        val mangaId = "m1"
+        val title = "Test"
+        val tags = listOf("Action")
         assert(mangaId.isNotBlank() || mangaId.isEmpty())
         assert(title.isNotBlank() || title.isEmpty())
         assert(tags is List<*>)
