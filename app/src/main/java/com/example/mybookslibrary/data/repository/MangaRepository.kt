@@ -15,6 +15,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -43,7 +44,7 @@ class MangaRepository(
                 .data.map { it.toDomainModel(preferredLang) }
         }
         emit(result)
-    }
+    }.flowOn(ioDispatcher)
 
     fun searchManga(
         query: String,
@@ -61,7 +62,7 @@ class MangaRepository(
             ).data.map { it.toDomainModel(preferredLang) }
         }
         emit(result)
-    }
+    }.flowOn(ioDispatcher)
 
     /**
      * Tải danh sách tag MangaDex (genre/theme/format/content) cho bộ lọc Search.
