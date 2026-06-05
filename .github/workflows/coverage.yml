@@ -43,6 +43,23 @@ jobs:
       - name: Tạo báo cáo JaCoCo (JVM-only)
         run: ./gradlew :app:jacocoTestReport --console=plain
 
+      # Parse trực tiếp từ XML để lấy coverage thật — madrapps/jacoco-report tính khác.
+      # Lấy counter LINE cuối cùng trong file = report-level aggregate.
+      - name: Hiển thị coverage thực tế từ XML
+        run: |
+          XML=app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
+          LINE=$(grep -o 'type="LINE" missed="[0-9]*" covered="[0-9]*"' "$XML" | tail -1)
+          MISSED=$(echo "$LINE" | grep -o 'missed="[0-9]*"' | grep -o '[0-9]*')
+          COVERED=$(echo "$LINE" | grep -o 'covered="[0-9]*"' | grep -o '[0-9]*')
+          TOTAL=$((MISSED + COVERED))
+          PCT=$(awk "BEGIN{printf \"%.2f\", $COVERED*100/$TOTAL}")
+          echo "Coverage LINE thực tế: ${PCT}% (${COVERED}/${TOTAL} lines)"
+          echo "## JVM Coverage thực tế (LINE counter)" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Metric | Value |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|---|---|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| **Overall LINE** | **${PCT}%** (${COVERED}/${TOTAL}) |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Missed lines | ${MISSED} |" >> "$GITHUB_STEP_SUMMARY"
+
       # Chỉ check overall — đủ để phát hiện regression sớm (< 5 phút).
       # Diff-coverage (code mới) dùng combined report trong ci.yml sau emulator.
       - name: JVM overall coverage ≥ 82% (early check)
@@ -54,6 +71,15 @@ jobs:
           min-coverage-overall: 82
           title: JVM Coverage (early check)
           update-comment: true
+
+      # Upload JaCoCo XML để có thể download phân tích sau khi CI chạy.
+      - name: Upload JaCoCo XML report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: jvm-coverage-xml
+          path: app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
+          if-no-files-found: ignore
 
       - name: Fail nếu overall JVM coverage tụt dưới 82%
         if: ${{ steps.coverage-report.outputs.coverage-overall < 82.0 }}

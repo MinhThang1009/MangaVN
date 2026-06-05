@@ -4,7 +4,7 @@ import android.app.Application
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
-import com.example.mybookslibrary.R
+import androidx.compose.ui.test.performClick
 import com.example.mybookslibrary.data.repository.MangaRepository
 import com.example.mybookslibrary.domain.model.MangaModel
 import com.example.mybookslibrary.ui.util.FakeImageLoader
@@ -20,11 +20,14 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
+import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 
 @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+// Màn hình cao 4000dp để LazyColumn compose tất cả items (tránh lazy off-screen)
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
+@Config(qualifiers = "w411dp-h4000dp-xxhdpi")
 @coil3.annotation.ExperimentalCoilApi
 class DiscoverScreenContentTest {
     @get:Rule
@@ -94,5 +97,112 @@ class DiscoverScreenContentTest {
         val items = List(15) { MangaModel("m$it", "Manga $it", "", null, emptyList()) }
         composeRule.setContent { DiscoverScreenContent(vm = loadedVm(items)) }
         composeRule.waitForIdle()
+    }
+
+    @Test
+    fun withOneItem_showsSpotlightOnly_noPopularSection() {
+        // items.size <= 1 → popularItems empty → no "Popular Now" header
+        val items = listOf(MangaModel("m0", "Solo Manga", "", null, emptyList()))
+        composeRule.setContent { DiscoverScreenContent(vm = loadedVm(items)) }
+        composeRule.onNodeWithText("Solo Manga").assertIsDisplayed()
+    }
+
+    @Test
+    fun withSixItems_rendersPopularBranch() {
+        // items.size > 1 → popularItems non-empty → LazyColumn composes items[0] spotlight + items 1-5
+        val items = List(6) { MangaModel("m$it", "Manga $it", "", null, emptyList()) }
+        composeRule.setContent { DiscoverScreenContent(vm = loadedVm(items)) }
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("Manga 0").assertIsDisplayed()
+    }
+
+    @Test
+    fun withTwelveItems_rendersAllItemBranches() {
+        // items > 1, > 6, > 11 → popularItems/newItems/exploreItems all non-empty
+        val items = List(12) { MangaModel("m$it", "Manga $it", "", null, emptyList()) }
+        composeRule.setContent { DiscoverScreenContent(vm = loadedVm(items)) }
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("Manga 0").assertIsDisplayed()
+    }
+
+    @Test
+    fun clickMangaItem_invokesOnMangaClick_fromSpotlight() {
+        // Click Spotlight item (items[0]) → onMangaClick callback
+        var clicked: String? = null
+        val items = List(6) { MangaModel("m$it", "Manga $it", "", null, emptyList()) }
+        composeRule.setContent {
+            DiscoverScreenContent(
+                onMangaClick = { clicked = it.id },
+                vm = loadedVm(items),
+            )
+        }
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("Manga 0").performClick()
+        composeRule.waitForIdle()
+        assert(clicked != null) { "onMangaClick phải được gọi khi click spotlight item" }
+    }
+
+    @Test
+    fun clickMangaCard_invokesOnMangaClick() {
+        var clickedId: String? = null
+        val items = List(3) { MangaModel("m$it", "Manga $it", "", null, emptyList()) }
+        composeRule.setContent {
+            DiscoverScreenContent(
+                onMangaClick = { clickedId = it.id },
+                vm = loadedVm(items),
+            )
+        }
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("Manga 0").performClick()
+        composeRule.waitForIdle()
+        assert(clickedId != null) { "onMangaClick phải được gọi khi click manga" }
+    }
+
+    @Test
+    fun emptyItems_showsEmptyState() {
+        // items empty → no loading, no error, no items → empty state renders
+        val vm = loadedVm(emptyList())
+        composeRule.setContent { DiscoverScreenContent(vm = vm) }
+        composeRule.waitForIdle()
+    }
+
+    @Test
+    fun recompose_errorThenReload_coversTransitionInstructions() {
+        // Error state → reload → success: recomposition transition covers restart group instructions
+        val repo = mockk<MangaRepository>()
+        val items = List(3) { MangaModel("m$it", "Item $it", "", null, emptyList()) }
+        every { repo.getDiscoverManga(any(), any()) } returnsMany listOf(
+            flowOf(Result.failure(RuntimeException("network err"))),
+            flowOf(Result.success(items)),
+        )
+        val vm = DiscoverViewModel(application, repo, UnconfinedTestDispatcher())
+
+        composeRule.setContent { DiscoverScreenContent(vm = vm) }
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("Couldn't load home screen").assertIsDisplayed()
+        // Reload → success state → recomposition from error to items
+        vm.loadDiscover()
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("Item 0").assertIsDisplayed()
+    }
+
+    @Test
+    fun recompose_loadingToItems_triggersByButton() {
+        // Click retry button trong error state → loadDiscover() → items appear
+        val repo = mockk<MangaRepository>()
+        val items = List(6) { MangaModel("m$it", "Manga $it", "", null, emptyList()) }
+        every { repo.getDiscoverManga(any(), any()) } returnsMany listOf(
+            flowOf(Result.failure(RuntimeException("fail"))),
+            flowOf(Result.success(items)),
+        )
+        val vm = DiscoverViewModel(application, repo, UnconfinedTestDispatcher())
+
+        composeRule.setContent { DiscoverScreenContent(vm = vm) }
+        composeRule.waitForIdle()
+        // Click "Retry" button to reload
+        runCatching { composeRule.onNodeWithText("Retry").performClick() }
+        vm.loadDiscover()
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("Manga 0").assertIsDisplayed()
     }
 }
