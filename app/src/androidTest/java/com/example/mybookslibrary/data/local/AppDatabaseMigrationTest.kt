@@ -37,11 +37,11 @@ class AppDatabaseMigrationTest {
                 .allowMainThreadQueries()
                 .build()
         try {
-            db.openHelper.readableDatabase.run {
-                query("SELECT * FROM users LIMIT 1", null).close()
-                query("SELECT * FROM library_items LIMIT 1", null).close()
-                query("SELECT * FROM chapter_progress LIMIT 1", null).close()
-                query("SELECT * FROM download_queue LIMIT 1", null).close()
+            db.openHelper.readableDatabase.apply {
+                query("SELECT * FROM users LIMIT 1").close()
+                query("SELECT * FROM library_items LIMIT 1").close()
+                query("SELECT * FROM chapter_progress LIMIT 1").close()
+                query("SELECT * FROM download_queue LIMIT 1").close()
             }
         } finally {
             db.close()
