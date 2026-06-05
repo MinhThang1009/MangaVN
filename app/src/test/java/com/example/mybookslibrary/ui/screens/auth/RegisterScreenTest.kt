@@ -21,12 +21,14 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 
 /**
  * UI test cho [RegisterScreen] qua Robolectric + Compose (JVM, không cần Hilt):
  * truyền [AuthViewModel] thật với [AuthRepository] giả vào param viewModel.
  */
+@Config(qualifiers = "w411dp-h4000dp-xxhdpi")
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class RegisterScreenTest {

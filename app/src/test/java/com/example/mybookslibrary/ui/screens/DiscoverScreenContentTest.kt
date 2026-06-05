@@ -165,4 +165,44 @@ class DiscoverScreenContentTest {
         composeRule.setContent { DiscoverScreenContent(vm = vm) }
         composeRule.waitForIdle()
     }
+
+    @Test
+    fun recompose_errorThenReload_coversTransitionInstructions() {
+        // Error state → reload → success: recomposition transition covers restart group instructions
+        val repo = mockk<MangaRepository>()
+        val items = List(3) { MangaModel("m$it", "Item $it", "", null, emptyList()) }
+        every { repo.getDiscoverManga(any(), any()) } returnsMany listOf(
+            flowOf(Result.failure(RuntimeException("network err"))),
+            flowOf(Result.success(items)),
+        )
+        val vm = DiscoverViewModel(application, repo, UnconfinedTestDispatcher())
+
+        composeRule.setContent { DiscoverScreenContent(vm = vm) }
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("Couldn't load home screen").assertIsDisplayed()
+        // Reload → success state → recomposition from error to items
+        vm.loadDiscover()
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("Item 0").assertIsDisplayed()
+    }
+
+    @Test
+    fun recompose_loadingToItems_triggersByButton() {
+        // Click retry button trong error state → loadDiscover() → items appear
+        val repo = mockk<MangaRepository>()
+        val items = List(6) { MangaModel("m$it", "Manga $it", "", null, emptyList()) }
+        every { repo.getDiscoverManga(any(), any()) } returnsMany listOf(
+            flowOf(Result.failure(RuntimeException("fail"))),
+            flowOf(Result.success(items)),
+        )
+        val vm = DiscoverViewModel(application, repo, UnconfinedTestDispatcher())
+
+        composeRule.setContent { DiscoverScreenContent(vm = vm) }
+        composeRule.waitForIdle()
+        // Click "Retry" button to reload
+        runCatching { composeRule.onNodeWithText("Retry").performClick() }
+        vm.loadDiscover()
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("Manga 0").assertIsDisplayed()
+    }
 }
