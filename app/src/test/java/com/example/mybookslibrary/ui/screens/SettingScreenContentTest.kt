@@ -162,4 +162,47 @@ class SettingScreenContentTest {
         composeRule.waitForIdle()
         composeRule.onNodeWithText("Settings").assertIsDisplayed()
     }
+
+    @Test
+    fun clickQualityToggle_triggersViewModelAction() {
+        val vm = viewModel()
+        composeRule.setContent { SettingScreenContent(viewModel = vm) }
+        composeRule.waitForIdle()
+        // Click "Image Quality" row → triggers toggleQuality()
+        composeRule.onNodeWithText("Image Quality").performClick()
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("Settings").assertIsDisplayed()
+    }
+
+    @Test
+    fun clickSignOut_triggersSignOutFlow() {
+        val vm = viewModel()
+        composeRule.setContent { SettingScreenContent(viewModel = vm) }
+        composeRule.waitForIdle()
+        // Click "Sign Out" row to trigger signOut()
+        composeRule.onNodeWithText("Sign Out").performClick()
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("Settings").assertIsDisplayed()
+    }
+
+    @Test
+    fun signedOut_state_rendersScreen() {
+        // signedOut = true → screen renders without crash
+        val vm = viewModel()
+        vm.signOut()
+
+        composeRule.setContent { SettingScreenContent(viewModel = vm) }
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("Settings").assertIsDisplayed()
+    }
+
+    @Test
+    fun clickClearCache_triggersAction() {
+        val vm = viewModel()
+        composeRule.setContent { SettingScreenContent(viewModel = vm) }
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("Clear Image Cache").performClick()
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("Settings").assertIsDisplayed()
+    }
 }

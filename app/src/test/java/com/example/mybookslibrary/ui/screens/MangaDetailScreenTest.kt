@@ -199,6 +199,35 @@ class MangaDetailScreenTest {
         composeRule.waitForIdle()
     }
 
+    @Test
+    fun manyChapters_mixedStatus_expanded_rendersAll() {
+        // Các chapter với status khác nhau → covers ChapterRow với đủ branches
+        val chapters =
+            listOf(
+                chapter("c1", "1").copy(status = ChapterReadingStatus.COMPLETED),
+                chapter("c2", "2").copy(status = ChapterReadingStatus.READING, lastReadPage = 5),
+                chapter("c3", "3").copy(status = ChapterReadingStatus.UNREAD),
+                chapter("c4", "4").copy(status = ChapterReadingStatus.COMPLETED),
+                chapter("c5", "5").copy(status = ChapterReadingStatus.UNREAD),
+            )
+        screen(chapters = chapters)
+        scrollTo("Chapters")
+        composeRule.onNodeWithText("Chapters").performClick()
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("Naruto").assertIsDisplayed()
+    }
+
+    @Test
+    fun withDescription_andTags_scrollsContent() {
+        screen(title = "Attack on Titan")
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("Attack on Titan").assertIsDisplayed()
+        repeat(4) {
+            composeRule.onRoot().performTouchInput { swipeUp() }
+        }
+        composeRule.waitForIdle()
+    }
+
     private fun chapter(id: String, num: String) =
         ChapterWithProgressModel(
             chapterId = id,

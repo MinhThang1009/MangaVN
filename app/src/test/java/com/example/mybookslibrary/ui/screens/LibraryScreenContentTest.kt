@@ -3,6 +3,7 @@ package com.example.mybookslibrary.ui.screens
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.longClick
 import com.example.mybookslibrary.data.local.LibraryItemEntity
@@ -80,6 +81,21 @@ class LibraryScreenContentTest {
         composeRule.onNodeWithText("My Library").assertIsDisplayed()
         composeRule.onNodeWithText("Naruto").assertIsDisplayed()
         composeRule.onNodeWithText("One Piece").assertIsDisplayed()
+    }
+
+    @Test
+    fun withItems_clickItem_invokesOnOpenDetail() {
+        var openedId: String? = null
+        composeRule.setContent {
+            LibraryScreenContent(
+                onOpenDetail = { id, _, _ -> openedId = id },
+                vm = vmWithItems("Naruto"),
+            )
+        }
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("Naruto").performClick()
+        composeRule.waitForIdle()
+        assert(openedId != null) { "onOpenDetail phải được gọi khi click item" }
     }
 
     @Test

@@ -88,6 +88,54 @@ class ReaderProgressEffectsTest {
     }
 
     @Test
+    fun ltrMode_withPages_doesNotTriggerVerticalRestore() {
+        // LTR mode → vertical LaunchedEffects return early — covers different code path
+        val hasRestored = mutableStateOf(false)
+        composeRule.setContent {
+            val listState = rememberLazyListState()
+            val pagerState = rememberPagerState(pageCount = { 3 })
+            ReaderProgressEffects(
+                state =
+                    ReaderState(
+                        pages = listOf("p0", "p1", "p2"),
+                        currentReadingMode = ReadingMode.LTR,
+                        lastReadPageIndex = 1,
+                    ),
+                listState = listState,
+                pagerState = pagerState,
+                latestActivePageIndex = remember { mutableStateOf(null) },
+                hasRestoredInitialPage = hasRestored,
+                onEvent = {},
+            )
+        }
+        composeRule.waitForIdle()
+        // LTR mode → hasRestoredInitialPage remains false (vertical restore không chạy)
+        assert(!hasRestored.value) { "LTR mode không trigger vertical restore" }
+    }
+
+    @Test
+    fun rtlMode_withPages_doesNotTriggerVerticalRestore() {
+        val hasRestored = mutableStateOf(false)
+        composeRule.setContent {
+            val listState = rememberLazyListState()
+            val pagerState = rememberPagerState(pageCount = { 2 })
+            ReaderProgressEffects(
+                state = ReaderState(
+                    pages = listOf("p0", "p1"),
+                    currentReadingMode = ReadingMode.RTL,
+                ),
+                listState = listState,
+                pagerState = pagerState,
+                latestActivePageIndex = remember { mutableStateOf(null) },
+                hasRestoredInitialPage = hasRestored,
+                onEvent = {},
+            )
+        }
+        composeRule.waitForIdle()
+        assert(!hasRestored.value) { "RTL mode không trigger vertical restore" }
+    }
+
+    @Test
     fun flushProgress_onDispose_doesNotCrash() {
         val events = mutableListOf<ReaderEvent>()
         composeRule.setContent {
