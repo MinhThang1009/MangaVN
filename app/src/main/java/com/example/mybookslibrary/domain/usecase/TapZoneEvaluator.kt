@@ -37,18 +37,19 @@ class TapZoneEvaluator
 
             if (mode == ReadingMode.VERTICAL) return ReaderTapAction.TOGGLE_OVERLAY
 
+            // VERTICAL đã được xử lý ở trên — chỉ còn LTR/RTL
             return when {
                 ratio < LEFT_ZONE_END_RATIO ->
-                    when (mode) {
-                        ReadingMode.LTR -> ReaderTapAction.PREVIOUS_PAGE
-                        ReadingMode.RTL -> ReaderTapAction.NEXT_PAGE
-                        ReadingMode.VERTICAL -> ReaderTapAction.TOGGLE_OVERLAY
+                    if (mode == ReadingMode.LTR) {
+                        ReaderTapAction.PREVIOUS_PAGE
+                    } else {
+                        ReaderTapAction.NEXT_PAGE
                     }
                 ratio >= RIGHT_ZONE_START_RATIO ->
-                    when (mode) {
-                        ReadingMode.LTR -> ReaderTapAction.NEXT_PAGE
-                        ReadingMode.RTL -> ReaderTapAction.PREVIOUS_PAGE
-                        ReadingMode.VERTICAL -> ReaderTapAction.TOGGLE_OVERLAY
+                    if (mode == ReadingMode.LTR) {
+                        ReaderTapAction.NEXT_PAGE
+                    } else {
+                        ReaderTapAction.PREVIOUS_PAGE
                     }
                 else -> ReaderTapAction.TOGGLE_OVERLAY
             }
