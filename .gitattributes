@@ -1,0 +1,2 @@
+# Shell scripts phải giữ LF — CRLF làm script fail trên Linux/macOS.
+.githooks/pre-commit text eol=lf
