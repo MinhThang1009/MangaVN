@@ -15,4 +15,10 @@ if [ "$BRANCH" = "main" ] && [ "$REMOTE" = "origin" ]; then
     echo "Nếu THẬT SỰ cần push thẳng: git push --no-verify origin main"
     exit 1
 fi
+
+# Nhắc tạo PR sau khi push feature branch thành công
+if [ "$REMOTE" = "origin" ] && [ "$BRANCH" != "main" ]; then
+    echo ""
+    echo "Tip: Tạo PR với lệnh: gh pr create --base main"
+fi
 exit 0
