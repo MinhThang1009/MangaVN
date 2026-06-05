@@ -141,6 +141,7 @@ jobs:
 
       - name: Submit dependency graph
         uses: gradle/actions/dependency-submission@v4
+        continue-on-error: true
 
   # Instrumented test chạy trên Android emulator (API 34, x86_64) — chỉ ubuntu.
   # Bắt bug runtime không test được JVM: navigation, Hilt DI graph, Activity lifecycle.
