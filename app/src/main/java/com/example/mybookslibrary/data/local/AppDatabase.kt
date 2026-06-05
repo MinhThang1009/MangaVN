@@ -15,17 +15,19 @@ import com.example.mybookslibrary.data.local.dao.UserDao
         UserEntity::class,
         LibraryItemEntity::class,
         ChapterProgressEntity::class,
-        DownloadQueueEntity::class
+        DownloadQueueEntity::class,
     ],
     version = 3,
-    exportSchema = true
+    exportSchema = true,
 )
 @TypeConverters(LibraryStatusConverters::class)
 abstract class AppDatabase : RoomDatabase() {
-
     abstract fun userDao(): UserDao
+
     abstract fun libraryDao(): LibraryDao
+
     abstract fun chapterDao(): ChapterDao
+
     abstract fun downloadQueueDao(): DownloadQueueDao
 
     companion object {
@@ -40,14 +42,16 @@ abstract class AppDatabase : RoomDatabase() {
                 val again = INSTANCE
                 if (again != null) return@synchronized again
 
-                val created = Room.databaseBuilder(
-                    context.applicationContext,
-                    AppDatabase::class.java,
-                    "mybooks_library.db"
-                )
-                    // Không dùng fallbackToDestructiveMigration: thiếu migration khi bump version
-                    // sẽ fail loud (giữ nguyên dữ liệu trên đĩa) thay vì xóa sạch thư viện người dùng.
-                    .build()
+                val created =
+                    Room
+                        .databaseBuilder(
+                            context.applicationContext,
+                            AppDatabase::class.java,
+                            "mybooks_library.db",
+                        )
+                        // Không dùng fallbackToDestructiveMigration: thiếu migration khi bump version
+                        // sẽ fail loud (giữ nguyên dữ liệu trên đĩa) thay vì xóa sạch thư viện người dùng.
+                        .build()
 
                 INSTANCE = created
                 created

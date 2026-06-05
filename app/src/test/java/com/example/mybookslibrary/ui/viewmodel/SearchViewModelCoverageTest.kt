@@ -30,8 +30,7 @@ class SearchViewModelCoverageTest {
             coEvery { it.getTags() } returns Result.success(emptyList())
         }
 
-    private fun vm(repository: MangaRepository = repo()) =
-        SearchViewModel(repository)
+    private fun vm(repository: MangaRepository = repo()) = SearchViewModel(repository)
 
     @Test
     fun shortQueryVoiFilter_khongReset_maSearch() =
@@ -60,13 +59,18 @@ class SearchViewModelCoverageTest {
 
             // Lần 1: type dài đủ để search
             vm.onQueryChange("abc")
-            advanceTimeBy(500); advanceUntilIdle()
+            advanceTimeBy(500)
+            advanceUntilIdle()
 
             // Lần 2: rút ngắn + không filter -> emptyFlow, results bị clear
             vm.onQueryChange("a")
-            advanceTimeBy(500); advanceUntilIdle()
+            advanceTimeBy(500)
+            advanceUntilIdle()
 
-            assertTrue(vm.uiState.value.results.isEmpty())
+            assertTrue(
+                vm.uiState.value.results
+                    .isEmpty(),
+            )
             assertFalse(vm.uiState.value.isLoading)
         }
 
@@ -80,7 +84,8 @@ class SearchViewModelCoverageTest {
             advanceUntilIdle()
 
             vm.onQueryChange("naruto")
-            advanceTimeBy(500); advanceUntilIdle()
+            advanceTimeBy(500)
+            advanceUntilIdle()
 
             assertEquals("lỗi server", vm.uiState.value.error)
             assertFalse(vm.uiState.value.isLoading)
@@ -149,7 +154,8 @@ class SearchViewModelCoverageTest {
             advanceUntilIdle()
 
             vm.onQueryChange("naruto")
-            advanceTimeBy(500); advanceUntilIdle()
+            advanceTimeBy(500)
+            advanceUntilIdle()
 
             assertNull(vm.uiState.value.error)
         }

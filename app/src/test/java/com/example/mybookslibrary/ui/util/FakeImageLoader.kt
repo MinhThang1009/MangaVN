@@ -8,7 +8,6 @@ import coil3.asImage
 import coil3.decode.DataSource
 import coil3.request.ErrorResult
 import coil3.request.ImageRequest
-import coil3.request.ImageResult
 import coil3.request.SuccessResult
 import org.robolectric.RuntimeEnvironment
 
@@ -21,17 +20,19 @@ object FakeImageLoader {
     fun install() {
         val context = RuntimeEnvironment.getApplication()
         SingletonImageLoader.setSafe {
-            ImageLoader.Builder(context)
+            ImageLoader
+                .Builder(context)
                 .components {
-                    add(coil3.intercept.Interceptor { _ ->
-                        SuccessResult(
-                            image = ColorDrawable(Color.GRAY).asImage(),
-                            request = ImageRequest.Builder(context).data("fake").build(),
-                            dataSource = DataSource.MEMORY,
-                        )
-                    })
-                }
-                .build()
+                    add(
+                        coil3.intercept.Interceptor { _ ->
+                            SuccessResult(
+                                image = ColorDrawable(Color.GRAY).asImage(),
+                                request = ImageRequest.Builder(context).data("fake").build(),
+                                dataSource = DataSource.MEMORY,
+                            )
+                        },
+                    )
+                }.build()
         }
     }
 
@@ -39,17 +40,19 @@ object FakeImageLoader {
     fun installFailing() {
         val context = RuntimeEnvironment.getApplication()
         SingletonImageLoader.setSafe {
-            ImageLoader.Builder(context)
+            ImageLoader
+                .Builder(context)
                 .components {
-                    add(coil3.intercept.Interceptor { chain ->
-                        ErrorResult(
-                            image = null,
-                            request = chain.request,
-                            throwable = RuntimeException("fake load error"),
-                        )
-                    })
-                }
-                .build()
+                    add(
+                        coil3.intercept.Interceptor { chain ->
+                            ErrorResult(
+                                image = null,
+                                request = chain.request,
+                                throwable = RuntimeException("fake load error"),
+                            )
+                        },
+                    )
+                }.build()
         }
     }
 

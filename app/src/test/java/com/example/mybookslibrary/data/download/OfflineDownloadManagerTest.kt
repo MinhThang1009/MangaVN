@@ -30,11 +30,12 @@ class OfflineDownloadManagerTest {
 
     @Test
     fun buildDownloadRequest_usesUnmeteredConstraintForWifiOnly() {
-        val request = manager().buildDownloadRequest(
-            mangaId = MANGA_ID,
-            chapterId = CHAPTER_ID,
-            networkType = NetworkType.UNMETERED
-        )
+        val request =
+            manager().buildDownloadRequest(
+                mangaId = MANGA_ID,
+                chapterId = CHAPTER_ID,
+                networkType = NetworkType.UNMETERED,
+            )
 
         assertEquals(NetworkType.UNMETERED, request.workSpec.constraints.requiredNetworkType)
         assertEquals(MANGA_ID, request.workSpec.input.getString(ChapterDownloadWorker.KEY_MANGA_ID))
@@ -45,11 +46,12 @@ class OfflineDownloadManagerTest {
 
     @Test
     fun buildDownloadRequest_usesConnectedConstraintWhenWifiOnlyDisabled() {
-        val request = manager().buildDownloadRequest(
-            mangaId = MANGA_ID,
-            chapterId = CHAPTER_ID,
-            networkType = NetworkType.CONNECTED
-        )
+        val request =
+            manager().buildDownloadRequest(
+                mangaId = MANGA_ID,
+                chapterId = CHAPTER_ID,
+                networkType = NetworkType.CONNECTED,
+            )
 
         assertEquals(NetworkType.CONNECTED, request.workSpec.constraints.requiredNetworkType)
     }
@@ -64,7 +66,8 @@ class OfflineDownloadManagerTest {
 
             coVerify { repository.enqueueChapter(MANGA_ID, CHAPTER_ID) }
             val workInfos =
-                WorkManager.getInstance(context)
+                WorkManager
+                    .getInstance(context)
                     .getWorkInfosForUniqueWork(OfflineDownloadManager.uniqueWorkName(CHAPTER_ID))
                     .get()
             assertTrue(workInfos.isNotEmpty())
@@ -80,7 +83,8 @@ class OfflineDownloadManagerTest {
 
             coVerify { repository.enqueueChapter(MANGA_ID, CHAPTER_ID) }
             val workInfos =
-                WorkManager.getInstance(context)
+                WorkManager
+                    .getInstance(context)
                     .getWorkInfosForUniqueWork(OfflineDownloadManager.uniqueWorkName(CHAPTER_ID))
                     .get()
             assertTrue(workInfos.isNotEmpty())
@@ -111,11 +115,12 @@ class OfflineDownloadManagerTest {
     private fun manager(
         repository: OfflineDownloadRepository = mockk(relaxed = true),
         storage: OfflineDownloadStorage = mockk(relaxed = true),
-    ): OfflineDownloadManager = OfflineDownloadManager(
-        context = context,
-        repository = repository,
-        storage = storage,
-    )
+    ): OfflineDownloadManager =
+        OfflineDownloadManager(
+            context = context,
+            repository = repository,
+            storage = storage,
+        )
 
     private companion object {
         const val MANGA_ID = "manga-1"

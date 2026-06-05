@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.mybookslibrary.data.download.OfflineDownloadManager
 import com.example.mybookslibrary.data.repository.LibraryRepository
 import com.example.mybookslibrary.data.repository.MangaRepository
+import com.example.mybookslibrary.di.IoDispatcher
 import com.example.mybookslibrary.domain.model.ChapterWithProgressModel
 import com.example.mybookslibrary.domain.model.MangaModel
 import com.example.mybookslibrary.domain.usecase.GetChapterListWithProgressUseCase
@@ -13,7 +14,6 @@ import com.example.mybookslibrary.ui.navigation.MangaDetailDestination
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
-import com.example.mybookslibrary.di.IoDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -31,159 +31,178 @@ data class MangaDetailUiState(
     val isInLibrary: Boolean = false,
     val firstChapterPages: List<String> = emptyList(),
     val isLoadingFirstChapterPages: Boolean = false,
-    val firstChapterPagesError: String? = null
+    val firstChapterPagesError: String? = null,
 )
 
 @HiltViewModel
-class MangaDetailViewModel @Inject constructor(
-    savedStateHandle: SavedStateHandle,
-    private val mangaRepository: MangaRepository,
-    private val libraryRepository: LibraryRepository,
-    private val getChapterListWithProgressUseCase: GetChapterListWithProgressUseCase,
-    private val offlineDownloadManager: OfflineDownloadManager,
-    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher
-) : ViewModel() {
+class MangaDetailViewModel
+    @Inject
+    constructor(
+        savedStateHandle: SavedStateHandle,
+        private val mangaRepository: MangaRepository,
+        private val libraryRepository: LibraryRepository,
+        private val getChapterListWithProgressUseCase: GetChapterListWithProgressUseCase,
+        private val offlineDownloadManager: OfflineDownloadManager,
+        @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    ) : ViewModel() {
+        private val mangaId: String =
+            savedStateHandle
+                .get<String>(
+                    MangaDetailDestination.mangaIdArgumentName,
+                ).orEmpty()
 
-    private val mangaId: String = savedStateHandle.get<String>(
-        MangaDetailDestination.mangaIdArgumentName
-    ).orEmpty()
+        private val _uiState = MutableStateFlow(MangaDetailUiState())
+        val uiState: StateFlow<MangaDetailUiState> = _uiState.asStateFlow()
 
-    private val _uiState = MutableStateFlow(MangaDetailUiState())
-    val uiState: StateFlow<MangaDetailUiState> = _uiState.asStateFlow()
+        init {
+            loadMangaDetail()
+            observeChapters()
+            checkLibraryStatus()
+        }
 
-    init {
-        loadMangaDetail()
-        observeChapters()
-        checkLibraryStatus()
-    }
-
-    // Chạy tác vụ Room/IO trong viewModelScope có bắt lỗi, tránh crash app do exception không xử lý.
-    private fun launchSafe(block: suspend () -> Unit) {
-        viewModelScope.launch(ioDispatcher) {
-            try {
-                block()
-            } catch (c: CancellationException) {
-                throw c
-            } catch (e: Exception) {
-                Timber.e(e, "MangaDetailViewModel: tác vụ thất bại")
+        // Chạy tác vụ Room/IO trong viewModelScope có bắt lỗi, tránh crash app do exception không xử lý.
+        private fun launchSafe(block: suspend () -> Unit) {
+            viewModelScope.launch(ioDispatcher) {
+                try {
+                    block()
+                } catch (c: CancellationException) {
+                    throw c
+                } catch (e: Exception) {
+                    Timber.e(e, "MangaDetailViewModel: tác vụ thất bại")
+                }
             }
         }
-    }
 
-    private fun loadMangaDetail() {
-        if (mangaId.isBlank()) return
-        viewModelScope.launch(ioDispatcher) {
-            mangaRepository.getMangaDetail(mangaId).onSuccess { manga ->
-                _uiState.update { it.copy(mangaDetail = manga, detailError = null) }
-            }.onFailure { e ->
-                _uiState.update { it.copy(detailError = e.message) }
-            }
-        }
-    }
-
-    private fun observeChapters() {
-        if (mangaId.isBlank()) return
-        viewModelScope.launch(ioDispatcher) {
-            _uiState.update { it.copy(isLoadingChapters = true, chaptersError = null) }
-            try {
-                getChapterListWithProgressUseCase(mangaId).collect { chapters ->
-                    val isFirstLoad = _uiState.value.chapters.isEmpty() && chapters.isNotEmpty()
-                    _uiState.update {
-                        it.copy(
-                            chapters = chapters,
-                            isLoadingChapters = false,
-                            chaptersError = null
-                        )
+        private fun loadMangaDetail() {
+            if (mangaId.isBlank()) return
+            viewModelScope.launch(ioDispatcher) {
+                mangaRepository
+                    .getMangaDetail(mangaId)
+                    .onSuccess { manga ->
+                        _uiState.update { it.copy(mangaDetail = manga, detailError = null) }
+                    }.onFailure { e ->
+                        _uiState.update { it.copy(detailError = e.message) }
                     }
-                    if (isFirstLoad) {
-                        loadFirstChapterPages(chapters.first().chapterId)
+            }
+        }
+
+        private fun observeChapters() {
+            if (mangaId.isBlank()) return
+            viewModelScope.launch(ioDispatcher) {
+                _uiState.update { it.copy(isLoadingChapters = true, chaptersError = null) }
+                try {
+                    getChapterListWithProgressUseCase(mangaId).collect { chapters ->
+                        val isFirstLoad = _uiState.value.chapters.isEmpty() && chapters.isNotEmpty()
+                        _uiState.update {
+                            it.copy(
+                                chapters = chapters,
+                                isLoadingChapters = false,
+                                chaptersError = null,
+                            )
+                        }
+                        if (isFirstLoad) {
+                            loadFirstChapterPages(chapters.first().chapterId)
+                        }
                     }
-                }
-            } catch (e: Exception) {
-                _uiState.update { it.copy(isLoadingChapters = false, chaptersError = e.message) }
-            }
-        }
-    }
-
-    private fun loadFirstChapterPages(chapterId: String) {
-        viewModelScope.launch(ioDispatcher) {
-            _uiState.update { it.copy(isLoadingFirstChapterPages = true, firstChapterPagesError = null) }
-            mangaRepository.getChapterPages(chapterId).onSuccess { pages ->
-                _uiState.update { 
-                    it.copy(
-                        firstChapterPages = pages.take(5), 
-                        isLoadingFirstChapterPages = false,
-                        firstChapterPagesError = null
-                    ) 
-                }
-            }.onFailure { e ->
-                _uiState.update { 
-                    it.copy(
-                        isLoadingFirstChapterPages = false, 
-                        firstChapterPagesError = e.message
-                    ) 
+                } catch (e: Exception) {
+                    _uiState.update { it.copy(isLoadingChapters = false, chaptersError = e.message) }
                 }
             }
         }
-    }
 
-    private fun checkLibraryStatus() {
-        if (mangaId.isBlank()) return
-        launchSafe {
-            val inLib = libraryRepository.isInLibrary(mangaId)
-            _uiState.update { it.copy(isInLibrary = inLib) }
+        private fun loadFirstChapterPages(chapterId: String) {
+            viewModelScope.launch(ioDispatcher) {
+                _uiState.update { it.copy(isLoadingFirstChapterPages = true, firstChapterPagesError = null) }
+                mangaRepository
+                    .getChapterPages(chapterId)
+                    .onSuccess { pages ->
+                        _uiState.update {
+                            it.copy(
+                                firstChapterPages = pages.take(5),
+                                isLoadingFirstChapterPages = false,
+                                firstChapterPagesError = null,
+                            )
+                        }
+                    }.onFailure { e ->
+                        _uiState.update {
+                            it.copy(
+                                isLoadingFirstChapterPages = false,
+                                firstChapterPagesError = e.message,
+                            )
+                        }
+                    }
+            }
         }
-    }
 
-    fun ensureInLibrary(title: String, coverUrl: String) {
-        if (_uiState.value.isInLibrary) return
-        launchSafe {
-            libraryRepository.addToLibrary(mangaId = mangaId, title = title, coverUrl = coverUrl)
-            _uiState.update { it.copy(isInLibrary = true) }
+        private fun checkLibraryStatus() {
+            if (mangaId.isBlank()) return
+            launchSafe {
+                val inLib = libraryRepository.isInLibrary(mangaId)
+                _uiState.update { it.copy(isInLibrary = inLib) }
+            }
         }
-    }
 
-    fun toggleLibrary(title: String, coverUrl: String) {
-        launchSafe {
-            if (_uiState.value.isInLibrary) {
-                libraryRepository.removeFromLibrary(mangaId)
-            } else {
+        fun ensureInLibrary(
+            title: String,
+            coverUrl: String,
+        ) {
+            if (_uiState.value.isInLibrary) return
+            launchSafe {
                 libraryRepository.addToLibrary(mangaId = mangaId, title = title, coverUrl = coverUrl)
+                _uiState.update { it.copy(isInLibrary = true) }
             }
-            _uiState.update { it.copy(isInLibrary = !it.isInLibrary) }
         }
-    }
 
-    fun markChapterCompleted(chapterId: String, totalPages: Int) {
-        launchSafe {
-            libraryRepository.markChapterCompleted(mangaId, chapterId, totalPages)
+        fun toggleLibrary(
+            title: String,
+            coverUrl: String,
+        ) {
+            launchSafe {
+                if (_uiState.value.isInLibrary) {
+                    libraryRepository.removeFromLibrary(mangaId)
+                } else {
+                    libraryRepository.addToLibrary(mangaId = mangaId, title = title, coverUrl = coverUrl)
+                }
+                _uiState.update { it.copy(isInLibrary = !it.isInLibrary) }
+            }
         }
-    }
 
-    fun markChapterUnread(chapterId: String, totalPages: Int) {
-        launchSafe {
-            libraryRepository.markChapterUnread(mangaId, chapterId, totalPages)
+        fun markChapterCompleted(
+            chapterId: String,
+            totalPages: Int,
+        ) {
+            launchSafe {
+                libraryRepository.markChapterCompleted(mangaId, chapterId, totalPages)
+            }
         }
-    }
 
-    fun startChapterDownload(chapterId: String) {
-        if (mangaId.isBlank() || chapterId.isBlank()) return
-        launchSafe {
-            offlineDownloadManager.enqueueDownload(mangaId, chapterId)
+        fun markChapterUnread(
+            chapterId: String,
+            totalPages: Int,
+        ) {
+            launchSafe {
+                libraryRepository.markChapterUnread(mangaId, chapterId, totalPages)
+            }
         }
-    }
 
-    fun cancelChapterDownload(chapterId: String) {
-        if (chapterId.isBlank()) return
-        launchSafe {
-            offlineDownloadManager.cancelDownload(chapterId)
+        fun startChapterDownload(chapterId: String) {
+            if (mangaId.isBlank() || chapterId.isBlank()) return
+            launchSafe {
+                offlineDownloadManager.enqueueDownload(mangaId, chapterId)
+            }
         }
-    }
 
-    fun deleteChapterDownload(chapterId: String) {
-        if (mangaId.isBlank() || chapterId.isBlank()) return
-        launchSafe {
-            offlineDownloadManager.deleteDownload(mangaId, chapterId)
+        fun cancelChapterDownload(chapterId: String) {
+            if (chapterId.isBlank()) return
+            launchSafe {
+                offlineDownloadManager.cancelDownload(chapterId)
+            }
+        }
+
+        fun deleteChapterDownload(chapterId: String) {
+            if (mangaId.isBlank() || chapterId.isBlank()) return
+            launchSafe {
+                offlineDownloadManager.deleteDownload(mangaId, chapterId)
+            }
         }
     }
-}

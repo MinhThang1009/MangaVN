@@ -37,7 +37,6 @@ import java.nio.file.Files
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28])
 class ImageSaverTest {
-
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 

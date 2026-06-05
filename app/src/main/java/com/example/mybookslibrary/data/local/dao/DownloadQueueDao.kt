@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface DownloadQueueDao {
-
     @Query("SELECT * FROM download_queue ORDER BY manga_id ASC, chapter_id ASC")
     fun observeQueue(): Flow<List<DownloadQueueEntity>>
 
@@ -33,13 +32,13 @@ interface DownloadQueueDao {
             progress_percent = :progressPercent,
             error_msg = :errorMessage
         WHERE chapter_id = :chapterId
-        """
+        """,
     )
     suspend fun updateStatus(
         chapterId: String,
         status: DownloadStatus,
         progressPercent: Int,
-        errorMessage: String?
+        errorMessage: String?,
     )
 
     @Query("DELETE FROM download_queue WHERE chapter_id = :chapterId")

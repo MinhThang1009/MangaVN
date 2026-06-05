@@ -8,7 +8,6 @@ import com.example.mybookslibrary.data.repository.LibraryRepository
 import com.example.mybookslibrary.test.MainDispatcherRule
 import io.mockk.coEvery
 import io.mockk.coVerify
-import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -29,7 +28,11 @@ class SettingsViewModelTest {
     private val libraryRepository = mockk<LibraryRepository>(relaxed = true)
     private val imageLoader = mockk<ImageLoader>(relaxed = true)
 
-    private fun stubDefaults(quality: String = "data", theme: String = "system", language: String = "en") {
+    private fun stubDefaults(
+        quality: String = "data",
+        theme: String = "system",
+        language: String = "en",
+    ) {
         coEvery { prefs.getReaderQuality() } returns quality
         coEvery { prefs.getThemeMode() } returns theme
         coEvery { prefs.getLanguage() } returns language
@@ -80,11 +83,14 @@ class SettingsViewModelTest {
             val vm = viewModel()
             advanceUntilIdle()
 
-            vm.cycleThemeMode(); advanceUntilIdle()
+            vm.cycleThemeMode()
+            advanceUntilIdle()
             assertEquals("light", vm.uiState.value.themeMode)
-            vm.cycleThemeMode(); advanceUntilIdle()
+            vm.cycleThemeMode()
+            advanceUntilIdle()
             assertEquals("dark", vm.uiState.value.themeMode)
-            vm.cycleThemeMode(); advanceUntilIdle()
+            vm.cycleThemeMode()
+            advanceUntilIdle()
             assertEquals("system", vm.uiState.value.themeMode)
         }
 
@@ -181,8 +187,9 @@ class SettingsViewModelTest {
             stubDefaults()
             val vm = viewModel()
             advanceUntilIdle()
-            val item = """{"manga_id":"m1","title":"T","cover_url":"","status":"READING",""" +
-                """"last_read_page_index":0,"updated_at":123}"""
+            val item =
+                """{"manga_id":"m1","title":"T","cover_url":"","status":"READING",""" +
+                    """"last_read_page_index":0,"updated_at":123}"""
             val json = "[$item]"
 
             vm.restoreLibrary(ByteArrayInputStream(json.toByteArray()))
@@ -199,8 +206,9 @@ class SettingsViewModelTest {
             val vm = viewModel()
             advanceUntilIdle()
             // item 1 thiếu manga_id -> skip; item 2 status lạ -> fallback READING
-            val item2 = """{"manga_id":"m2","title":"T2","cover_url":"c","status":"BADVALUE",""" +
-                """"last_read_page_index":2,"updated_at":5}"""
+            val item2 =
+                """{"manga_id":"m2","title":"T2","cover_url":"c","status":"BADVALUE",""" +
+                    """"last_read_page_index":2,"updated_at":5}"""
             val json = """[{"title":"no id"},$item2]"""
 
             vm.restoreLibrary(ByteArrayInputStream(json.toByteArray()))
@@ -216,8 +224,9 @@ class SettingsViewModelTest {
             val vm = viewModel()
             advanceUntilIdle()
             // Đủ field non-null: cover_url có, last_read_chapter_id non-blank, page_index + updated_at present
-            val item = """{"manga_id":"m1","title":"T","cover_url":"c.jpg","status":"COMPLETED",""" +
-                """"last_read_chapter_id":"c9","last_read_page_index":7,"updated_at":999}"""
+            val item =
+                """{"manga_id":"m1","title":"T","cover_url":"c.jpg","status":"COMPLETED",""" +
+                    """"last_read_chapter_id":"c9","last_read_page_index":7,"updated_at":999}"""
             val json = "[$item]"
 
             vm.restoreLibrary(ByteArrayInputStream(json.toByteArray()))
@@ -233,8 +242,9 @@ class SettingsViewModelTest {
             val vm = viewModel()
             advanceUntilIdle()
             // item 1 thiếu title -> skip; item 2 last_read_chapter_id rỗng -> ifBlank -> null
-            val item2 = """{"manga_id":"m2","title":"T2","cover_url":"","status":"READING",""" +
-                """"last_read_chapter_id":"","last_read_page_index":0,"updated_at":1}"""
+            val item2 =
+                """{"manga_id":"m2","title":"T2","cover_url":"","status":"READING",""" +
+                    """"last_read_chapter_id":"","last_read_page_index":0,"updated_at":1}"""
             val json = """[{"manga_id":"x","cover_url":"c"},$item2]"""
 
             vm.restoreLibrary(ByteArrayInputStream(json.toByteArray()))

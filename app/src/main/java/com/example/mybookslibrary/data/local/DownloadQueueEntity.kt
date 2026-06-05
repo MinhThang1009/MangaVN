@@ -11,7 +11,7 @@ enum class DownloadStatus {
     PENDING,
     DOWNLOADING,
     COMPLETED,
-    ERROR
+    ERROR,
 }
 
 class DownloadStatusConverters {
@@ -19,13 +19,12 @@ class DownloadStatusConverters {
     fun fromStatus(status: DownloadStatus): String = status.name
 
     @TypeConverter
-    fun toStatus(raw: String): DownloadStatus =
-        DownloadStatus.entries.firstOrNull { it.name == raw } ?: DownloadStatus.PENDING
+    fun toStatus(raw: String): DownloadStatus = DownloadStatus.entries.firstOrNull { it.name == raw } ?: DownloadStatus.PENDING
 }
 
 @Entity(
     tableName = "download_queue",
-    indices = [Index(value = ["manga_id"])]
+    indices = [Index(value = ["manga_id"])],
 )
 @TypeConverters(DownloadStatusConverters::class)
 data class DownloadQueueEntity(
@@ -34,5 +33,5 @@ data class DownloadQueueEntity(
     @ColumnInfo(name = "manga_id") val manga_id: String,
     val status: DownloadStatus = DownloadStatus.PENDING,
     @ColumnInfo(name = "progress_percent") val progress_percent: Int = 0,
-    @ColumnInfo(name = "error_msg") val error_msg: String? = null
+    @ColumnInfo(name = "error_msg") val error_msg: String? = null,
 )

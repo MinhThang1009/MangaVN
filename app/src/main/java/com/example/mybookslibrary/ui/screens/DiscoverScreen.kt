@@ -48,12 +48,11 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.example.mybookslibrary.R
 import com.example.mybookslibrary.domain.model.MangaModel
@@ -67,7 +66,7 @@ fun DiscoverScreenContent(
     onSearchClick: () -> Unit = {},
     onLibraryClick: () -> Unit = {},
     onProfileClick: () -> Unit = {},
-    vm: DiscoverViewModel = hiltViewModel()
+    vm: DiscoverViewModel = hiltViewModel(),
 ) {
     val uiState by vm.uiState.collectAsStateWithLifecycle()
     val expandedPopular = remember { androidx.compose.runtime.mutableStateOf(false) }
@@ -81,7 +80,7 @@ fun DiscoverScreenContent(
 
     Scaffold(
         topBar = { EditorialTopBar(onSearchClick, onLibraryClick, onProfileClick) },
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = MaterialTheme.colorScheme.background,
     ) { innerPadding ->
         when {
             uiState.isLoading -> {
@@ -91,21 +90,22 @@ fun DiscoverScreenContent(
             }
             uiState.error != null -> {
                 Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding)
-                        .padding(horizontal = 32.dp),
-                    contentAlignment = Alignment.Center
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .padding(innerPadding)
+                            .padding(horizontal = 32.dp),
+                    contentAlignment = Alignment.Center,
                 ) {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
+                        verticalArrangement = Arrangement.Center,
                     ) {
                         Icon(
                             imageVector = Icons.Filled.CloudOff,
                             contentDescription = null,
                             modifier = Modifier.size(64.dp),
-                            tint = MaterialTheme.colorScheme.secondary
+                            tint = MaterialTheme.colorScheme.secondary,
                         )
                         Spacer(Modifier.height(16.dp))
 //                        Text(
@@ -118,7 +118,7 @@ fun DiscoverScreenContent(
                             text = appString(R.string.discover_error_title),
                             style = MaterialTheme.typography.headlineMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Center
+                            textAlign = TextAlign.Center,
                         )
 //                        Text(appString(R.string.search_prompt_title), style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
 
@@ -133,7 +133,7 @@ fun DiscoverScreenContent(
                             text = appString(R.string.discover_error_subtitle),
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                            textAlign = TextAlign.Center
+                            textAlign = TextAlign.Center,
                         )
 
 //                      style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
@@ -141,15 +141,16 @@ fun DiscoverScreenContent(
                         Button(
                             onClick = { vm.loadDiscover() },
                             shape = RoundedCornerShape(16.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.primary,
-                                contentColor = MaterialTheme.colorScheme.onPrimary
-                            ),
-                            modifier = Modifier.height(48.dp).padding(horizontal = 16.dp)
+                            colors =
+                                ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.primary,
+                                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                                ),
+                            modifier = Modifier.height(48.dp).padding(horizontal = 16.dp),
                         ) {
                             Text(
                                 text = appString(R.string.action_retry),
-                                style = MaterialTheme.typography.labelLarge
+                                style = MaterialTheme.typography.labelLarge,
                             )
                         }
                     }
@@ -158,7 +159,7 @@ fun DiscoverScreenContent(
             else -> {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize().padding(innerPadding),
-                    contentPadding = PaddingValues(bottom = 100.dp)
+                    contentPadding = PaddingValues(bottom = 100.dp),
                 ) {
                     if (items.isNotEmpty()) {
                         item { SectionHeader(appString(R.string.section_spotlight)) }
@@ -168,7 +169,12 @@ fun DiscoverScreenContent(
                     }
                     if (items.size > 1) {
                         item { Spacer(Modifier.height(32.dp)) }
-                        item { SectionHeader(appString(R.string.section_popular), expandedPopular.value) { expandedPopular.value = !expandedPopular.value } }
+                        item {
+                            SectionHeader(appString(R.string.section_popular), expandedPopular.value) {
+                                expandedPopular.value =
+                                    !expandedPopular.value
+                            }
+                        }
                         if (expandedPopular.value) {
                             item { ExpandedBookGrid(popularItems, onMangaClick) }
                         } else {
@@ -177,7 +183,12 @@ fun DiscoverScreenContent(
                     }
                     if (items.size > 6) {
                         item { Spacer(Modifier.height(32.dp)) }
-                        item { SectionHeader(appString(R.string.section_new_releases), expandedNew.value) { expandedNew.value = !expandedNew.value } }
+                        item {
+                            SectionHeader(appString(R.string.section_new_releases), expandedNew.value) {
+                                expandedNew.value =
+                                    !expandedNew.value
+                            }
+                        }
                         if (expandedNew.value) {
                             item { ExpandedBookGrid(newItems, onMangaClick) }
                         } else {
@@ -186,7 +197,12 @@ fun DiscoverScreenContent(
                     }
                     if (items.size > 11) {
                         item { Spacer(Modifier.height(32.dp)) }
-                        item { SectionHeader(appString(R.string.section_explore), expandedExplore.value) { expandedExplore.value = !expandedExplore.value } }
+                        item {
+                            SectionHeader(appString(R.string.section_explore), expandedExplore.value) {
+                                expandedExplore.value =
+                                    !expandedExplore.value
+                            }
+                        }
                         if (expandedExplore.value) {
                             item { ExpandedBookGrid(exploreItems, onMangaClick) }
                         } else {
@@ -204,7 +220,7 @@ fun DiscoverScreenContent(
 private fun EditorialTopBar(
     onSearchClick: () -> Unit = {},
     onLibraryClick: () -> Unit = {},
-    onProfileClick: () -> Unit = {}
+    onProfileClick: () -> Unit = {},
 ) {
     var menuExpanded = remember { androidx.compose.runtime.mutableStateOf(false) }
 
@@ -213,7 +229,7 @@ private fun EditorialTopBar(
             Text(
                 appString(R.string.brand_name),
                 style = MaterialTheme.typography.headlineLarge.copy(fontStyle = FontStyle.Italic),
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.primary,
             )
         },
         navigationIcon = {
@@ -224,13 +240,19 @@ private fun EditorialTopBar(
                 DropdownMenu(expanded = menuExpanded.value, onDismissRequest = { menuExpanded.value = false }) {
                     DropdownMenuItem(
                         text = { Text(appString(R.string.nav_library), style = MaterialTheme.typography.bodyLarge) },
-                        onClick = { menuExpanded.value = false; onLibraryClick() },
-                        leadingIcon = { Icon(Icons.Filled.Favorite, null, tint = MaterialTheme.colorScheme.primary) }
+                        onClick = {
+                            menuExpanded.value = false
+                            onLibraryClick()
+                        },
+                        leadingIcon = { Icon(Icons.Filled.Favorite, null, tint = MaterialTheme.colorScheme.primary) },
                     )
                     DropdownMenuItem(
                         text = { Text(appString(R.string.settings_title), style = MaterialTheme.typography.bodyLarge) },
-                        onClick = { menuExpanded.value = false; onProfileClick() },
-                        leadingIcon = { Icon(Icons.Filled.Person, null, tint = MaterialTheme.colorScheme.primary) }
+                        onClick = {
+                            menuExpanded.value = false
+                            onProfileClick()
+                        },
+                        leadingIcon = { Icon(Icons.Filled.Person, null, tint = MaterialTheme.colorScheme.primary) },
                     )
                 }
             }
@@ -242,73 +264,93 @@ private fun EditorialTopBar(
             IconButton(onClick = onProfileClick) {
                 Box(
                     modifier = Modifier.size(32.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primary),
-                    contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.Center,
                 ) {
                     Icon(
                         Icons.Filled.Person,
                         appString(R.string.cd_profile),
                         tint = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.size(18.dp)
+                        modifier = Modifier.size(18.dp),
                     )
                 }
             }
         },
-        colors = androidx.compose.material3.TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.background,
-            scrolledContainerColor = MaterialTheme.colorScheme.background
-        )
+        colors =
+            androidx.compose.material3.TopAppBarDefaults.topAppBarColors(
+                containerColor = MaterialTheme.colorScheme.background,
+                scrolledContainerColor = MaterialTheme.colorScheme.background,
+            ),
     )
 }
 
 @Composable
-private fun SectionHeader(title: String, expanded: Boolean = false, onToggle: (() -> Unit)? = null) {
+private fun SectionHeader(
+    title: String,
+    expanded: Boolean = false,
+    onToggle: (() -> Unit)? = null,
+) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
             title,
             style = MaterialTheme.typography.headlineMedium,
             color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
         )
         if (onToggle != null) {
             Text(
                 if (expanded) appString(R.string.action_collapse) else appString(R.string.action_see_all),
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.tertiary,
-                modifier = Modifier.clickable(onClick = onToggle)
+                modifier = Modifier.clickable(onClick = onToggle),
             )
         }
     }
 }
 
 @Composable
-private fun SpotlightCard(manga: MangaModel, onClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun SpotlightCard(
+    manga: MangaModel,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Card(
         onClick = onClick,
         modifier = modifier.fillMaxWidth().height(340.dp),
         shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
     ) {
         Box(Modifier.fillMaxSize()) {
-            AsyncImage(model = manga.coverArt, contentDescription = manga.title, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+            AsyncImage(
+                model = manga.coverArt,
+                contentDescription = manga.title,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize(),
+            )
             Box(
                 Modifier.fillMaxSize().background(
                     Brush.verticalGradient(
                         listOf(Color.Transparent, Color.Black.copy(alpha = 0.82f)),
-                        startY = 300f
-                    )
-                )
+                        startY = 300f,
+                    ),
+                ),
             )
             Column(Modifier.align(Alignment.BottomStart).padding(20.dp)) {
                 if (manga.tags.isNotEmpty()) {
                     Box(
-                        modifier = Modifier.clip(RoundedCornerShape(24.dp))
-                            .background(MaterialTheme.colorScheme.tertiary)
-                            .padding(horizontal = 12.dp, vertical = 4.dp)
+                        modifier =
+                            Modifier
+                                .clip(RoundedCornerShape(24.dp))
+                                .background(MaterialTheme.colorScheme.tertiary)
+                                .padding(horizontal = 12.dp, vertical = 4.dp),
                     ) {
-                        Text(manga.tags.first().uppercase(), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onTertiary)
+                        Text(
+                            manga.tags.first().uppercase(),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onTertiary,
+                        )
                     }
                     Spacer(Modifier.height(8.dp))
                 }
@@ -317,7 +359,7 @@ private fun SpotlightCard(manga: MangaModel, onClick: () -> Unit, modifier: Modi
                     style = MaterialTheme.typography.headlineLarge,
                     color = Color.White,
                     maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
         }
@@ -325,14 +367,20 @@ private fun SpotlightCard(manga: MangaModel, onClick: () -> Unit, modifier: Modi
 }
 
 @Composable
-private fun HorizontalBookScroll(items: List<MangaModel>, onItemClick: (MangaModel) -> Unit) {
+private fun HorizontalBookScroll(
+    items: List<MangaModel>,
+    onItemClick: (MangaModel) -> Unit,
+) {
     LazyRow(contentPadding = PaddingValues(horizontal = 24.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         items(items, key = { it.id }) { manga -> MangaCardItem(manga, { onItemClick(manga) }) }
     }
 }
 
 @Composable
-private fun ExpandedBookGrid(items: List<MangaModel>, onItemClick: (MangaModel) -> Unit) {
+private fun ExpandedBookGrid(
+    items: List<MangaModel>,
+    onItemClick: (MangaModel) -> Unit,
+) {
     val chunked = remember(items) { items.chunked(3) }
     Column(modifier = Modifier.padding(horizontal = 24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         chunked.forEach { row ->
@@ -347,15 +395,24 @@ private fun ExpandedBookGrid(items: List<MangaModel>, onItemClick: (MangaModel) 
 }
 
 @Composable
-private fun MangaCardItem(manga: MangaModel, onClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun MangaCardItem(
+    manga: MangaModel,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Column(modifier = modifier.width(120.dp).clickable(onClick = onClick)) {
         Card(
             modifier = Modifier.fillMaxWidth().height(180.dp),
             shape = RoundedCornerShape(16.dp),
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background)
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
         ) {
-            AsyncImage(model = manga.coverArt, contentDescription = manga.title, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+            AsyncImage(
+                model = manga.coverArt,
+                contentDescription = manga.title,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize(),
+            )
         }
         Spacer(Modifier.height(8.dp))
         Text(
@@ -363,7 +420,7 @@ private fun MangaCardItem(manga: MangaModel, onClick: () -> Unit, modifier: Modi
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurface,
             maxLines = 2,
-            overflow = TextOverflow.Ellipsis
+            overflow = TextOverflow.Ellipsis,
         )
         if (manga.tags.isNotEmpty()) {
             Text(
@@ -371,10 +428,8 @@ private fun MangaCardItem(manga: MangaModel, onClick: () -> Unit, modifier: Modi
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
             )
         }
     }
 }
-
-

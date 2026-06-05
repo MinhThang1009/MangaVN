@@ -18,23 +18,24 @@ import org.robolectric.RuntimeEnvironment
 
 @RunWith(RobolectricTestRunner::class)
 class LibraryRepositoryTest {
-
     private lateinit var database: AppDatabase
     private lateinit var repository: LibraryRepository
 
     @Before
     fun setUp() {
-        database = Room.inMemoryDatabaseBuilder(
-            RuntimeEnvironment.getApplication(),
-            AppDatabase::class.java
-        )
-            .allowMainThreadQueries()
-            .build()
-        repository = LibraryRepository(
-            libraryDao = database.libraryDao(),
-            chapterDao = database.chapterDao(),
-            database = database
-        )
+        database =
+            Room
+                .inMemoryDatabaseBuilder(
+                    RuntimeEnvironment.getApplication(),
+                    AppDatabase::class.java,
+                ).allowMainThreadQueries()
+                .build()
+        repository =
+            LibraryRepository(
+                libraryDao = database.libraryDao(),
+                chapterDao = database.chapterDao(),
+                database = database,
+            )
     }
 
     @After
@@ -43,41 +44,42 @@ class LibraryRepositoryTest {
     }
 
     @Test
-    fun updateReadingProgress_preservesLegacyDownloadedFlag() = runTest {
-        val chapterDao = database.chapterDao()
-        database.libraryDao().upsert(
-            LibraryItemEntity(
-                manga_id = MANGA_ID,
-                title = "Manga",
-                cover_url = "",
-                status = LibraryStatus.READING,
-                last_read_chapter_id = null,
-                last_read_page_index = 0,
-                updated_at = 1L
+    fun updateReadingProgress_preservesLegacyDownloadedFlag() =
+        runTest {
+            val chapterDao = database.chapterDao()
+            database.libraryDao().upsert(
+                LibraryItemEntity(
+                    manga_id = MANGA_ID,
+                    title = "Manga",
+                    cover_url = "",
+                    status = LibraryStatus.READING,
+                    last_read_chapter_id = null,
+                    last_read_page_index = 0,
+                    updated_at = 1L,
+                ),
             )
-        )
-        chapterDao.upsertChapterProgress(
-            ChapterProgressEntity(
-                chapter_id = CHAPTER_ID,
-                manga_id = MANGA_ID,
-                updated_at = 1L,
-                is_downloaded = true
+            chapterDao.upsertChapterProgress(
+                ChapterProgressEntity(
+                    chapter_id = CHAPTER_ID,
+                    manga_id = MANGA_ID,
+                    updated_at = 1L,
+                    is_downloaded = true,
+                ),
             )
-        )
 
-        repository.updateReadingProgress(
-            mangaId = MANGA_ID,
-            chapterId = CHAPTER_ID,
-            pageIndex = 3,
-            totalPages = 10
-        )
+            repository.updateReadingProgress(
+                mangaId = MANGA_ID,
+                chapterId = CHAPTER_ID,
+                pageIndex = 3,
+                totalPages = 10,
+            )
 
-        val updated = chapterDao.getChapterProgressByChapter(CHAPTER_ID)!!
-        assertTrue(updated.is_downloaded)
-        assertEquals(ChapterStatus.READING, updated.status)
-        assertEquals(3, updated.last_read_page)
-        assertEquals(10, updated.total_pages)
-    }
+            val updated = chapterDao.getChapterProgressByChapter(CHAPTER_ID)!!
+            assertTrue(updated.is_downloaded)
+            assertEquals(ChapterStatus.READING, updated.status)
+            assertEquals(3, updated.last_read_page)
+            assertEquals(10, updated.total_pages)
+        }
 
     private companion object {
         const val MANGA_ID = "manga-1"

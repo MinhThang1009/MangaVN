@@ -9,7 +9,6 @@ import com.example.mybookslibrary.domain.model.ReadingMode
 import com.example.mybookslibrary.domain.usecase.TapZoneEvaluator
 import com.example.mybookslibrary.test.MainDispatcherRule
 import io.mockk.coEvery
-import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.first
@@ -25,7 +24,6 @@ import org.robolectric.RuntimeEnvironment
 
 @RunWith(RobolectricTestRunner::class)
 class ReaderViewModelTest {
-
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
@@ -80,8 +78,8 @@ class ReaderViewModelTest {
                     x = 900f,
                     y = 500f,
                     width = 1000f,
-                    height = 1000f
-                )
+                    height = 1000f,
+                ),
             )
 
             assertEquals(3, viewModel.state.value.lastReadPageIndex)
@@ -102,8 +100,8 @@ class ReaderViewModelTest {
                     x = 100f,
                     y = 500f,
                     width = 1000f,
-                    height = 1000f
-                )
+                    height = 1000f,
+                ),
             )
 
             assertEquals(1, viewModel.state.value.lastReadPageIndex)
@@ -125,8 +123,8 @@ class ReaderViewModelTest {
                     x = 100f,
                     y = 500f,
                     width = 1000f,
-                    height = 1000f
-                )
+                    height = 1000f,
+                ),
             )
 
             assertEquals(3, viewModel.state.value.lastReadPageIndex)
@@ -146,8 +144,8 @@ class ReaderViewModelTest {
                     x = 900f,
                     y = 500f,
                     width = 1000f,
-                    height = 1000f
-                )
+                    height = 1000f,
+                ),
             )
 
             assertEquals(true, viewModel.state.value.isOverlayVisible)
@@ -166,8 +164,8 @@ class ReaderViewModelTest {
                     x = 100f,
                     y = 500f,
                     width = 1000f,
-                    height = 1000f
-                )
+                    height = 1000f,
+                ),
             )
 
             assertEquals(0, firstPageViewModel.state.value.lastReadPageIndex)
@@ -180,8 +178,8 @@ class ReaderViewModelTest {
                     x = 900f,
                     y = 500f,
                     width = 1000f,
-                    height = 1000f
-                )
+                    height = 1000f,
+                ),
             )
 
             assertEquals(7, lastPageViewModel.state.value.lastReadPageIndex)
@@ -207,16 +205,18 @@ class ReaderViewModelTest {
         val libraryRepository = mockk<LibraryRepository>(relaxed = true)
         val downloadedChapterCache = mockk<DownloadedChapterCache>()
         val offlineDownloadStorage = mockk<OfflineDownloadStorage>()
-        coEvery { mangaRepository.getChapterPages(CHAPTER_ID) } returns Result.success(
-            listOf("page-1", "page-2", "page-3", "page-4", "page-5", "page-6", "page-7", "page-8")
-        )
+        coEvery { mangaRepository.getChapterPages(CHAPTER_ID) } returns
+            Result.success(
+                listOf("page-1", "page-2", "page-3", "page-4", "page-5", "page-6", "page-7", "page-8"),
+            )
         coEvery { downloadedChapterCache.isChapterDownloaded(CHAPTER_ID) } returns false
 
-        val args = mutableMapOf<String, Any?>(
-            "mangaId" to MANGA_ID,
-            "chapterId" to CHAPTER_ID,
-            "chapterTitle" to "Chapter 1"
-        )
+        val args =
+            mutableMapOf<String, Any?>(
+                "mangaId" to MANGA_ID,
+                "chapterId" to CHAPTER_ID,
+                "chapterTitle" to "Chapter 1",
+            )
         if (startPageIndex != null) {
             args["startPageIndex"] = startPageIndex
         }
@@ -229,7 +229,7 @@ class ReaderViewModelTest {
             downloadedChapterCache = downloadedChapterCache,
             offlineDownloadStorage = offlineDownloadStorage,
             tapZoneEvaluator = TapZoneEvaluator(),
-            ioDispatcher = mainDispatcherRule.dispatcher
+            ioDispatcher = mainDispatcherRule.dispatcher,
         )
     }
 

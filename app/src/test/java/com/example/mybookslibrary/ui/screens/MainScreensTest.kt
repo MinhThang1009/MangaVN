@@ -5,12 +5,12 @@ import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
+import coil3.ImageLoader
 import com.example.mybookslibrary.data.local.UserPreferencesDataStore
 import com.example.mybookslibrary.data.repository.LibraryRepository
 import com.example.mybookslibrary.data.repository.MangaRepository
 import com.example.mybookslibrary.ui.util.FakeImageLoader
 import com.example.mybookslibrary.ui.viewmodel.SearchViewModel
-import coil3.ImageLoader
 import com.example.mybookslibrary.ui.viewmodel.SettingsViewModel
 import io.mockk.coEvery
 import io.mockk.every

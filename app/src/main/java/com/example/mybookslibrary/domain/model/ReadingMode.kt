@@ -10,5 +10,5 @@ package com.example.mybookslibrary.domain.model
 enum class ReadingMode {
     LTR,
     RTL,
-    VERTICAL
+    VERTICAL,
 }

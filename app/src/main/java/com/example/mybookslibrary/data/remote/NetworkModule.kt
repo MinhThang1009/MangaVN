@@ -16,9 +16,9 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import timber.log.Timber
+import java.util.concurrent.TimeUnit
 import javax.inject.Named
 import javax.inject.Singleton
-import java.util.concurrent.TimeUnit
 
 // Hilt module cung cấp OkHttpClient, Retrofit và MangaDexApi singleton
 @Module
@@ -29,16 +29,18 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideLoggingInterceptor(): HttpLoggingInterceptor = HttpLoggingInterceptor { message ->
-        Log.d("OkHttp", message)
-    }.apply {
-        level = HttpLoggingInterceptor.Level.BASIC
-    }
+    fun provideLoggingInterceptor(): HttpLoggingInterceptor =
+        HttpLoggingInterceptor { message ->
+            Log.d("OkHttp", message)
+        }.apply {
+            level = HttpLoggingInterceptor.Level.BASIC
+        }
 
     @Provides
     @Singleton
     fun provideOkHttpClient(loggingInterceptor: HttpLoggingInterceptor): OkHttpClient =
-        OkHttpClient.Builder()
+        OkHttpClient
+            .Builder()
             .addInterceptor(loggingInterceptor)
             .connectTimeout(15, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
@@ -55,15 +57,16 @@ object NetworkModule {
     @Named("ImageOkHttpClient")
     fun provideImageOkHttpClient(
         @ApplicationContext context: Context,
-        atHomeReportInterceptor: AtHomeReportInterceptor
+        atHomeReportInterceptor: AtHomeReportInterceptor,
     ): OkHttpClient {
         val cacheDir = context.cacheDir
         Timber.d(
             "Image OkHttp cache configured: dir=%s sizeBytes=%d",
             cacheDir,
-            IMAGE_HTTP_CACHE_SIZE_BYTES
+            IMAGE_HTTP_CACHE_SIZE_BYTES,
         )
-        return OkHttpClient.Builder()
+        return OkHttpClient
+            .Builder()
             .cache(Cache(cacheDir, IMAGE_HTTP_CACHE_SIZE_BYTES))
             .addInterceptor(atHomeReportInterceptor)
             .connectTimeout(15, TimeUnit.SECONDS)
@@ -76,16 +79,18 @@ object NetworkModule {
     @Singleton
     fun provideAtHomeReportInterceptor(
         mangaRepository: MangaRepository,
-        @ApplicationScope applicationScope: CoroutineScope
-    ): AtHomeReportInterceptor = AtHomeReportInterceptor(
-        mangaRepository = mangaRepository,
-        applicationScope = applicationScope
-    )
+        @ApplicationScope applicationScope: CoroutineScope,
+    ): AtHomeReportInterceptor =
+        AtHomeReportInterceptor(
+            mangaRepository = mangaRepository,
+            applicationScope = applicationScope,
+        )
 
     @Provides
     @Singleton
     fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit =
-        Retrofit.Builder()
+        Retrofit
+            .Builder()
             .baseUrl(BASE_URL)
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
@@ -93,6 +98,5 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideMangaDexApi(retrofit: Retrofit): MangaDexApi =
-        retrofit.create(MangaDexApi::class.java)
+    fun provideMangaDexApi(retrofit: Retrofit): MangaDexApi = retrofit.create(MangaDexApi::class.java)
 }
