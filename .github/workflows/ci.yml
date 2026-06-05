@@ -204,6 +204,17 @@ jobs:
       - name: Tạo combined coverage report (unit + instrumented)
         run: ./gradlew :app:jacocoCombinedReport --console=plain
 
+      # Gate combined coverage: tổng project (unit + instrumented) phải ≥ 70%.
+      # Threshold cao hơn coverage.yml (JVM-only) vì combined có thêm emulator coverage.
+      - name: Gate combined coverage (overall ≥ 70%)
+        uses: madrapps/jacoco-report@v1.8.0
+        with:
+          paths: ${{ github.workspace }}/app/build/reports/jacoco/jacocoCombinedReport/jacocoCombinedReport.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          min-coverage-overall: 70
+          title: Combined Coverage (unit + emulator)
+          update-comment: true
+
       - name: Upload combined coverage report
         if: always()
         uses: actions/upload-artifact@v7
