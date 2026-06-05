@@ -8,6 +8,7 @@ import com.example.mybookslibrary.di.IoDispatcher
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
+import java.security.GeneralSecurityException
 import java.security.MessageDigest
 import java.security.SecureRandom
 import javax.crypto.SecretKeyFactory
@@ -116,15 +117,20 @@ class AuthRepository
             if (!stored.startsWith("$PBKDF2_PREFIX:")) {
                 return legacySha256(password) == stored
             }
-            // Hash hỏng/định dạng sai (DB bị tamper) → coi như không khớp, không để exception thô thoát ra.
-            return runCatching {
+            // Hash hỏng/định dạng sai (DB bị tamper) → false; chỉ bắt exception có thể xảy ra,
+            // không nuốt Error hay NPE do bug code.
+            return try {
                 val parts = stored.split(":")
                 require(parts.size == 4)
                 val salt = parts[2].hexToBytes()
                 val expected = parts[3].hexToBytes()
                 val actual = pbkdf2(password.toCharArray(), salt, parts[1].toInt())
                 MessageDigest.isEqual(actual, expected)
-            }.getOrDefault(false)
+            } catch (_: IllegalArgumentException) {
+                false
+            } catch (_: GeneralSecurityException) {
+                false
+            }
         }
 
         private fun pbkdf2(

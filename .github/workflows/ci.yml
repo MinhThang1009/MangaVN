@@ -116,6 +116,14 @@ jobs:
       - name: Chạy unit test
         run: ./gradlew :app:testDebugUnitTest --console=plain
 
+      - name: Upload unit test exec (ubuntu — dùng bởi emulator-test cho combined report)
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v7
+        with:
+          name: unit-exec
+          path: app/build/jacoco/testDebugUnitTest.exec
+          if-no-files-found: error
+
       - name: Upload test report
         if: always()
         uses: actions/upload-artifact@v7
@@ -186,11 +194,14 @@ jobs:
           disable-animations: true
           script: ./gradlew connectedDebugAndroidTest --console=plain
 
-      # Tạo combined coverage report (unit .exec + emulator .ec).
-      # continue-on-error: unit .exec không có trong job này → jacocoCombinedReport
-      # vẫn chạy với .ec only, không fail toàn bộ job nếu thiếu file.
-      - name: Tạo combined coverage report (instrumented)
-        continue-on-error: true
+      # Download .exec từ build-test (ubuntu) để kết hợp với .ec emulator.
+      - name: Download unit exec từ build-test
+        uses: actions/download-artifact@v4
+        with:
+          name: unit-exec
+          path: app/build/jacoco/
+
+      - name: Tạo combined coverage report (unit + instrumented)
         run: ./gradlew :app:jacocoCombinedReport --console=plain
 
       - name: Upload combined coverage report
