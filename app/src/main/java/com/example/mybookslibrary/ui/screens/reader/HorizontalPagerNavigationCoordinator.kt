@@ -24,10 +24,11 @@ internal class HorizontalPagerNavigationCoordinator(
 
     fun enqueue(action: ReaderTapAction) {
         val basePage = pendingTargetPage ?: currentPage()
-        val nextTargetPage = calculateHorizontalTargetPage(
-            targetPage = basePage,
-            action = action,
-            lastPageIndex = lastPageIndex()
+        val nextTargetPage =
+            calculateHorizontalTargetPage(
+                targetPage = basePage,
+                action = action,
+                lastPageIndex = lastPageIndex(),
             )
 
         if (nextTargetPage != null) {
@@ -38,13 +39,13 @@ internal class HorizontalPagerNavigationCoordinator(
                 pendingTargetPage?.toString() ?: "<none>",
                 basePage,
                 nextTargetPage,
-                navigationJob?.isActive == true
+                navigationJob?.isActive == true,
             )
             if (nextTargetPage == basePage) {
                 Timber.d(
                     "Reader pager queue ignored at boundary: page=%d action=%s",
                     basePage,
-                    action
+                    action,
                 )
             } else {
                 enqueueTargetPage(nextTargetPage)
@@ -70,7 +71,7 @@ internal class HorizontalPagerNavigationCoordinator(
             "Reader pager queue cleared by drag: current=%d pending=%s active=%s",
             currentPage(),
             pendingTargetPage?.toString() ?: "<none>",
-            navigationJob?.isActive == true
+            navigationJob?.isActive == true,
         )
         pendingTargetPage = null
         hasQueuedNavigation = false
@@ -80,23 +81,24 @@ internal class HorizontalPagerNavigationCoordinator(
     }
 
     private fun launchNavigationWorker() {
-        navigationJob = scope.launch {
-            Timber.d(
-                "Reader pager queue worker start: pending=%s",
-                pendingTargetPage?.toString() ?: "<none>"
-            )
-            onNavigationActiveChanged(true)
-            try {
-                animatePendingPages()
-            } finally {
+        navigationJob =
+            scope.launch {
                 Timber.d(
-                    "Reader pager queue worker end: pending=%s",
-                    pendingTargetPage?.toString() ?: "<none>"
+                    "Reader pager queue worker start: pending=%s",
+                    pendingTargetPage?.toString() ?: "<none>",
                 )
-                navigationJob = null
-                onNavigationActiveChanged(false)
+                onNavigationActiveChanged(true)
+                try {
+                    animatePendingPages()
+                } finally {
+                    Timber.d(
+                        "Reader pager queue worker end: pending=%s",
+                        pendingTargetPage?.toString() ?: "<none>",
+                    )
+                    navigationJob = null
+                    onNavigationActiveChanged(false)
+                }
             }
-        }
     }
 
     private suspend fun animatePendingPages() {
@@ -123,7 +125,7 @@ internal class HorizontalPagerNavigationCoordinator(
             page,
             nextPage,
             targetPage,
-            isQueuedNavigation
+            isQueuedNavigation,
         )
         try {
             animateToPage(nextPage, targetPage, isQueuedNavigation)

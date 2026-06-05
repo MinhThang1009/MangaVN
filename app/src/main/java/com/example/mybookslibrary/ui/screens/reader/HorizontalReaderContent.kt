@@ -68,7 +68,7 @@ fun HorizontalReaderContent(
             readingMode = readingMode,
             navigationController = navigationController,
             onEvent = onEvent,
-            modifier = modifier
+            modifier = modifier,
         )
     }
 }
@@ -90,7 +90,7 @@ private fun rememberHorizontalNavigationController(pagerState: PagerState): Hori
                         horizontalPageAnimationDurationMillis(
                             currentPage = pagerState.currentPage,
                             nextPage = pendingTargetPage,
-                            isQueuedNavigation = isQueuedNavigation
+                            isQueuedNavigation = isQueuedNavigation,
                         )
                     Timber.d(
                         "Reader pager animateScrollToPage: current=%d settled=%d target=%d next=%d duration=%d queued=%s",
@@ -99,11 +99,11 @@ private fun rememberHorizontalNavigationController(pagerState: PagerState): Hori
                         pagerState.targetPage,
                         nextPage,
                         durationMillis,
-                        isQueuedNavigation
+                        isQueuedNavigation,
                     )
                     pagerState.animateScrollToPage(
                         page = nextPage,
-                        animationSpec = tween(durationMillis = durationMillis)
+                        animationSpec = tween(durationMillis = durationMillis),
                     )
                 },
                 onNavigationActiveChanged = { active ->
@@ -113,7 +113,7 @@ private fun rememberHorizontalNavigationController(pagerState: PagerState): Hori
                         !active,
                         pagerState.currentPage,
                         pagerState.settledPage,
-                        pagerState.targetPage
+                        pagerState.targetPage,
                     )
                     isNavigationActive = active
                     navigationActiveRef.set(active)
@@ -126,7 +126,7 @@ private fun rememberHorizontalNavigationController(pagerState: PagerState): Hori
             coordinator = navigationCoordinator,
             isActive = {
                 navigationActiveRef.get() || latestNavigationActive.value
-            }
+            },
         )
     }
 }
@@ -273,7 +273,7 @@ private val PreviewHorizontalPages =
     listOf(
         "https://example.com/reader/page-1.jpg",
         "https://example.com/reader/page-2.jpg",
-        "https://example.com/reader/page-3.jpg"
+        "https://example.com/reader/page-3.jpg",
     )
 
 @Preview(name = "Horizontal Reader - LTR", showBackground = true)
@@ -283,19 +283,20 @@ private fun HorizontalReaderContentLtrPreview() {
         val pagerState =
             rememberPagerState(
                 initialPage = 1,
-                pageCount = { PreviewHorizontalPages.size }
+                pageCount = { PreviewHorizontalPages.size },
             )
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black)
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .background(Color.Black),
         ) {
             HorizontalReaderContent(
                 pages = PreviewHorizontalPages,
                 pagerState = pagerState,
                 readingMode = ReadingMode.LTR,
                 onEvent = {},
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
             )
         }
     }
@@ -305,21 +306,23 @@ private fun HorizontalReaderContentLtrPreview() {
 @Composable
 private fun HorizontalReaderContentRtlPreview() {
     MyBooksLibraryTheme {
-        val pagerState = rememberPagerState(
-            initialPage = 1,
-            pageCount = { PreviewHorizontalPages.size }
-        )
+        val pagerState =
+            rememberPagerState(
+                initialPage = 1,
+                pageCount = { PreviewHorizontalPages.size },
+            )
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black)
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .background(Color.Black),
         ) {
             HorizontalReaderContent(
                 pages = PreviewHorizontalPages,
                 pagerState = pagerState,
                 readingMode = ReadingMode.RTL,
                 onEvent = {},
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
             )
         }
     }

@@ -63,7 +63,7 @@ sealed interface PageAction {
 @Composable
 fun PageActionBottomSheet(
     onDismiss: () -> Unit,
-    onAction: (PageAction) -> Unit
+    onAction: (PageAction) -> Unit,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
@@ -72,14 +72,15 @@ fun PageActionBottomSheet(
             Timber.d("PageActionBottomSheet dismissed")
             onDismiss()
         },
-        sheetState = sheetState
+        sheetState = sheetState,
     ) {
         Row(
-            modifier = Modifier
+            modifier =
+                Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 24.dp, vertical = 16.dp)
                     .navigationBarsPadding(),
-            horizontalArrangement = Arrangement.SpaceEvenly
+            horizontalArrangement = Arrangement.SpaceEvenly,
         ) {
             ActionItem(
                 icon = Icons.Outlined.Download,
@@ -88,7 +89,7 @@ fun PageActionBottomSheet(
                     Timber.d("PageActionBottomSheet action=QuickSave")
                     onAction(PageAction.QuickSave)
                     onDismiss()
-                }
+                },
             )
             ActionItem(
                 icon = Icons.Outlined.Save,
@@ -97,7 +98,7 @@ fun PageActionBottomSheet(
                     Timber.d("PageActionBottomSheet action=SaveAs")
                     onAction(PageAction.SaveAs)
                     onDismiss()
-                }
+                },
             )
             ActionItem(
                 icon = Icons.Outlined.Share,
@@ -106,7 +107,7 @@ fun PageActionBottomSheet(
                     Timber.d("PageActionBottomSheet action=Share")
                     onAction(PageAction.Share)
                     onDismiss()
-                }
+                },
             )
         }
     }
@@ -117,13 +118,14 @@ fun PageActionBottomSheet(
 private fun PageActionBottomSheetPreview() {
     MyBooksLibraryTheme {
         Box(
-            modifier = Modifier
+            modifier =
+                Modifier
                     .fillMaxSize()
-                    .background(Color.Black)
+                    .background(Color.Black),
         ) {
             PageActionBottomSheet(
                 onDismiss = { },
-                onAction = { }
+                onAction = { },
             )
         }
     }
@@ -133,24 +135,24 @@ private fun PageActionBottomSheetPreview() {
 private fun ActionItem(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     label: String,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     androidx.compose.foundation.layout.Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.padding(horizontal = 8.dp)
+        modifier = Modifier.padding(horizontal = 8.dp),
     ) {
         FilledTonalIconButton(onClick = onClick) {
             Icon(
                 imageVector = icon,
                 contentDescription = label,
-                tint = MaterialTheme.colorScheme.primary
+                tint = MaterialTheme.colorScheme.primary,
             )
         }
         Text(
             text = label,
             style = MaterialTheme.typography.labelSmall,
             textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = 4.dp)
+            modifier = Modifier.padding(top = 4.dp),
         )
     }
 }

@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.mybookslibrary.data.local.UserPreferencesDataStore
@@ -24,32 +25,37 @@ import com.example.mybookslibrary.ui.navigation.MainNavHost
 import com.example.mybookslibrary.ui.theme.MyBooksLibraryTheme
 import com.example.mybookslibrary.ui.util.LocalAppLocale
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 import kotlinx.coroutines.flow.map
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-
     @Inject lateinit var preferencesDataStore: UserPreferencesDataStore
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         requestNotificationPermissionIfNeeded()
         setContent {
-            val language by preferencesDataStore.observeLanguage()
+            val language by preferencesDataStore
+                .observeLanguage()
                 .collectAsStateWithLifecycle(initialValue = "en")
-            val themeMode by preferencesDataStore.observeThemeMode()
+            val themeMode by preferencesDataStore
+                .observeThemeMode()
                 .collectAsStateWithLifecycle(initialValue = "system")
-            val authSession by preferencesDataStore.observeLoggedInUserId()
-                .map { userId -> AuthSession.Ready(userId) }
-                .collectAsStateWithLifecycle(initialValue = AuthSession.Loading)
+            val authSessionFlow =
+                remember(preferencesDataStore) {
+                    preferencesDataStore
+                        .observeLoggedInUserId()
+                        .map { userId -> AuthSession.Ready(userId) }
+                }
+            val authSession by authSessionFlow.collectAsStateWithLifecycle(initialValue = AuthSession.Loading)
 
-
-            val darkTheme = when (themeMode) {
-                "dark" -> true
-                "light" -> false
-                else -> isSystemInDarkTheme()
-            }
+            val darkTheme =
+                when (themeMode) {
+                    "dark" -> true
+                    "light" -> false
+                    else -> isSystemInDarkTheme()
+                }
 
             LaunchedEffect(darkTheme) {
                 val lightStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT)
@@ -78,7 +84,7 @@ class MainActivity : ComponentActivity() {
 
         requestPermissions(
             arrayOf(Manifest.permission.POST_NOTIFICATIONS),
-            POST_NOTIFICATIONS_REQUEST_CODE
+            POST_NOTIFICATIONS_REQUEST_CODE,
         )
     }
 
@@ -89,14 +95,19 @@ class MainActivity : ComponentActivity() {
 
 private sealed interface AuthSession {
     data object Loading : AuthSession
-    data class Ready(val loggedInUserId: String?) : AuthSession
+
+    data class Ready(
+        val loggedInUserId: String?,
+    ) : AuthSession
 }
 
 @Composable
+@Suppress("FunctionName")
 private fun AuthLoadingScreen() {
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(androidx.compose.material3.MaterialTheme.colorScheme.background)
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .background(androidx.compose.material3.MaterialTheme.colorScheme.background),
     )
 }
