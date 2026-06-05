@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface UserDao {
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(user: UserEntity)
 
@@ -25,4 +24,3 @@ interface UserDao {
     @Query("SELECT * FROM users ORDER BY created_at DESC LIMIT 1")
     fun observeLatestUser(): Flow<UserEntity?>
 }
-

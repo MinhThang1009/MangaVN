@@ -2,8 +2,8 @@ package com.example.mybookslibrary.ui.screens
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,43 +33,55 @@ import com.example.mybookslibrary.ui.viewmodel.SettingsViewModel
 
 @Suppress("unused")
 @Composable
-fun SettingScreenContent(
-    viewModel: SettingsViewModel = hiltViewModel()
-) {
+fun SettingScreenContent(viewModel: SettingsViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
-    val backupLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.CreateDocument("application/json")
-    ) { uri ->
-        uri ?: return@rememberLauncherForActivityResult
-        context.contentResolver.openOutputStream(uri)?.let { viewModel.backupLibrary(it) }
-    }
-    val restoreLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.OpenDocument()
-    ) { uri ->
-        uri ?: return@rememberLauncherForActivityResult
-        context.contentResolver.openInputStream(uri)?.let { viewModel.restoreLibrary(it) }
-    }
+    val backupLauncher =
+        rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.CreateDocument("application/json"),
+        ) { uri ->
+            uri ?: return@rememberLauncherForActivityResult
+            context.contentResolver.openOutputStream(uri)?.let { viewModel.backupLibrary(it) }
+        }
+    val restoreLauncher =
+        rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.OpenDocument(),
+        ) { uri ->
+            uri ?: return@rememberLauncherForActivityResult
+            context.contentResolver.openInputStream(uri)?.let { viewModel.restoreLibrary(it) }
+        }
 
     Scaffold(containerColor = MaterialTheme.colorScheme.background) { innerPadding ->
         androidx.compose.foundation.lazy.LazyColumn(
             modifier = Modifier.fillMaxSize().padding(innerPadding),
-            contentPadding = PaddingValues(horizontal = 24.dp, vertical = 16.dp)
+            contentPadding = PaddingValues(horizontal = 24.dp, vertical = 16.dp),
         ) {
             item {
-                Text(appString(R.string.settings_title), style = MaterialTheme.typography.displayMedium, color = MaterialTheme.colorScheme.primary)
+                Text(
+                    appString(R.string.settings_title),
+                    style = MaterialTheme.typography.displayMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                )
                 Spacer(Modifier.height(32.dp))
             }
 
             item { SettingsSectionLabel(appString(R.string.settings_section_appearance)) }
             item {
-                val themeLabel = when (uiState.themeMode) {
-                    "light" -> appString(R.string.settings_theme_light)
-                    "dark" -> appString(R.string.settings_theme_dark)
-                    else -> appString(R.string.settings_theme_system)
-                }
-                val langLabel = if (uiState.language == "vi") appString(R.string.settings_language_vietnamese) else appString(R.string.settings_language_english)
+                val themeLabel =
+                    when (uiState.themeMode) {
+                        "light" -> appString(R.string.settings_theme_light)
+                        "dark" -> appString(R.string.settings_theme_dark)
+                        else -> appString(R.string.settings_theme_system)
+                    }
+                val langLabel =
+                    if (uiState.language ==
+                        "vi"
+                    ) {
+                        appString(R.string.settings_language_vietnamese)
+                    } else {
+                        appString(R.string.settings_language_english)
+                    }
                 SettingsCard {
                     SettingsRow(appString(R.string.settings_dark_mode), themeLabel) { viewModel.cycleThemeMode() }
                     SettingsDivider()
@@ -82,7 +94,14 @@ fun SettingScreenContent(
 
             item { SettingsSectionLabel(appString(R.string.settings_section_reading)) }
             item {
-                val qualityLabel = if (uiState.quality == "data") appString(R.string.settings_quality_original) else appString(R.string.settings_quality_data_saver)
+                val qualityLabel =
+                    if (uiState.quality ==
+                        "data"
+                    ) {
+                        appString(R.string.settings_quality_original)
+                    } else {
+                        appString(R.string.settings_quality_data_saver)
+                    }
                 SettingsCard {
                     SettingsRow(appString(R.string.settings_image_quality), qualityLabel) { viewModel.toggleQuality() }
                 }
@@ -91,7 +110,14 @@ fun SettingScreenContent(
 
             item { SettingsSectionLabel(appString(R.string.settings_section_storage)) }
             item {
-                val cacheSubtitle = if (uiState.cacheCleared) appString(R.string.settings_cache_cleared) else appString(R.string.settings_cache_subtitle)
+                val cacheSubtitle =
+                    if (uiState.cacheCleared) {
+                        appString(
+                            R.string.settings_cache_cleared,
+                        )
+                    } else {
+                        appString(R.string.settings_cache_subtitle)
+                    }
                 SettingsCard {
                     SettingsRow(appString(R.string.settings_clear_cache), cacheSubtitle) { viewModel.clearImageCache() }
                 }
@@ -100,16 +126,18 @@ fun SettingScreenContent(
 
             item { SettingsSectionLabel(appString(R.string.settings_section_data)) }
             item {
-                val backupSub = when (val r = uiState.backupResult) {
-                    is BackupRestoreResult.Success -> appString(R.string.settings_backup_success, r.count)
-                    is BackupRestoreResult.Failure -> appString(R.string.settings_backup_failed, r.message)
-                    null -> appString(R.string.settings_backup_subtitle)
-                }
-                val restoreSub = when (val r = uiState.restoreResult) {
-                    is BackupRestoreResult.Success -> appString(R.string.settings_restore_success, r.count)
-                    is BackupRestoreResult.Failure -> appString(R.string.settings_restore_failed, r.message)
-                    null -> appString(R.string.settings_restore_subtitle)
-                }
+                val backupSub =
+                    when (val r = uiState.backupResult) {
+                        is BackupRestoreResult.Success -> appString(R.string.settings_backup_success, r.count)
+                        is BackupRestoreResult.Failure -> appString(R.string.settings_backup_failed, r.message)
+                        null -> appString(R.string.settings_backup_subtitle)
+                    }
+                val restoreSub =
+                    when (val r = uiState.restoreResult) {
+                        is BackupRestoreResult.Success -> appString(R.string.settings_restore_success, r.count)
+                        is BackupRestoreResult.Failure -> appString(R.string.settings_restore_failed, r.message)
+                        null -> appString(R.string.settings_restore_subtitle)
+                    }
                 SettingsCard {
                     SettingsRow(appString(R.string.settings_backup), backupSub) { backupLauncher.launch("kanso_library_backup.json") }
                     SettingsDivider()
@@ -121,7 +149,14 @@ fun SettingScreenContent(
             item { SettingsSectionLabel(appString(R.string.settings_section_account)) }
             item {
                 val signOutTitle = if (uiState.signedOut) appString(R.string.settings_signed_out) else appString(R.string.settings_sign_out)
-                val signOutSub = if (uiState.signedOut) appString(R.string.settings_signed_out_subtitle) else appString(R.string.settings_sign_out_subtitle)
+                val signOutSub =
+                    if (uiState.signedOut) {
+                        appString(
+                            R.string.settings_signed_out_subtitle,
+                        )
+                    } else {
+                        appString(R.string.settings_sign_out_subtitle)
+                    }
                 SettingsCard {
                     SettingsRow(signOutTitle, signOutSub, MaterialTheme.colorScheme.tertiary) { viewModel.signOut() }
                 }
@@ -133,17 +168,23 @@ fun SettingScreenContent(
 
 @Composable
 private fun SettingsSectionLabel(title: String) {
-    Text(title.uppercase(), style = MaterialTheme.typography.labelLarge,
-        color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(bottom = 8.dp, start = 4.dp))
+    Text(
+        title.uppercase(),
+        style = MaterialTheme.typography.labelLarge,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(bottom = 8.dp, start = 4.dp),
+    )
 }
 
 @Composable
 private fun SettingsCard(content: @Composable () -> Unit) {
     Card(
-        shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+        shape =
+            androidx.compose.foundation.shape
+                .RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
     ) {
         Column(Modifier.fillMaxWidth()) { content() }
     }
@@ -154,12 +195,12 @@ private fun SettingsRow(
     title: String,
     subtitle: String,
     titleColor: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.onSurface,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(horizontal = 20.dp, vertical = 16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
     ) {
         Column(Modifier.weight(1f)) {
             Text(title, style = MaterialTheme.typography.titleMedium, color = titleColor)
@@ -171,8 +212,11 @@ private fun SettingsRow(
 
 @Composable
 private fun SettingsDivider() {
-    Box(Modifier.fillMaxWidth().height(1.dp).padding(horizontal = 20.dp)
-        .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.12f)))
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .height(1.dp)
+            .padding(horizontal = 20.dp)
+            .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.12f)),
+    )
 }
-
-

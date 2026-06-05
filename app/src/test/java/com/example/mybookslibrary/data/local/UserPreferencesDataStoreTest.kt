@@ -29,9 +29,7 @@ class UserPreferencesDataStoreTest {
         private val state = MutableStateFlow(emptyPreferences())
         override val data: Flow<Preferences> = state
 
-        override suspend fun updateData(
-            transform: suspend (t: Preferences) -> Preferences,
-        ): Preferences {
+        override suspend fun updateData(transform: suspend (t: Preferences) -> Preferences): Preferences {
             val updated = transform(state.value)
             state.value = updated
             return updated
@@ -129,9 +127,8 @@ class UserPreferencesDataStoreTest {
                 override val data: Flow<Preferences> =
                     flow { throw IllegalStateException("boom") }
 
-                override suspend fun updateData(
-                    transform: suspend (t: Preferences) -> Preferences,
-                ): Preferences = throw UnsupportedOperationException()
+                override suspend fun updateData(transform: suspend (t: Preferences) -> Preferences): Preferences =
+                    throw UnsupportedOperationException()
             }
         val store = UserPreferencesDataStore(throwingStore)
 

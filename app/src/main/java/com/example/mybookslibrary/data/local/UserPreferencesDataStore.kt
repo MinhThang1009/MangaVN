@@ -5,9 +5,9 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
-import androidx.datastore.preferences.core.emptyPreferences
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
@@ -17,10 +17,12 @@ import java.io.IOException
 private const val USER_PREFERENCES_NAME = "user_preferences"
 
 val Context.userPreferencesDataStore: DataStore<Preferences> by preferencesDataStore(
-    name = USER_PREFERENCES_NAME
+    name = USER_PREFERENCES_NAME,
 )
 
-class UserPreferencesDataStore(private val dataStore: DataStore<Preferences>) {
+class UserPreferencesDataStore(
+    private val dataStore: DataStore<Preferences>,
+) {
     companion object {
         private val READER_QUALITY = stringPreferencesKey("reader_quality")
         private val LANGUAGE = stringPreferencesKey("language")
@@ -36,13 +38,13 @@ class UserPreferencesDataStore(private val dataStore: DataStore<Preferences>) {
 
     // Đọc prefs an toàn: file prefs hỏng (IOException) thì trả prefs rỗng thay vì ném,
     // tránh crash ở các điểm gọi lúc khởi động (vd getLoggedInUserId).
-    private val safeData: Flow<Preferences> = dataStore.data.catch { e ->
-        if (e is IOException) emit(emptyPreferences()) else throw e
-    }
+    private val safeData: Flow<Preferences> =
+        dataStore.data.catch { e ->
+            if (e is IOException) emit(emptyPreferences()) else throw e
+        }
 
     // Chất lượng ảnh reader
-    suspend fun getReaderQuality(): String =
-        safeData.first()[READER_QUALITY] ?: DEFAULT_QUALITY
+    suspend fun getReaderQuality(): String = safeData.first()[READER_QUALITY] ?: DEFAULT_QUALITY
 
     suspend fun setReaderQuality(quality: String) {
         dataStore.edit { it[READER_QUALITY] = quality }
@@ -51,8 +53,7 @@ class UserPreferencesDataStore(private val dataStore: DataStore<Preferences>) {
     // Ngôn ngữ
     fun observeLanguage(): Flow<String> = safeData.map { it[LANGUAGE] ?: DEFAULT_LANGUAGE }
 
-    suspend fun getLanguage(): String =
-        safeData.first()[LANGUAGE] ?: DEFAULT_LANGUAGE
+    suspend fun getLanguage(): String = safeData.first()[LANGUAGE] ?: DEFAULT_LANGUAGE
 
     suspend fun setLanguage(language: String) {
         dataStore.edit { it[LANGUAGE] = language }
@@ -61,18 +62,15 @@ class UserPreferencesDataStore(private val dataStore: DataStore<Preferences>) {
     // Chế độ giao diện: "system", "light", "dark"
     fun observeThemeMode(): Flow<String> = safeData.map { it[THEME_MODE] ?: DEFAULT_THEME }
 
-    suspend fun getThemeMode(): String =
-        safeData.first()[THEME_MODE] ?: DEFAULT_THEME
+    suspend fun getThemeMode(): String = safeData.first()[THEME_MODE] ?: DEFAULT_THEME
 
     suspend fun setThemeMode(mode: String) {
         dataStore.edit { it[THEME_MODE] = mode }
     }
 
-    fun observeDownloadOnlyOnWifi(): Flow<Boolean> =
-        safeData.map { it[DOWNLOAD_ONLY_ON_WIFI] ?: DEFAULT_DOWNLOAD_ONLY_ON_WIFI }
+    fun observeDownloadOnlyOnWifi(): Flow<Boolean> = safeData.map { it[DOWNLOAD_ONLY_ON_WIFI] ?: DEFAULT_DOWNLOAD_ONLY_ON_WIFI }
 
-    suspend fun getDownloadOnlyOnWifi(): Boolean =
-        safeData.first()[DOWNLOAD_ONLY_ON_WIFI] ?: DEFAULT_DOWNLOAD_ONLY_ON_WIFI
+    suspend fun getDownloadOnlyOnWifi(): Boolean = safeData.first()[DOWNLOAD_ONLY_ON_WIFI] ?: DEFAULT_DOWNLOAD_ONLY_ON_WIFI
 
     suspend fun setDownloadOnlyOnWifi(enabled: Boolean) {
         dataStore.edit { it[DOWNLOAD_ONLY_ON_WIFI] = enabled }
@@ -91,7 +89,6 @@ class UserPreferencesDataStore(private val dataStore: DataStore<Preferences>) {
             }
         }
     }
-
 
     suspend fun clearAll() {
         dataStore.edit { it.clear() }

@@ -11,7 +11,7 @@ import androidx.room.TypeConverters
 enum class ChapterStatus {
     UNREAD,
     READING,
-    COMPLETED
+    COMPLETED,
 }
 
 class ChapterStatusConverters {
@@ -19,8 +19,7 @@ class ChapterStatusConverters {
     fun fromStatus(status: ChapterStatus): String = status.name
 
     @TypeConverter
-    fun toStatus(raw: String): ChapterStatus =
-        ChapterStatus.entries.firstOrNull { it.name == raw } ?: ChapterStatus.UNREAD
+    fun toStatus(raw: String): ChapterStatus = ChapterStatus.entries.firstOrNull { it.name == raw } ?: ChapterStatus.UNREAD
 }
 
 @Entity(
@@ -30,10 +29,10 @@ class ChapterStatusConverters {
             entity = LibraryItemEntity::class,
             parentColumns = ["manga_id"],
             childColumns = ["manga_id"],
-            onDelete = ForeignKey.CASCADE
-        )
+            onDelete = ForeignKey.CASCADE,
+        ),
     ],
-    indices = [Index(value = ["manga_id"])]
+    indices = [Index(value = ["manga_id"])],
 )
 @TypeConverters(ChapterStatusConverters::class)
 data class ChapterProgressEntity(
@@ -44,5 +43,5 @@ data class ChapterProgressEntity(
     @ColumnInfo(name = "last_read_page") val last_read_page: Int = 0,
     @ColumnInfo(name = "total_pages") val total_pages: Int = 0,
     @ColumnInfo(name = "updated_at") val updated_at: Long,
-    @ColumnInfo(name = "is_downloaded") val is_downloaded: Boolean = false
+    @ColumnInfo(name = "is_downloaded") val is_downloaded: Boolean = false,
 )

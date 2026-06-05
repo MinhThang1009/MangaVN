@@ -25,8 +25,11 @@ import java.io.IOException
 @OptIn(ExperimentalCoroutinesApi::class)
 class OfflineDownloadStorageBranchTest {
     private val context: Context get() = RuntimeEnvironment.getApplication()
+
     private fun storage() = OfflineDownloadStorage(context, UnconfinedTestDispatcher())
+
     private fun bytes() = ByteArrayInputStream(byteArrayOf(1, 2, 3))
+
     private fun rootDir() = File(context.filesDir, "offline_manga")
 
     @Test
@@ -160,8 +163,7 @@ class OfflineDownloadStorageBranchTest {
 
     // savePage/markChapterComplete là suspend chạy trên ioDispatcher; bọc runBlocking để
     // assertThrows bắt được exception đồng bộ.
-    private fun <T> runBlockingIO(block: suspend () -> T): T =
-        kotlinx.coroutines.runBlocking { block() }
+    private fun <T> runBlockingIO(block: suspend () -> T): T = kotlinx.coroutines.runBlocking { block() }
 
     private companion object {
         const val MANGA = "storage-branch-manga"

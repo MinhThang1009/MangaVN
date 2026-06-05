@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 abstract class ChapterDao {
-
     @Query("SELECT * FROM chapter_progress WHERE manga_id = :mangaId ORDER BY updated_at DESC")
     abstract fun getChapterProgressByManga(mangaId: String): Flow<List<ChapterProgressEntity>>
 
@@ -40,14 +39,14 @@ abstract class ChapterDao {
             total_pages = :totalPages,
             updated_at = :updatedAt
         WHERE chapter_id = :chapterId
-        """
+        """,
     )
     protected abstract suspend fun updateReadingProgress(
         chapterId: String,
         status: com.example.mybookslibrary.data.local.ChapterStatus,
         lastReadPage: Int,
         totalPages: Int,
-        updatedAt: Long
+        updatedAt: Long,
     )
 
     /**
@@ -61,7 +60,7 @@ abstract class ChapterDao {
             status = progress.status,
             lastReadPage = progress.last_read_page,
             totalPages = progress.total_pages,
-            updatedAt = progress.updated_at
+            updatedAt = progress.updated_at,
         )
     }
 

@@ -17,7 +17,6 @@ import org.junit.Test
  * and edge cases like zero/negative width and out-of-bounds coordinates.
  */
 class TapZoneEvaluatorTest {
-
     private val evaluator = TapZoneEvaluator()
     private val totalWidth = 1000f
     private val totalHeight = 1000f

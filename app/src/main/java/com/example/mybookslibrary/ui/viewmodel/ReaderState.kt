@@ -10,10 +10,10 @@ data class ReaderState(
     val isLoading: Boolean = false,
     val error: String? = null,
     val currentReadingMode: ReadingMode = ReadingMode.LTR,
-    val selectedPageActionTarget: ReaderPageActionTarget? = null
+    val selectedPageActionTarget: ReaderPageActionTarget? = null,
 )
 
 data class ReaderPageActionTarget(
     val pageUrl: String,
-    val pageIndex: Int
+    val pageIndex: Int,
 )

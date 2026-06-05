@@ -7,12 +7,12 @@ import com.example.mybookslibrary.data.repository.MangaRepository
 import com.example.mybookslibrary.domain.usecase.GetChapterListWithProgressUseCase
 import com.example.mybookslibrary.test.MainDispatcherRule
 import com.example.mybookslibrary.ui.navigation.MangaDetailDestination
+import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
-import io.mockk.Runs
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -21,45 +21,47 @@ import org.junit.Test
 
 @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 class MangaDetailViewModelTest {
-
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
     @Test
-    fun startChapterDownload_delegatesToOfflineDownloadManager() = runTest(mainDispatcherRule.dispatcher.scheduler) {
-        val manager = mockManager()
-        val viewModel = createViewModel(manager)
-        advanceUntilIdle()
+    fun startChapterDownload_delegatesToOfflineDownloadManager() =
+        runTest(mainDispatcherRule.dispatcher.scheduler) {
+            val manager = mockManager()
+            val viewModel = createViewModel(manager)
+            advanceUntilIdle()
 
-        viewModel.startChapterDownload(CHAPTER_ID)
-        advanceUntilIdle()
+            viewModel.startChapterDownload(CHAPTER_ID)
+            advanceUntilIdle()
 
-        coVerify(exactly = 1) { manager.enqueueDownload(MANGA_ID, CHAPTER_ID) }
-    }
-
-    @Test
-    fun cancelChapterDownload_delegatesToOfflineDownloadManager() = runTest(mainDispatcherRule.dispatcher.scheduler) {
-        val manager = mockManager()
-        val viewModel = createViewModel(manager)
-        advanceUntilIdle()
-
-        viewModel.cancelChapterDownload(CHAPTER_ID)
-        advanceUntilIdle()
-
-        coVerify(exactly = 1) { manager.cancelDownload(CHAPTER_ID) }
-    }
+            coVerify(exactly = 1) { manager.enqueueDownload(MANGA_ID, CHAPTER_ID) }
+        }
 
     @Test
-    fun deleteChapterDownload_delegatesToOfflineDownloadManager() = runTest(mainDispatcherRule.dispatcher.scheduler) {
-        val manager = mockManager()
-        val viewModel = createViewModel(manager)
-        advanceUntilIdle()
+    fun cancelChapterDownload_delegatesToOfflineDownloadManager() =
+        runTest(mainDispatcherRule.dispatcher.scheduler) {
+            val manager = mockManager()
+            val viewModel = createViewModel(manager)
+            advanceUntilIdle()
 
-        viewModel.deleteChapterDownload(CHAPTER_ID)
-        advanceUntilIdle()
+            viewModel.cancelChapterDownload(CHAPTER_ID)
+            advanceUntilIdle()
 
-        coVerify(exactly = 1) { manager.deleteDownload(MANGA_ID, CHAPTER_ID) }
-    }
+            coVerify(exactly = 1) { manager.cancelDownload(CHAPTER_ID) }
+        }
+
+    @Test
+    fun deleteChapterDownload_delegatesToOfflineDownloadManager() =
+        runTest(mainDispatcherRule.dispatcher.scheduler) {
+            val manager = mockManager()
+            val viewModel = createViewModel(manager)
+            advanceUntilIdle()
+
+            viewModel.deleteChapterDownload(CHAPTER_ID)
+            advanceUntilIdle()
+
+            coVerify(exactly = 1) { manager.deleteDownload(MANGA_ID, CHAPTER_ID) }
+        }
 
     private fun createViewModel(manager: OfflineDownloadManager): MangaDetailViewModel {
         val mangaRepository = mockk<MangaRepository>()
@@ -76,7 +78,7 @@ class MangaDetailViewModelTest {
             libraryRepository = libraryRepository,
             getChapterListWithProgressUseCase = getChapterListWithProgressUseCase,
             offlineDownloadManager = manager,
-            ioDispatcher = mainDispatcherRule.dispatcher
+            ioDispatcher = mainDispatcherRule.dispatcher,
         )
     }
 
