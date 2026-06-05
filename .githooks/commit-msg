@@ -9,7 +9,7 @@ case "$COMMIT_MSG" in
   Merge*|Revert*|fixup\!*|squash\!*) exit 0 ;;
 esac
 
-PATTERN='^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([^)]+\))?: .+'
+PATTERN='^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([^)]+\))?!?: .+'
 
 if ! echo "$COMMIT_MSG" | grep -qE "$PATTERN"; then
   echo ""
