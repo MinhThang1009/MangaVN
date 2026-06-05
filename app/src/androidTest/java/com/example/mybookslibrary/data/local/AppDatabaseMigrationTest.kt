@@ -1,9 +1,8 @@
 package com.example.mybookslibrary.data.local
 
-import androidx.room.testing.MigrationTestHelper
+import androidx.room.Room
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -20,26 +19,32 @@ import org.junit.runner.RunWith
  */
 @RunWith(AndroidJUnit4::class)
 class AppDatabaseMigrationTest {
-    @get:Rule
-    val helper =
-        MigrationTestHelper(
-            InstrumentationRegistry.getInstrumentation(),
-            AppDatabase::class.java,
-        )
-
     /**
-     * Smoke test: DB v3 (schema hiện tại) có thể mở được sau khi migrate.
-     * Đây là baseline — verify schema hiện tại không bị corrupt.
+     * Smoke test: DB v3 (schema hiện tại) có thể mở được và tất cả bảng tồn tại.
+     *
+     * Dùng inMemoryDatabaseBuilder thay MigrationTestHelper.createDatabase() vì
+     * Room 2.8.4 có binary incompatibility: DatabaseBundle$$serializer được compile
+     * với Kotlin pre-2.0 (thiếu typeParametersSerializers()), nhưng runtime
+     * kotlinx-serialization 1.7+ gọi method đó → AbstractMethodError.
+     * Khi Room fix bug này, có thể restore MigrationTestHelper.
      */
     @Test
     fun openCurrentVersion_doesNotThrow() {
-        helper.createDatabase(TEST_DB, 3).apply {
-            // Kiểm tra bảng cơ bản tồn tại
-            execSQL("SELECT * FROM users LIMIT 1")
-            execSQL("SELECT * FROM library_items LIMIT 1")
-            execSQL("SELECT * FROM chapter_progress LIMIT 1")
-            execSQL("SELECT * FROM download_queue LIMIT 1")
-            close()
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val db =
+            Room
+                .inMemoryDatabaseBuilder(context, AppDatabase::class.java)
+                .allowMainThreadQueries()
+                .build()
+        try {
+            db.openHelper.readableDatabase.run {
+                query("SELECT * FROM users LIMIT 1", null).close()
+                query("SELECT * FROM library_items LIMIT 1", null).close()
+                query("SELECT * FROM chapter_progress LIMIT 1", null).close()
+                query("SELECT * FROM download_queue LIMIT 1", null).close()
+            }
+        } finally {
+            db.close()
         }
     }
 
@@ -47,7 +52,15 @@ class AppDatabaseMigrationTest {
     // Khi thêm tính năng mới cần thay đổi DB schema:
     // 1. Tăng version = 4 trong AppDatabase
     // 2. Viết Migration(3, 4) với các ALTER TABLE / CREATE TABLE cần thiết
-    // 3. Uncomment test dưới đây và thêm assertions kiểm tra data được giữ lại
+    // 3. Tạo helper (xem bên dưới) và uncomment test
+    // Lưu ý: MigrationTestHelper.createDatabase() vẫn bị Room 2.8.4 bug —
+    //         check xem Room đã fix chưa trước khi dùng lại.
+    // @get:Rule
+    // val helper = MigrationTestHelper(
+    //     InstrumentationRegistry.getInstrumentation(),
+    //     AppDatabase::class.java,
+    // )
+    //
     // @Test
     // fun migrate3To4_preservesExistingData() {
     //     // 1. Tạo DB ở v3 và insert dữ liệu test
