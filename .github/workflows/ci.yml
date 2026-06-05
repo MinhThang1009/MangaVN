@@ -200,7 +200,7 @@ jobs:
 
       # Download .exec từ build-test (ubuntu) để kết hợp với .ec emulator.
       - name: Download unit exec từ build-test
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v4.3.0
         with:
           name: unit-exec
           path: app/build/jacoco/
