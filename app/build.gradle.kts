@@ -52,6 +52,10 @@ android {
             isIncludeAndroidResources = true
         }
     }
+    // MigrationTestHelper đọc schema JSON từ androidTest assets khi chạy trên emulator.
+    sourceSets {
+        getByName("androidTest").assets.srcDirs("$projectDir/schemas")
+    }
 }
 
 // Toolchain: ép compile/test bằng JDK 21 trên mọi máy, không phụ thuộc JAVA_HOME của contributor.
