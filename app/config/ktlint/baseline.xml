@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <baseline version="1.0">
-    <file name="src/androidTest/java/com/example/mybookslibrary/AppSmokeTest.kt">
-        <error line="22" column="1" source="standard:no-empty-first-line-in-class-body" />
-    </file>
     <file name="src/androidTest/java/com/example/mybookslibrary/ExampleInstrumentedTest.kt">
         <error line="3" column="1" source="standard:import-ordering" />
         <error line="9" column="1" source="standard:no-wildcard-imports" />
         <error line="24" column="1" source="standard:final-newline" />
+    </file>
+    <file name="src/androidTest/java/com/example/mybookslibrary/NavigationTest.kt">
+        <error line="3" column="1" source="standard:import-ordering" />
+        <error line="7" column="1" source="standard:no-unused-imports" />
     </file>
     <file name="src/main/java/com/example/mybookslibrary/MainActivity.kt">
         <error line="26" column="1" source="standard:no-empty-first-line-in-class-body" />
