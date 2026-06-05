@@ -3,6 +3,9 @@ package com.example.mybookslibrary.ui.screens
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import com.example.mybookslibrary.data.local.LibraryItemEntity
+import io.mockk.coEvery
 import coil3.ImageLoader
 import com.example.mybookslibrary.data.local.UserPreferencesDataStore
 import com.example.mybookslibrary.data.repository.LibraryRepository
@@ -114,5 +117,47 @@ class SettingScreenContentTest {
     fun themeDark_rendersDarkLabel() {
         composeRule.setContent { SettingScreenContent(viewModel = viewModel(theme = "dark")) }
         composeRule.onNodeWithText("Dark").assertIsDisplayed()
+    }
+
+    @Test
+    fun backupSuccess_rendersWithResultState() {
+        // backupResult = Success(2) → when branch covered: settings_backup_success
+        val items = listOf(
+            LibraryItemEntity(manga_id = "m1", title = "T1", cover_url = ""),
+            LibraryItemEntity(manga_id = "m2", title = "T2", cover_url = ""),
+        )
+        coEvery { libraryRepo.getAllItems() } returns items
+        val vm = viewModel()
+        vm.backupLibrary(java.io.ByteArrayOutputStream())
+
+        composeRule.setContent { SettingScreenContent(viewModel = vm) }
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("Settings").assertIsDisplayed()
+    }
+
+    @Test
+    fun restoreSuccess_rendersWithResultState() {
+        // restoreResult = Success(1) → when branch covered: settings_restore_success
+        val json =
+            """[{"manga_id":"m1","title":"T1","cover_url":"","status":"READING",""" +
+                """"last_read_chapter_id":"","last_read_page_index":0,"updated_at":0}]"""
+        coEvery { libraryRepo.restoreItems(any()) } returns Unit
+        val vm = viewModel()
+        vm.restoreLibrary(json.byteInputStream())
+
+        composeRule.setContent { SettingScreenContent(viewModel = vm) }
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("Settings").assertIsDisplayed()
+    }
+
+    @Test
+    fun restoreFailure_badJson_rendersWithFailureState() {
+        // JSON invalid → restoreResult = Failure → settings_restore_failed branch covered
+        val vm = viewModel()
+        vm.restoreLibrary("not-valid-json".byteInputStream())
+
+        composeRule.setContent { SettingScreenContent(viewModel = vm) }
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("Settings").assertIsDisplayed()
     }
 }

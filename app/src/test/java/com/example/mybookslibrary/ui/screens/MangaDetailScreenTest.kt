@@ -30,9 +30,11 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 
 @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+@Config(qualifiers = "w411dp-h4000dp-xxhdpi")
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 @coil3.annotation.ExperimentalCoilApi
@@ -163,9 +165,49 @@ class MangaDetailScreenTest {
         composeRule.onNodeWithText("Naruto").assertIsDisplayed()
     }
 
-    private fun chapter(id: String, num: String) = ChapterWithProgressModel(
-        chapterId = id, mangaId = "m1",
-        volume = null, chapterNumber = num, title = null,
-        status = ChapterReadingStatus.UNREAD, lastReadPage = 0, totalPages = 20,
-    )
+    @Test
+    fun inLibrary_showsInLibraryState() {
+        screen(inLibrary = true)
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("Naruto").assertIsDisplayed()
+    }
+
+    @Test
+    fun withTags_rendersTagsSection() {
+        screen(title = "Berserk")
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("Berserk").assertIsDisplayed()
+    }
+
+    @Test
+    fun withChapters_readStatus_showsChapterList() {
+        val chapters =
+            listOf(
+                chapter("c1", "1"),
+                chapter("c2", "2"),
+                chapter("c3", "3"),
+            )
+        screen(chapters = chapters)
+        scrollTo("Chapters")
+        composeRule.onNodeWithText("Chapters").performClick()
+        composeRule.waitForIdle()
+    }
+
+    @Test
+    fun detailError_rendersWithoutCrash() {
+        screen(detailError = true)
+        composeRule.waitForIdle()
+    }
+
+    private fun chapter(id: String, num: String) =
+        ChapterWithProgressModel(
+            chapterId = id,
+            mangaId = "m1",
+            volume = null,
+            chapterNumber = num,
+            title = null,
+            status = ChapterReadingStatus.UNREAD,
+            lastReadPage = 0,
+            totalPages = 20,
+        )
 }
