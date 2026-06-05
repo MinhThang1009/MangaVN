@@ -17,6 +17,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 
 /**
@@ -27,6 +28,7 @@ import org.robolectric.annotation.GraphicsMode
     kotlinx.coroutines.ExperimentalCoroutinesApi::class,
     coil3.annotation.ExperimentalCoilApi::class,
 )
+@Config(qualifiers = "w411dp-h4000dp-xxhdpi")
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class SettingScreenContentTest {
