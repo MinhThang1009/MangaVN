@@ -18,6 +18,16 @@ if echo "$STAGED_KT" | xargs grep -l "junit4\.v2\.createComposeRule" 2>/dev/null
     FAST_FAIL=1
 fi
 
+# junit4.v2.createAndroidComposeRule: v2 dùng StandardTestDispatcher, không generate coverage ổn định
+# Deprecation warning từ Compose khuyến khích migrate lên v2 — KHÔNG làm theo, giữ v1
+if echo "$STAGED_KT" | xargs grep -l "junit4\.v2\.createAndroidComposeRule" 2>/dev/null | grep -q .; then
+    echo "❌ junit4.v2.createAndroidComposeRule — giữ v1: createAndroidComposeRule<ComponentActivity>()"
+    echo "   v2 dùng StandardTestDispatcher, không generate coverage ổn định dù Compose khuyến khích migrate"
+    echo "   Files vi phạm:"
+    echo "$STAGED_KT" | xargs grep -l "junit4\.v2\.createAndroidComposeRule" 2>/dev/null | sed 's/^/     /'
+    FAST_FAIL=1
+fi
+
 # createEmptyComposeRule gây 'No compose hierarchies found' trong HiltAndroidTest
 if echo "$STAGED_KT" | xargs grep -l "createEmptyComposeRule" 2>/dev/null | grep -q .; then
     echo "❌ createEmptyComposeRule — dùng createAndroidComposeRule<ComponentActivity>()"
