@@ -145,6 +145,59 @@ class MangaRepositoryCoverageTest {
             assertTrue(repository().getChapterDelivery("c1").isFailure)
         }
 
+    @Test
+    fun getMangaFeed_emptyDataResponse_breaks() =
+        // pageSize == 0 → break khỏi while loop sớm thay vì loop vô hạn
+        runTest {
+            coEvery { prefs.getLanguage() } returns "en"
+            coEvery {
+                api.getMangaFeed(any(), any(), any(), any(), any(), any(), any())
+            } returns
+                retrofit2.Response.success(
+                    com.example.mybookslibrary.data.remote.models.ChapterListDto(
+                        data = emptyList(),
+                        total = 99,
+                    ),
+                )
+
+            val result = repository().getMangaFeed("m1")
+            assertTrue(result.isSuccess)
+            assertTrue(result.getOrThrow().isEmpty())
+        }
+
+    @Test
+    fun getChapterDelivery_resultNotOk_returnsFailure() =
+        // result != "ok" → throw IllegalStateException
+        runTest {
+            coEvery { prefs.getReaderQuality() } returns "data"
+            coEvery { api.getAtHomeServer("c1") } returns
+                com.example.mybookslibrary.data.remote.models.AtHomeResponseDto(
+                    result = "error",
+                    baseUrl = "https://node.example",
+                    chapter =
+                        com.example.mybookslibrary.data.remote.models.AtHomeChapterDto(
+                            hash = "h1",
+                            data = listOf("p.png"),
+                        ),
+                )
+
+            assertTrue(repository().getChapterDelivery("c1").isFailure)
+        }
+
+    @Test
+    fun chapterDelivery_pageUrl_outOfBounds_throws() {
+        val delivery =
+            ChapterDelivery(
+                baseUrl = "https://node",
+                quality = "data",
+                hash = "h1",
+                filenames = listOf("p0.png"),
+            )
+        org.junit.Assert.assertThrows(IllegalArgumentException::class.java) {
+            delivery.pageUrl(99)
+        }
+    }
+
     private fun sampleReport() =
         AtHomeReportRequest(
             url = "https://node.example/data/h1/p0.png",
