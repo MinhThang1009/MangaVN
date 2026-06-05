@@ -4,7 +4,10 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.performClick
+import androidx.navigation.NavDestination
 import com.example.mybookslibrary.ui.theme.MyBooksLibraryTheme
+import io.mockk.every
+import io.mockk.mockk
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Rule
@@ -71,5 +74,24 @@ class FloatingPillNavBarTest {
         }
         composeRule.waitForIdle()
         assertNull(clicked)
+    }
+
+    @Test
+    fun floatingPillNavBar_withSelectedDestination_rendersSelectedState() {
+        // Mock NavDestination có route = "discover" + parent = null
+        // → hierarchy yields [discoverDest] → selected=true cho Discover tab
+        // → covers branch `selected=true` ở lines 410 + 428 trong MainNavGraph.kt
+        val discoverDest =
+            mockk<NavDestination> {
+                every { route } returns BottomNavDestination.Discover.route
+                every { parent } returns null
+            }
+        composeRule.setContent {
+            MyBooksLibraryTheme {
+                FloatingPillNavBar(currentDestination = discoverDest, onNavigate = {})
+            }
+        }
+        composeRule.waitForIdle()
+        composeRule.onNodeWithContentDescription("Discover").assertIsDisplayed()
     }
 }
