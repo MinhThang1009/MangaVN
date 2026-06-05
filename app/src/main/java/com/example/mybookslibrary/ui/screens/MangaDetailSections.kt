@@ -1,7 +1,6 @@
 package com.example.mybookslibrary.ui.screens
 
 import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -126,7 +125,7 @@ internal fun CustomerReviewsSection(onReviewClick: () -> Unit) {
             items(dummyReviews) { review ->
                 ReviewCard(
                     review = review,
-                    modifier = Modifier.fillParentMaxWidth(0.85f),
+                    modifier = Modifier.fillParentMaxWidth(REVIEW_CARD_WIDTH_FRACTION),
                     onClick = onReviewClick,
                 )
             }
@@ -157,7 +156,7 @@ private fun ReviewCard(
             }
             Spacer(Modifier.height(4.dp))
             Row {
-                repeat(5) {
+                repeat(REVIEW_STAR_COUNT) {
                     Icon(
                         Icons.Filled.Star,
                         contentDescription = null,
@@ -241,3 +240,6 @@ private val dummyReviews =
             "ArtLover",
         ),
     )
+
+private const val REVIEW_CARD_WIDTH_FRACTION = 0.85f
+private const val REVIEW_STAR_COUNT = 5

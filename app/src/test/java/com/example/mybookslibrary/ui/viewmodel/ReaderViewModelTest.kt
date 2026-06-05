@@ -22,7 +22,6 @@ import org.robolectric.RuntimeEnvironment
 
 @RunWith(RobolectricTestRunner::class)
 class ReaderViewModelTest {
-
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
@@ -77,8 +76,8 @@ class ReaderViewModelTest {
                     x = 900f,
                     y = 500f,
                     width = 1000f,
-                    height = 1000f
-                )
+                    height = 1000f,
+                ),
             )
 
             assertEquals(3, viewModel.state.value.lastReadPageIndex)
@@ -99,8 +98,8 @@ class ReaderViewModelTest {
                     x = 100f,
                     y = 500f,
                     width = 1000f,
-                    height = 1000f
-                )
+                    height = 1000f,
+                ),
             )
 
             assertEquals(1, viewModel.state.value.lastReadPageIndex)
@@ -122,8 +121,8 @@ class ReaderViewModelTest {
                     x = 100f,
                     y = 500f,
                     width = 1000f,
-                    height = 1000f
-                )
+                    height = 1000f,
+                ),
             )
 
             assertEquals(3, viewModel.state.value.lastReadPageIndex)
@@ -143,8 +142,8 @@ class ReaderViewModelTest {
                     x = 900f,
                     y = 500f,
                     width = 1000f,
-                    height = 1000f
-                )
+                    height = 1000f,
+                ),
             )
 
             assertEquals(true, viewModel.state.value.isOverlayVisible)
@@ -163,8 +162,8 @@ class ReaderViewModelTest {
                     x = 100f,
                     y = 500f,
                     width = 1000f,
-                    height = 1000f
-                )
+                    height = 1000f,
+                ),
             )
 
             assertEquals(0, firstPageViewModel.state.value.lastReadPageIndex)
@@ -177,8 +176,8 @@ class ReaderViewModelTest {
                     x = 900f,
                     y = 500f,
                     width = 1000f,
-                    height = 1000f
-                )
+                    height = 1000f,
+                ),
             )
 
             assertEquals(7, lastPageViewModel.state.value.lastReadPageIndex)
@@ -193,24 +192,31 @@ class ReaderViewModelTest {
             val effect = async { viewModel.effects.first() as ReaderUiEffect.QuickSavePage }
             runCurrent()
 
-            viewModel.onEvent(ReaderEvent.PageLongPressed(pageUrl = "https://example.com/page-1.jpg", pageIndex = 0))
+            viewModel.onEvent(
+                ReaderEvent.PageLongPressed(
+                    pageUrl = "https://example.com/page-1.jpg",
+                    pageIndex = 0,
+                ),
+            )
             viewModel.onEvent(ReaderEvent.PageActionSelected(ReaderPageAction.QuickSave))
 
             assertEquals("https://example.com/page-1.jpg", effect.await().target.pageUrl)
-    }
+        }
 
     private fun createViewModel(startPageIndex: Int?): ReaderViewModel {
         val loadReaderPagesUseCase = mockk<LoadReaderPagesUseCase>()
         val syncReadingProgressUseCase = mockk<SyncReadingProgressUseCase>(relaxed = true)
-        coEvery { loadReaderPagesUseCase(MANGA_ID, CHAPTER_ID) } returns Result.success(
-            listOf("page-1", "page-2", "page-3", "page-4", "page-5", "page-6", "page-7", "page-8"),
-        )
+        coEvery { loadReaderPagesUseCase(MANGA_ID, CHAPTER_ID) } returns
+            Result.success(
+                listOf("page-1", "page-2", "page-3", "page-4", "page-5", "page-6", "page-7", "page-8"),
+            )
 
-        val args = mutableMapOf<String, Any?>(
-            "mangaId" to MANGA_ID,
-            "chapterId" to CHAPTER_ID,
-            "chapterTitle" to "Chapter 1"
-        )
+        val args =
+            mutableMapOf<String, Any?>(
+                "mangaId" to MANGA_ID,
+                "chapterId" to CHAPTER_ID,
+                "chapterTitle" to "Chapter 1",
+            )
         if (startPageIndex != null) {
             args["startPageIndex"] = startPageIndex
         }

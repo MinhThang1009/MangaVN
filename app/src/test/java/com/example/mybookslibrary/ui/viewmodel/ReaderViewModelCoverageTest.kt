@@ -224,7 +224,11 @@ class ReaderViewModelCoverageTest {
             advanceUntilIdle()
 
             vm.onEvent(ReaderEvent.PageLongPressed("https://x/p1.jpg", 0))
-            assertEquals("https://x/p1.jpg", vm.state.value.selectedPageActionTarget?.pageUrl)
+            assertEquals(
+                "https://x/p1.jpg",
+                vm.state.value.selectedPageActionTarget
+                    ?.pageUrl,
+            )
 
             vm.onEvent(ReaderEvent.DismissPageActions)
             assertNull(vm.state.value.selectedPageActionTarget)

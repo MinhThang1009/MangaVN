@@ -51,65 +51,21 @@ internal fun EditorialTopBar(
 
     TopAppBar(
         title = {
-            Text(
-                appString(R.string.brand_name),
-                style = MaterialTheme.typography.headlineLarge.copy(fontStyle = FontStyle.Italic),
-                color = MaterialTheme.colorScheme.primary,
-            )
+            BrandTitle()
         },
         navigationIcon = {
-            Box {
-                IconButton(onClick = { menuExpanded.value = true }) {
-                    Icon(Icons.Filled.Menu, appString(R.string.cd_menu), tint = MaterialTheme.colorScheme.primary)
-                }
-                DropdownMenu(
-                    expanded = menuExpanded.value,
-                    onDismissRequest = { menuExpanded.value = false },
-                ) {
-                    DropdownMenuItem(
-                        text = { Text(appString(R.string.nav_library), style = MaterialTheme.typography.bodyLarge) },
-                        onClick = {
-                            menuExpanded.value = false
-                            onLibraryClick()
-                        },
-                        leadingIcon = {
-                            Icon(Icons.Filled.Favorite, null, tint = MaterialTheme.colorScheme.primary)
-                        },
-                    )
-                    DropdownMenuItem(
-                        text = { Text(appString(R.string.settings_title), style = MaterialTheme.typography.bodyLarge) },
-                        onClick = {
-                            menuExpanded.value = false
-                            onProfileClick()
-                        },
-                        leadingIcon = {
-                            Icon(Icons.Filled.Person, null, tint = MaterialTheme.colorScheme.primary)
-                        },
-                    )
-                }
-            }
+            DiscoverNavigationMenu(
+                expanded = menuExpanded.value,
+                onExpandedChange = { menuExpanded.value = it },
+                onLibraryClick = onLibraryClick,
+                onProfileClick = onProfileClick,
+            )
         },
         actions = {
-            IconButton(onClick = onSearchClick) {
-                Icon(Icons.Filled.Search, appString(R.string.cd_search), tint = MaterialTheme.colorScheme.primary)
-            }
-            IconButton(onClick = onProfileClick) {
-                Box(
-                    modifier =
-                        Modifier
-                            .size(32.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.primary),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        Icons.Filled.Person,
-                        appString(R.string.cd_profile),
-                        tint = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.size(18.dp),
-                    )
-                }
-            }
+            DiscoverTopBarActions(
+                onSearchClick = onSearchClick,
+                onProfileClick = onProfileClick,
+            )
         },
         colors =
             TopAppBarDefaults.topAppBarColors(
@@ -117,6 +73,90 @@ internal fun EditorialTopBar(
                 scrolledContainerColor = MaterialTheme.colorScheme.background,
             ),
     )
+}
+
+@Composable
+private fun BrandTitle() {
+    Text(
+        appString(R.string.brand_name),
+        style = MaterialTheme.typography.headlineLarge.copy(fontStyle = FontStyle.Italic),
+        color = MaterialTheme.colorScheme.primary,
+    )
+}
+
+@Composable
+private fun DiscoverNavigationMenu(
+    expanded: Boolean,
+    onExpandedChange: (Boolean) -> Unit,
+    onLibraryClick: () -> Unit,
+    onProfileClick: () -> Unit,
+) {
+    Box {
+        IconButton(onClick = { onExpandedChange(true) }) {
+            Icon(Icons.Filled.Menu, appString(R.string.cd_menu), tint = MaterialTheme.colorScheme.primary)
+        }
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { onExpandedChange(false) },
+        ) {
+            DiscoverMenuItem(
+                text = appString(R.string.nav_library),
+                icon = { Icon(Icons.Filled.Favorite, null, tint = MaterialTheme.colorScheme.primary) },
+                onClick = {
+                    onExpandedChange(false)
+                    onLibraryClick()
+                },
+            )
+            DiscoverMenuItem(
+                text = appString(R.string.settings_title),
+                icon = { Icon(Icons.Filled.Person, null, tint = MaterialTheme.colorScheme.primary) },
+                onClick = {
+                    onExpandedChange(false)
+                    onProfileClick()
+                },
+            )
+        }
+    }
+}
+
+@Composable
+private fun DiscoverMenuItem(
+    text: String,
+    icon: @Composable () -> Unit,
+    onClick: () -> Unit,
+) {
+    DropdownMenuItem(
+        text = { Text(text, style = MaterialTheme.typography.bodyLarge) },
+        onClick = onClick,
+        leadingIcon = icon,
+    )
+}
+
+@Composable
+private fun DiscoverTopBarActions(
+    onSearchClick: () -> Unit,
+    onProfileClick: () -> Unit,
+) {
+    IconButton(onClick = onSearchClick) {
+        Icon(Icons.Filled.Search, appString(R.string.cd_search), tint = MaterialTheme.colorScheme.primary)
+    }
+    IconButton(onClick = onProfileClick) {
+        Box(
+            modifier =
+                Modifier
+                    .size(32.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primary),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                Icons.Filled.Person,
+                appString(R.string.cd_profile),
+                tint = MaterialTheme.colorScheme.onPrimary,
+                modifier = Modifier.size(18.dp),
+            )
+        }
+    }
 }
 
 @Composable

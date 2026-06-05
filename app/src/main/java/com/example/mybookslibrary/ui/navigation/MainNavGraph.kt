@@ -43,8 +43,11 @@ sealed class BottomNavDestination(
     val icon: ImageVector,
 ) {
     data object Discover : BottomNavDestination("discover", R.string.nav_discover, Icons.Filled.Home)
+
     data object Search : BottomNavDestination("search", R.string.nav_search, Icons.Filled.Search)
+
     data object Library : BottomNavDestination("library", R.string.nav_library, Icons.Filled.Favorite)
+
     data object Setting : BottomNavDestination("setting", R.string.nav_setting, Icons.Filled.Person)
 }
 

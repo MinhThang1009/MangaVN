@@ -70,17 +70,18 @@ private fun PillNavItem(
     selected: Boolean,
     onClick: () -> Unit,
 ) {
+    val containerColor =
+        if (selected) {
+            MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+        } else {
+            Color.Transparent
+        }
+
     Box(
         modifier =
             Modifier
                 .clip(RoundedCornerShape(20.dp))
-                .background(
-                    if (selected) {
-                        MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
-                    } else {
-                        Color.Transparent
-                    },
-                )
+                .background(containerColor)
                 .clickable(onClick = onClick)
                 .padding(horizontal = 20.dp, vertical = 10.dp),
         contentAlignment = Alignment.Center,

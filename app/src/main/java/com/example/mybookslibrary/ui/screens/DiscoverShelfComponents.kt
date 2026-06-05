@@ -38,6 +38,7 @@ import com.example.mybookslibrary.domain.model.MangaModel
 import com.example.mybookslibrary.ui.util.appString
 
 @Composable
+@Suppress("LongParameterList")
 internal fun DiscoverContentList(
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues,
@@ -215,7 +216,7 @@ private fun ExpandedBookGrid(
     items: List<MangaModel>,
     onItemClick: (MangaModel) -> Unit,
 ) {
-    val chunked = remember(items) { items.chunked(3) }
+    val chunked = remember(items) { items.chunked(GRID_COLUMNS) }
     Column(
         modifier = Modifier.padding(horizontal = 24.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -228,11 +229,13 @@ private fun ExpandedBookGrid(
                 row.forEach { manga ->
                     MangaCardItem(manga, { onItemClick(manga) }, Modifier.weight(1f))
                 }
-                repeat(3 - row.size) { Spacer(Modifier.weight(1f)) }
+                repeat(GRID_COLUMNS - row.size) { Spacer(Modifier.weight(1f)) }
             }
         }
     }
 }
+
+private const val GRID_COLUMNS = 3
 
 @Composable
 private fun MangaCardItem(

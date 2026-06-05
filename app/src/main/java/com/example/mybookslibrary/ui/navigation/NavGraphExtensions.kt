@@ -8,17 +8,12 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.example.mybookslibrary.ui.screens.DiscoverScreen
-import com.example.mybookslibrary.ui.screens.LibraryScreen
 import com.example.mybookslibrary.ui.screens.MangaReviewScreen
-import com.example.mybookslibrary.ui.screens.SearchScreen
-import com.example.mybookslibrary.ui.screens.SettingScreen
 import com.example.mybookslibrary.ui.screens.auth.LoginScreen
 import com.example.mybookslibrary.ui.screens.auth.RegisterScreen
 import com.example.mybookslibrary.ui.screens.detail.MangaDetailScreen
@@ -42,82 +37,6 @@ internal fun NavGraphBuilder.authGraph(navController: NavHostController) {
             onRegisterSuccess = { navController.popBackStack() },
             onNavigateToLogin = { navController.popBackStack() },
         )
-    }
-}
-
-internal fun NavGraphBuilder.mainTabsGraph(navController: NavHostController) {
-    composable(
-        route = BottomNavDestination.Discover.route,
-        enterTransition = { fadeIn(navTween()) + scaleIn(initialScale = 0.95f, animationSpec = navTween()) },
-        exitTransition = { fadeOut(navTween()) },
-    ) {
-        CompositionLocalProvider(LocalNavAnimatedVisibilityScope provides this@composable) {
-            DiscoverScreen(
-                onMangaClick = { manga ->
-                    navController.navigate(
-                        MangaDetailDestination.createRoute(
-                            mangaId = manga.id,
-                            title = manga.title,
-                            coverArt = manga.coverArt,
-                            description = manga.description,
-                            tags = manga.tags,
-                        ),
-                    )
-                },
-                onSearchClick = {
-                    navController.navigateToBottomTab(BottomNavDestination.Search)
-                },
-                onLibraryClick = {
-                    navController.navigateToBottomTab(BottomNavDestination.Library)
-                },
-                onProfileClick = {
-                    navController.navigateToBottomTab(BottomNavDestination.Setting)
-                },
-            )
-        }
-    }
-    composable(
-        route = BottomNavDestination.Search.route,
-        enterTransition = { fadeIn(navTween()) + scaleIn(initialScale = 0.95f, animationSpec = navTween()) },
-        exitTransition = { fadeOut(navTween()) },
-    ) {
-        CompositionLocalProvider(LocalNavAnimatedVisibilityScope provides this@composable) {
-            SearchScreen(
-                onMangaClick = { manga ->
-                    navController.navigate(
-                        MangaDetailDestination.createRoute(
-                            mangaId = manga.id,
-                            title = manga.title,
-                            coverArt = manga.coverArt,
-                            description = manga.description,
-                            tags = manga.tags,
-                        ),
-                    )
-                },
-            )
-        }
-    }
-    composable(
-        route = BottomNavDestination.Library.route,
-        enterTransition = { fadeIn(navTween()) + scaleIn(initialScale = 0.95f, animationSpec = navTween()) },
-        exitTransition = { fadeOut(navTween()) },
-    ) {
-        CompositionLocalProvider(LocalNavAnimatedVisibilityScope provides this@composable) {
-            LibraryScreen(
-                onOpenDetail = { mangaId, title, coverUrl ->
-                    navController.navigate(
-                        MangaDetailDestination.createRoute(mangaId, title, coverUrl, "", emptyList()),
-                    )
-                },
-            )
-        }
-    }
-    composable(
-        route = BottomNavDestination.Setting.route,
-        enterTransition = { fadeIn(navTween()) + scaleIn(initialScale = 0.95f, animationSpec = navTween()) },
-        exitTransition = { fadeOut(navTween()) },
-    ) {
-        SettingScreen()
     }
 }
 
@@ -189,24 +108,16 @@ internal fun NavGraphBuilder.readerGraph(navController: NavHostController) {
             slideIntoContainer(
                 towards = AnimatedContentTransitionScope.SlideDirection.Left,
                 animationSpec = navTween(),
-        ) + fadeIn(animationSpec = navTween())
+            ) + fadeIn(animationSpec = navTween())
         },
         popExitTransition = {
             slideOutOfContainer(
                 towards = AnimatedContentTransitionScope.SlideDirection.Right,
                 animationSpec = navTween(),
-        ) + fadeOut(animationSpec = navTween())
+            ) + fadeOut(animationSpec = navTween())
         },
     ) {
         ReaderScreen(onBackClick = { navController.popBackStack() })
-    }
-}
-
-private fun NavHostController.navigateToBottomTab(destination: BottomNavDestination) {
-    navigate(destination.route) {
-        popUpTo(graph.findStartDestination().id) { saveState = true }
-        launchSingleTop = true
-        restoreState = true
     }
 }
 

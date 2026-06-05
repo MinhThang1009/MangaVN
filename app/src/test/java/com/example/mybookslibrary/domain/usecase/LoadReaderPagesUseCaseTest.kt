@@ -66,7 +66,8 @@ class LoadReaderPagesUseCaseTest {
     fun networkFailure_returnsFailure() =
         runTest {
             coEvery { downloadedChapterCache.isChapterDownloaded(CHAPTER_ID) } returns false
-            coEvery { mangaRepository.getChapterPages(CHAPTER_ID) } returns Result.failure(IllegalStateException("boom"))
+            coEvery { mangaRepository.getChapterPages(CHAPTER_ID) } returns
+                Result.failure(IllegalStateException("boom"))
 
             val result = useCase(MANGA_ID, CHAPTER_ID)
 

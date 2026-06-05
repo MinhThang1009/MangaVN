@@ -35,6 +35,7 @@ import timber.log.Timber
 fun Modifier.sharedCoverBounds(mangaId: String): Modifier = composed { this@composed }
 
 @OptIn(ExperimentalFoundationApi::class)
+@Suppress("LongMethod", "CyclomaticComplexMethod", "LongParameterList")
 @Composable
 fun MangaDetailScreen(
     mangaId: String,

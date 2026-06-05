@@ -38,7 +38,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
@@ -46,17 +45,6 @@ import coil3.request.ImageRequest
 import com.example.mybookslibrary.R
 import com.example.mybookslibrary.domain.model.ChapterWithProgressModel
 import com.example.mybookslibrary.ui.util.appString
-
-internal object DetailDimensions {
-    val BackdropHeight = 280.dp
-    val CoverWidth = 160.dp
-    val CoverHeight = 240.dp
-    val CoverRowOffset = (-80).dp
-    val ActionOffset = (-60).dp
-    val SynopsisOffset = (-40).dp
-    val ChaptersOffset = (-20).dp
-    val BlurRadius = 20.dp
-}
 
 @Composable
 internal fun MangaDetailBackdrop(
@@ -242,7 +230,8 @@ private fun coverRequest(
     mangaId: String,
     coverUrl: String?,
 ): ImageRequest =
-    ImageRequest.Builder(LocalContext.current)
+    ImageRequest
+        .Builder(LocalContext.current)
         .data(coverUrl)
         .placeholderMemoryCacheKey("cover_$mangaId")
         .memoryCacheKey("cover_$mangaId")

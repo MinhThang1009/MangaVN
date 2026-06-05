@@ -87,7 +87,7 @@ class ReaderViewModel
                             } else {
                                 it.copy(pages = urls, isLoading = false, error = null)
                             }
-                    }
+                        }
                     }.onFailure { throwable ->
                         Timber.w(throwable, "loadChapterPages failed: chapterId=%s", chapterId)
                         _state.update {
