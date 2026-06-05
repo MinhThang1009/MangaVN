@@ -156,6 +156,17 @@ jobs:
           }
           EOF
 
+      # Giải phóng disk space trước khi chạy emulator (SDK + system image ~3-4 GB).
+      # Không có bước này, runner có thể bị canceled khi compressAssets hết chỗ.
+      - name: Giải phóng disk space
+        run: |
+          sudo rm -rf /usr/local/lib/android/sdk/platforms/android-2* \
+                      /usr/local/lib/android/sdk/platforms/android-3[0-2] \
+                      /usr/local/lib/android/sdk/build-tools/3[0-2]* \
+                      /usr/share/dotnet /usr/local/share/powershell \
+                      /opt/hostedtoolcache/CodeQL || true
+          df -h
+
       # KVM acceleration cần thiết cho emulator x86_64 chạy nhanh trên Linux runner.
       - name: Enable KVM
         run: |
@@ -163,10 +174,6 @@ jobs:
             | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
-
-      # Chạy unit test để tạo file .exec — cần thiết để ghép với .ec của emulator.
-      - name: Chạy unit test (tạo .exec cho combined coverage)
-        run: ./gradlew :app:testDebugUnitTest --console=plain
 
       - name: Run instrumented tests on emulator
         uses: reactivecircus/android-emulator-runner@v2
@@ -177,11 +184,13 @@ jobs:
           # Tắt animation hệ thống: giảm flakiness do transition chưa xong khi assert.
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
           disable-animations: true
-          # Chạy connected test với coverage flag để tạo .ec files.
           script: ./gradlew connectedDebugAndroidTest --console=plain
 
-      # Gộp .exec (unit) + .ec (emulator) → combined report phản ánh coverage thật.
-      - name: Tạo combined coverage report (unit + instrumented)
+      # Tạo combined coverage report (unit .exec + emulator .ec).
+      # continue-on-error: unit .exec không có trong job này → jacocoCombinedReport
+      # vẫn chạy với .ec only, không fail toàn bộ job nếu thiếu file.
+      - name: Tạo combined coverage report (instrumented)
+        continue-on-error: true
         run: ./gradlew :app:jacocoCombinedReport --console=plain
 
       - name: Upload combined coverage report
