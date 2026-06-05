@@ -14,7 +14,9 @@ val LocalAppLocale = compositionLocalOf { "en" }
 // Thay thế stringResource() — đọc string theo locale của app thay vì locale hệ thống
 // Compose recompose khi LocalAppLocale thay đổi → chuyển ngôn ngữ mượt mà, không recreate Activity
 @Composable
-fun appString(@StringRes id: Int): String {
+fun appString(
+    @StringRes id: Int,
+): String {
     val locale = LocalAppLocale.current
     val context = LocalContext.current
     return remember(locale, id) {
@@ -23,7 +25,10 @@ fun appString(@StringRes id: Int): String {
 }
 
 @Composable
-fun appString(@StringRes id: Int, vararg args: Any): String {
+fun appString(
+    @StringRes id: Int,
+    vararg args: Any,
+): String {
     val locale = LocalAppLocale.current
     val context = LocalContext.current
     val key = args.contentHashCode()

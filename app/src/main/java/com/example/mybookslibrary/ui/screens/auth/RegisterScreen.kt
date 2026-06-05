@@ -22,7 +22,7 @@ import com.example.mybookslibrary.ui.viewmodel.AuthViewModel
 fun RegisterScreen(
     onRegisterSuccess: () -> Unit,
     onNavigateToLogin: () -> Unit,
-    viewModel: AuthViewModel = hiltViewModel()
+    viewModel: AuthViewModel = hiltViewModel(),
 ) {
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -41,23 +41,24 @@ fun RegisterScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Register") }
+                title = { Text("Register") },
             )
-        }
+        },
     ) { innerPadding ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(24.dp),
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Center,
         ) {
             Text(
                 text = "Create an Account",
                 style = MaterialTheme.typography.headlineMedium,
                 color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(bottom = 32.dp)
+                modifier = Modifier.padding(bottom = 32.dp),
             )
 
             OutlinedTextField(
@@ -65,7 +66,7 @@ fun RegisterScreen(
                 onValueChange = { username = it },
                 label = { Text("Username") },
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = true
+                singleLine = true,
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -83,9 +84,9 @@ fun RegisterScreen(
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = true
+                singleLine = true,
             )
-            
+
             Spacer(modifier = Modifier.height(16.dp))
 
             OutlinedTextField(
@@ -95,7 +96,7 @@ fun RegisterScreen(
                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = true
+                singleLine = true,
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -104,24 +105,24 @@ fun RegisterScreen(
                 Text(
                     text = (uiState as AuthState.Error).message,
                     color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(bottom = 16.dp)
+                    modifier = Modifier.padding(bottom = 16.dp),
                 )
             } else if (password != confirmPassword && confirmPassword.isNotEmpty()) {
                 Text(
                     text = "Passwords do not match",
                     color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(bottom = 16.dp)
+                    modifier = Modifier.padding(bottom = 16.dp),
                 )
             }
 
             Button(
-                onClick = { 
+                onClick = {
                     if (password == confirmPassword) {
-                        viewModel.register(username, password) 
+                        viewModel.register(username, password)
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
-                enabled = uiState !is AuthState.Loading && password == confirmPassword && password.isNotEmpty() && username.isNotEmpty()
+                enabled = uiState !is AuthState.Loading && password == confirmPassword && password.isNotEmpty() && username.isNotEmpty(),
             ) {
                 if (uiState is AuthState.Loading) {
                     CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)

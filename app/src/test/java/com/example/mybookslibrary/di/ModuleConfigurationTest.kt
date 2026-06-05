@@ -1,7 +1,6 @@
 package com.example.mybookslibrary.di
 
 import android.content.Context
-import com.example.mybookslibrary.data.remote.AtHomeReportInterceptor
 import com.example.mybookslibrary.data.remote.NetworkModule
 import io.mockk.every
 import io.mockk.mockk
@@ -15,7 +14,6 @@ import java.nio.file.Files
 
 @RunWith(RobolectricTestRunner::class)
 class ModuleConfigurationTest {
-
     @Test
     fun provideImageOkHttpClient_hasCache() {
         val context = createContextWithTempCache()

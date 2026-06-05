@@ -39,7 +39,7 @@ class TapZoneEvaluatorPropertyTestExtended {
         runBlocking {
             checkAll(
                 Arb.numericFloat(min = 0f, max = 100f),
-                Arb.numericFloat(min = 0f, max = 100f)
+                Arb.numericFloat(min = 0f, max = 100f),
             ) { x, y ->
                 assertEquals(ReaderTapAction.NONE, evaluator(x, y, 0f, 100f, ReadingMode.LTR))
                 assertEquals(ReaderTapAction.NONE, evaluator(x, y, 100f, 0f, ReadingMode.LTR))
@@ -51,7 +51,7 @@ class TapZoneEvaluatorPropertyTestExtended {
     fun ltr_tapTrai10Pct_luonPreviousPage() {
         runBlocking {
             checkAll(
-                Arb.numericFloat(min = 1f, max = 1000f).filterNot { it <= 0f }
+                Arb.numericFloat(min = 1f, max = 1000f).filterNot { it <= 0f },
             ) { width ->
                 val xLeft = width * 0.10f
                 assertEquals(ReaderTapAction.PREVIOUS_PAGE, evaluator(xLeft, 50f, width, 100f, ReadingMode.LTR))
@@ -77,11 +77,11 @@ class TapZoneEvaluatorPropertyTestExtended {
                 val xRight = width * 0.90f
                 assertNotEquals(
                     evaluator(xLeft, 50f, width, 100f, ReadingMode.LTR),
-                    evaluator(xLeft, 50f, width, 100f, ReadingMode.RTL)
+                    evaluator(xLeft, 50f, width, 100f, ReadingMode.RTL),
                 )
                 assertNotEquals(
                     evaluator(xRight, 50f, width, 100f, ReadingMode.LTR),
-                    evaluator(xRight, 50f, width, 100f, ReadingMode.RTL)
+                    evaluator(xRight, 50f, width, 100f, ReadingMode.RTL),
                 )
             }
         }
@@ -93,7 +93,7 @@ class TapZoneEvaluatorPropertyTestExtended {
             checkAll(Arb.numericFloat(min = 1f, max = 1000f).filterNot { it <= 0f }) { width ->
                 assertEquals(
                     evaluator(0f, 50f, width, 100f, ReadingMode.LTR),
-                    evaluator(-100f, 50f, width, 100f, ReadingMode.LTR)
+                    evaluator(-100f, 50f, width, 100f, ReadingMode.LTR),
                 )
             }
         }

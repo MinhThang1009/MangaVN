@@ -132,7 +132,7 @@ class LibraryRepositoryCoverageTest {
                 listOf(
                     LibraryItemEntity(manga_id = "m1", title = "T1", cover_url = ""),
                     LibraryItemEntity(manga_id = "m2", title = "T2", cover_url = ""),
-            )
+                )
 
             repository.restoreItems(items)
 

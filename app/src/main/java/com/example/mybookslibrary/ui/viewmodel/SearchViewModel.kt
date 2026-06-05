@@ -43,104 +43,100 @@ data class SearchUiState(
 @Suppress("TooManyFunctions")
 @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
 @HiltViewModel
-class SearchViewModel @Inject constructor(
-    private val repository: MangaRepository,
-) : ViewModel() {
+class SearchViewModel
+    @Inject
+    constructor(
+        private val repository: MangaRepository,
+    ) : ViewModel() {
+        private val _uiState = MutableStateFlow(SearchUiState())
+        val uiState: StateFlow<SearchUiState> = _uiState.asStateFlow()
 
-    private val _uiState = MutableStateFlow(SearchUiState())
-    val uiState: StateFlow<SearchUiState> = _uiState.asStateFlow()
+        private val _query = MutableStateFlow("")
+        private val _filters = MutableStateFlow(SearchFilters())
 
-    private val _query = MutableStateFlow("")
-    private val _filters = MutableStateFlow(SearchFilters())
+        init {
+            loadTags()
+            combine(_query, _filters) { query, filters -> query to filters }
+                .debounce(DEBOUNCE_MS)
+                .flatMapLatest { (query, filters) ->
+                    // flatMapLatest huỷ search trước khi có (query, filters) mới → tránh kết quả cũ
+                    // ghi đè sau khi người dùng xoá query/bộ lọc. Nhánh idle xoá kết quả tại chỗ.
+                    if (query.length < MIN_QUERY_LENGTH && filters.isEmpty()) {
+                        _uiState.update { it.copy(results = emptyList(), error = null, isLoading = false) }
+                        emptyFlow()
+                    } else {
+                        _uiState.update { it.copy(isLoading = true, error = null) }
+                        repository.searchManga(query, filters)
+                    }
+                }.onEach { result ->
+                    result
+                        .onSuccess { items ->
+                            _uiState.update { it.copy(isLoading = false, results = items, error = null) }
+                        }.onFailure { err ->
+                            _uiState.update { it.copy(isLoading = false, error = err.message) }
+                        }
+                }.launchIn(viewModelScope)
+        }
 
-    init {
-        loadTags()
-        combine(_query, _filters) { query, filters -> query to filters }
-            .debounce(DEBOUNCE_MS)
-            .flatMapLatest { (query, filters) ->
-                // flatMapLatest huỷ search trước khi có (query, filters) mới → tránh kết quả cũ
-                // ghi đè sau khi người dùng xoá query/bộ lọc. Nhánh idle xoá kết quả tại chỗ.
-                if (query.length < MIN_QUERY_LENGTH && filters.isEmpty()) {
-                    _uiState.update { it.copy(results = emptyList(), error = null, isLoading = false) }
-                    emptyFlow()
-                } else {
-                    _uiState.update { it.copy(isLoading = true, error = null) }
-                    repository.searchManga(query, filters)
-                }
-            }
-            .onEach { result ->
-                result.onSuccess { items ->
-                    _uiState.update { it.copy(isLoading = false, results = items, error = null) }
-                }.onFailure { err ->
-                    _uiState.update { it.copy(isLoading = false, error = err.message) }
-                }
-            }
-            .launchIn(viewModelScope)
-    }
+        fun onQueryChange(query: String) {
+            _query.value = query
+            _uiState.update { it.copy(query = query) }
+        }
 
-    fun onQueryChange(query: String) {
-        _query.value = query
-        _uiState.update { it.copy(query = query) }
-    }
+        fun onToggleTag(tagId: String) = updateFilters { it.copy(includedTagIds = it.includedTagIds.toggle(tagId)) }
 
-    fun onToggleTag(tagId: String) =
-        updateFilters { it.copy(includedTagIds = it.includedTagIds.toggle(tagId)) }
+        fun onToggleLanguage(code: String) = updateFilters { it.copy(languages = it.languages.toggle(code)) }
 
-    fun onToggleLanguage(code: String) =
-        updateFilters { it.copy(languages = it.languages.toggle(code)) }
+        fun onToggleContentRating(value: String) = updateFilters { it.copy(contentRatings = it.contentRatings.toggle(value)) }
 
-    fun onToggleContentRating(value: String) =
-        updateFilters { it.copy(contentRatings = it.contentRatings.toggle(value)) }
+        fun onToggleStatus(value: String) = updateFilters { it.copy(statuses = it.statuses.toggle(value)) }
 
-    fun onToggleStatus(value: String) =
-        updateFilters { it.copy(statuses = it.statuses.toggle(value)) }
+        fun onClearFilters() {
+            _filters.value = SearchFilters()
+            syncFilterState(SearchFilters())
+        }
 
-    fun onClearFilters() {
-        _filters.value = SearchFilters()
-        syncFilterState(SearchFilters())
-    }
+        fun onOpenFilterSheet() = _uiState.update { it.copy(isFilterSheetOpen = true) }
 
-    fun onOpenFilterSheet() = _uiState.update { it.copy(isFilterSheetOpen = true) }
+        fun onDismissFilterSheet() = _uiState.update { it.copy(isFilterSheetOpen = false) }
 
-    fun onDismissFilterSheet() = _uiState.update { it.copy(isFilterSheetOpen = false) }
-
-    private fun loadTags() {
-        viewModelScope.launch {
-            repository.getTags().onSuccess { tags ->
-                _uiState.update {
-                    it.copy(
-                        availableGenres = tags.filter { tag -> tag.group == MangaDexConstants.TAG_GROUP_GENRE },
-                        availableThemes = tags.filter { tag -> tag.group == MangaDexConstants.TAG_GROUP_THEME },
-                    )
+        private fun loadTags() {
+            viewModelScope.launch {
+                repository.getTags().onSuccess { tags ->
+                    _uiState.update {
+                        it.copy(
+                            availableGenres = tags.filter { tag -> tag.group == MangaDexConstants.TAG_GROUP_GENRE },
+                            availableThemes = tags.filter { tag -> tag.group == MangaDexConstants.TAG_GROUP_THEME },
+                        )
+                    }
                 }
             }
         }
-    }
 
-    private fun updateFilters(transform: (SearchFilters) -> SearchFilters) {
-        val updated = transform(_filters.value)
-        _filters.value = updated
-        syncFilterState(updated)
-    }
+        private fun updateFilters(transform: (SearchFilters) -> SearchFilters) {
+            val updated = transform(_filters.value)
+            _filters.value = updated
+            syncFilterState(updated)
+        }
 
-    private fun syncFilterState(filters: SearchFilters) {
-        _uiState.update {
-            it.copy(
-                selectedTagIds = filters.includedTagIds.toSet(),
-                selectedLanguages = filters.languages.toSet(),
-                selectedContentRatings = filters.contentRatings.toSet(),
-                selectedStatuses = filters.statuses.toSet(),
-                activeFilterCount = filters.includedTagIds.size + filters.languages.size +
-                    filters.contentRatings.size + filters.statuses.size,
-            )
+        private fun syncFilterState(filters: SearchFilters) {
+            _uiState.update {
+                it.copy(
+                    selectedTagIds = filters.includedTagIds.toSet(),
+                    selectedLanguages = filters.languages.toSet(),
+                    selectedContentRatings = filters.contentRatings.toSet(),
+                    selectedStatuses = filters.statuses.toSet(),
+                    activeFilterCount =
+                        filters.includedTagIds.size + filters.languages.size +
+                            filters.contentRatings.size + filters.statuses.size,
+                )
+            }
+        }
+
+        private fun List<String>.toggle(value: String): List<String> = if (contains(value)) this - value else this + value
+
+        companion object {
+            private const val DEBOUNCE_MS = 400L
+            private const val MIN_QUERY_LENGTH = 2
         }
     }
-
-    private fun List<String>.toggle(value: String): List<String> =
-        if (contains(value)) this - value else this + value
-
-    companion object {
-        private const val DEBOUNCE_MS = 400L
-        private const val MIN_QUERY_LENGTH = 2
-    }
-}

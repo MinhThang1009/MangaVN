@@ -7,9 +7,8 @@ data class ChapterModel(
     val chapterNumber: String?,
     val title: String?,
     val pages: Int,
-    val isUnavailable: Boolean
+    val isUnavailable: Boolean,
 ) {
     val chapter: String?
         get() = chapterNumber
 }
-

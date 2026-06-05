@@ -113,8 +113,7 @@ class ChapterDownloadWorkerFailureTest {
         runBlocking {
             mockWebServer.dispatcher =
                 object : Dispatcher() {
-                    override fun dispatch(request: RecordedRequest): MockResponse =
-                        MockResponse().setResponseCode(500).setBody("err")
+                    override fun dispatch(request: RecordedRequest): MockResponse = MockResponse().setResponseCode(500).setBody("err")
                 }
             coEvery { mangaRepository.getChapterDelivery(CHAPTER_ID) } returns
                 Result.success(delivery(filenames = listOf("p1.png")))
@@ -216,8 +215,7 @@ class ChapterDownloadWorkerFailureTest {
             storage.deleteChapter(MANGA_ID, CHAPTER_ID)
             mockWebServer.dispatcher =
                 object : Dispatcher() {
-                    override fun dispatch(request: RecordedRequest): MockResponse =
-                        MockResponse().setResponseCode(200).setBody("bytes")
+                    override fun dispatch(request: RecordedRequest): MockResponse = MockResponse().setResponseCode(200).setBody("bytes")
                 }
             coEvery { mangaRepository.getChapterDelivery(CHAPTER_ID) } returns
                 Result.success(delivery(filenames = listOf("p1.png")))
@@ -239,8 +237,7 @@ class ChapterDownloadWorkerFailureTest {
             storage.deleteChapter(MANGA_ID, CHAPTER_ID)
             mockWebServer.dispatcher =
                 object : Dispatcher() {
-                    override fun dispatch(request: RecordedRequest): MockResponse =
-                        MockResponse().setResponseCode(200).setBody("bytes")
+                    override fun dispatch(request: RecordedRequest): MockResponse = MockResponse().setResponseCode(200).setBody("bytes")
                 }
             coEvery { mangaRepository.getChapterDelivery(CHAPTER_ID) } returns
                 Result.success(delivery(filenames = listOf("p1.png")))

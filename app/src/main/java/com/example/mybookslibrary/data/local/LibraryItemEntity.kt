@@ -3,10 +3,11 @@ package com.example.mybookslibrary.data.local
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+
 enum class LibraryStatus {
     READING,
     COMPLETED,
-    FAVORITE
+    FAVORITE,
 }
 
 class LibraryStatusConverters {
@@ -14,11 +15,12 @@ class LibraryStatusConverters {
     fun fromStatus(status: LibraryStatus): String = status.name
 
     @androidx.room.TypeConverter
-    fun toStatus(value: String): LibraryStatus = try {
-        LibraryStatus.valueOf(value)
-    } catch (_: IllegalArgumentException) {
-        LibraryStatus.READING
-    }
+    fun toStatus(value: String): LibraryStatus =
+        try {
+            LibraryStatus.valueOf(value)
+        } catch (_: IllegalArgumentException) {
+            LibraryStatus.READING
+        }
 }
 
 @Entity(tableName = "library_items")
@@ -30,6 +32,5 @@ data class LibraryItemEntity(
     val status: LibraryStatus = LibraryStatus.READING,
     @ColumnInfo(name = "last_read_chapter_id") val last_read_chapter_id: String? = null,
     @ColumnInfo(name = "last_read_page_index") val last_read_page_index: Int = 0,
-    @ColumnInfo(name = "updated_at") val updated_at: Long = System.currentTimeMillis()
+    @ColumnInfo(name = "updated_at") val updated_at: Long = System.currentTimeMillis(),
 )
-

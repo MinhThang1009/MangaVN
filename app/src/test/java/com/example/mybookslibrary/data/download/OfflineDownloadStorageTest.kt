@@ -15,43 +15,45 @@ import java.io.ByteArrayInputStream
 @RunWith(RobolectricTestRunner::class)
 @OptIn(ExperimentalCoroutinesApi::class)
 class OfflineDownloadStorageTest {
-
     @Test
-    fun scanDownloadedChapters_requiresCompletionMarkerAndPage() = runTest {
-        val storage = storage()
-        storage.deleteChapter(MANGA_ID, CHAPTER_ID)
-
-        try {
-            storage.savePage(MANGA_ID, CHAPTER_ID, pageIndex = 0, byteStream = pageBytes())
-            assertFalse(CHAPTER_ID in storage.scanDownloadedChapters())
-
-            storage.markChapterComplete(MANGA_ID, CHAPTER_ID)
-            assertTrue(CHAPTER_ID in storage.scanDownloadedChapters())
-        } finally {
+    fun scanDownloadedChapters_requiresCompletionMarkerAndPage() =
+        runTest {
+            val storage = storage()
             storage.deleteChapter(MANGA_ID, CHAPTER_ID)
+
+            try {
+                storage.savePage(MANGA_ID, CHAPTER_ID, pageIndex = 0, byteStream = pageBytes())
+                assertFalse(CHAPTER_ID in storage.scanDownloadedChapters())
+
+                storage.markChapterComplete(MANGA_ID, CHAPTER_ID)
+                assertTrue(CHAPTER_ID in storage.scanDownloadedChapters())
+            } finally {
+                storage.deleteChapter(MANGA_ID, CHAPTER_ID)
+            }
         }
-    }
 
     @Test
-    fun backfillCompletionMarkers_marksLegacyDirectoryOnce() = runTest {
-        val storage = storage()
-        storage.deleteChapter(MANGA_ID, LEGACY_CHAPTER_ID)
-
-        try {
-            storage.savePage(MANGA_ID, LEGACY_CHAPTER_ID, pageIndex = 0, byteStream = pageBytes())
-
-            assertEquals(1, storage.backfillCompletionMarkers(setOf(LEGACY_CHAPTER_ID)))
-            assertEquals(0, storage.backfillCompletionMarkers(setOf(LEGACY_CHAPTER_ID)))
-            assertTrue(LEGACY_CHAPTER_ID in storage.scanDownloadedChapters())
-        } finally {
+    fun backfillCompletionMarkers_marksLegacyDirectoryOnce() =
+        runTest {
+            val storage = storage()
             storage.deleteChapter(MANGA_ID, LEGACY_CHAPTER_ID)
-        }
-    }
 
-    private fun storage(): OfflineDownloadStorage = OfflineDownloadStorage(
-        context = RuntimeEnvironment.getApplication(),
-        ioDispatcher = UnconfinedTestDispatcher()
-    )
+            try {
+                storage.savePage(MANGA_ID, LEGACY_CHAPTER_ID, pageIndex = 0, byteStream = pageBytes())
+
+                assertEquals(1, storage.backfillCompletionMarkers(setOf(LEGACY_CHAPTER_ID)))
+                assertEquals(0, storage.backfillCompletionMarkers(setOf(LEGACY_CHAPTER_ID)))
+                assertTrue(LEGACY_CHAPTER_ID in storage.scanDownloadedChapters())
+            } finally {
+                storage.deleteChapter(MANGA_ID, LEGACY_CHAPTER_ID)
+            }
+        }
+
+    private fun storage(): OfflineDownloadStorage =
+        OfflineDownloadStorage(
+            context = RuntimeEnvironment.getApplication(),
+            ioDispatcher = UnconfinedTestDispatcher(),
+        )
 
     private fun pageBytes() = ByteArrayInputStream(byteArrayOf(1, 2, 3))
 

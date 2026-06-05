@@ -27,18 +27,18 @@ import kotlin.time.TimeSource
  */
 class AtHomeReportInterceptor(
     private val mangaRepository: MangaRepository,
-    private val applicationScope: CoroutineScope
+    private val applicationScope: CoroutineScope,
 ) : Interceptor {
-
     override fun intercept(chain: Interceptor.Chain): Response {
         val request = chain.request()
         val url = request.url
         val urlString = url.toString()
         if (request.header(AtHomeReportPolicy.SKIP_REPORT_HEADER) != null) {
             return chain.proceed(
-                request.newBuilder()
+                request
+                    .newBuilder()
                     .removeHeader(AtHomeReportPolicy.SKIP_REPORT_HEADER)
-                    .build()
+                    .build(),
             )
         }
         if (!url.isReportableAtHomeImage()) {
@@ -49,10 +49,13 @@ class AtHomeReportInterceptor(
         val startedAt = TimeSource.Monotonic.markNow()
         return try {
             val response = chain.proceed(request)
-            val cached = response.header(HEADER_X_CACHE)
-                ?.startsWith(CACHE_HIT_PREFIX, ignoreCase = true) == true
+            val cached =
+                response
+                    .header(HEADER_X_CACHE)
+                    ?.startsWith(CACHE_HIT_PREFIX, ignoreCase = true) == true
 
-            response.newBuilder()
+            response
+                .newBuilder()
                 .body(
                     ReportingResponseBody(
                         delegate = response.body,
@@ -60,17 +63,16 @@ class AtHomeReportInterceptor(
                         cached = cached,
                         startedAt = startedAt,
                         initialSuccess = response.isSuccessful,
-                        report = ::report
-                    )
-                )
-                .build()
+                        report = ::report,
+                    ),
+                ).build()
         } catch (ioException: IOException) {
             report(
                 url = urlString,
                 success = false,
                 bytes = 0,
                 durationMillis = startedAt.elapsedNow().inWholeMilliseconds,
-                cached = false
+                cached = false,
             )
             Timber.e(ioException, "AtHomeReportInterceptor network failure: url=%s", urlString)
             throw ioException
@@ -82,15 +84,16 @@ class AtHomeReportInterceptor(
         success: Boolean,
         bytes: Long,
         durationMillis: Long,
-        cached: Boolean
+        cached: Boolean,
     ) {
-        val request = AtHomeReportRequest(
-            url = url,
-            success = success,
-            bytes = bytes.coerceToInt(),
-            duration = durationMillis.coerceAtLeast(0L),
-            cached = cached
-        )
+        val request =
+            AtHomeReportRequest(
+                url = url,
+                success = success,
+                bytes = bytes.coerceToInt(),
+                duration = durationMillis.coerceAtLeast(0L),
+                cached = cached,
+            )
         Timber.d("AtHomeReportInterceptor report queued: payload=%s", request)
         applicationScope.launch {
             mangaRepository.sendAtHomeReport(request)
@@ -103,14 +106,17 @@ class AtHomeReportInterceptor(
         private val cached: Boolean,
         private val startedAt: TimeSource.Monotonic.ValueTimeMark,
         private val initialSuccess: Boolean,
-        private val report: (url: String, success: Boolean, bytes: Long, durationMillis: Long, cached: Boolean) -> Unit
+        private val report: (url: String, success: Boolean, bytes: Long, durationMillis: Long, cached: Boolean) -> Unit,
     ) : ResponseBody() {
         private var bytesRead = 0L
         private var completed = false
         private var reported = false
         private val source: BufferedSource by lazy {
             object : ForwardingSource(delegate.source()) {
-                override fun read(sink: Buffer, byteCount: Long): Long {
+                override fun read(
+                    sink: Buffer,
+                    byteCount: Long,
+                ): Long {
                     val read = super.read(sink, byteCount)
                     if (read == -1L) {
                         completed = true
@@ -148,7 +154,7 @@ class AtHomeReportInterceptor(
                 success,
                 bytesRead,
                 durationMillis,
-                cached
+                cached,
             )
             report(url, success, bytesRead, durationMillis, cached)
         }
@@ -160,10 +166,6 @@ class AtHomeReportInterceptor(
     }
 }
 
-private fun okhttp3.HttpUrl.isReportableAtHomeImage(): Boolean {
-    return AtHomeReportPolicy.isReportableImageUrl(this)
-}
+private fun okhttp3.HttpUrl.isReportableAtHomeImage(): Boolean = AtHomeReportPolicy.isReportableImageUrl(this)
 
-private fun Long.coerceToInt(): Int {
-    return min(this.coerceAtLeast(0L), Int.MAX_VALUE.toLong()).toInt()
-}
+private fun Long.coerceToInt(): Int = min(this.coerceAtLeast(0L), Int.MAX_VALUE.toLong()).toInt()

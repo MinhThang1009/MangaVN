@@ -4,10 +4,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -49,7 +49,7 @@ import com.example.mybookslibrary.ui.viewmodel.SearchViewModel
 @Composable
 fun SearchScreenContent(
     onMangaClick: (MangaModel) -> Unit = {},
-    viewModel: SearchViewModel = hiltViewModel()
+    viewModel: SearchViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -57,26 +57,37 @@ fun SearchScreenContent(
         Column(Modifier.fillMaxSize().padding(innerPadding)) {
             Column(Modifier.padding(horizontal = 24.dp)) {
                 Spacer(Modifier.height(24.dp))
-                Text(appString(R.string.search_title), style = MaterialTheme.typography.displayMedium, color = MaterialTheme.colorScheme.primary)
+                Text(
+                    appString(R.string.search_title),
+                    style = MaterialTheme.typography.displayMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                )
                 Spacer(Modifier.height(20.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     OutlinedTextField(
                         value = uiState.query,
                         onValueChange = viewModel::onQueryChange,
-                        placeholder = { Text(appString(R.string.search_placeholder), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant) },
+                        placeholder = {
+                            Text(
+                                appString(R.string.search_placeholder),
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        },
                         leadingIcon = { Icon(Icons.Filled.Search, null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(24.dp),
                         singleLine = true,
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.35f),
-                            focusedContainerColor = MaterialTheme.colorScheme.surface,
-                            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                            cursorColor = MaterialTheme.colorScheme.primary,
-                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface
-                        )
+                        colors =
+                            OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.35f),
+                                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                                cursorColor = MaterialTheme.colorScheme.primary,
+                                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            ),
                     )
                     Spacer(Modifier.width(8.dp))
                     BadgedBox(
@@ -84,13 +95,13 @@ fun SearchScreenContent(
                             if (uiState.activeFilterCount > 0) {
                                 Badge { Text("${uiState.activeFilterCount}") }
                             }
-                        }
+                        },
                     ) {
                         IconButton(onClick = viewModel::onOpenFilterSheet) {
                             Icon(
                                 Icons.Filled.FilterList,
                                 contentDescription = appString(R.string.cd_filter),
-                                tint = MaterialTheme.colorScheme.primary
+                                tint = MaterialTheme.colorScheme.primary,
                             )
                         }
                     }
@@ -107,30 +118,50 @@ fun SearchScreenContent(
                 uiState.error != null -> {
                     Box(Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(appString(R.string.search_error_title), style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(
+                                appString(R.string.search_error_title),
+                                style = MaterialTheme.typography.headlineMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
                             Spacer(Modifier.height(8.dp))
-                            Text(appString(R.string.search_error_subtitle), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
+                            Text(
+                                appString(R.string.search_error_subtitle),
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                            )
                         }
                     }
                 }
                 uiState.query.length < 2 -> {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(appString(R.string.search_prompt_title), style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(
+                                appString(R.string.search_prompt_title),
+                                style = MaterialTheme.typography.headlineMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
                             Spacer(Modifier.height(8.dp))
-                            Text(appString(R.string.search_prompt_subtitle), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
+                            Text(
+                                appString(R.string.search_prompt_subtitle),
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                            )
                         }
                     }
                 }
                 uiState.results.isEmpty() -> {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text(appString(R.string.search_no_results, uiState.query), style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(
+                            appString(R.string.search_no_results, uiState.query),
+                            style = MaterialTheme.typography.headlineMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
                     }
                 }
                 else -> {
                     LazyColumn(
                         contentPadding = PaddingValues(start = 24.dp, end = 24.dp, top = 8.dp, bottom = 100.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
                         items(uiState.results, key = { it.id }) { manga ->
                             SearchResultItem(manga) { onMangaClick(manga) }
@@ -147,7 +178,7 @@ fun SearchScreenContent(
                     onToggleContentRating = viewModel::onToggleContentRating,
                     onToggleStatus = viewModel::onToggleStatus,
                     onClearFilters = viewModel::onClearFilters,
-                    onDismiss = viewModel::onDismissFilterSheet
+                    onDismiss = viewModel::onDismissFilterSheet,
                 )
             }
         }
@@ -155,35 +186,50 @@ fun SearchScreenContent(
 }
 
 @Composable
-private fun SearchResultItem(manga: MangaModel, onClick: () -> Unit) {
+private fun SearchResultItem(
+    manga: MangaModel,
+    onClick: () -> Unit,
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         onClick = onClick,
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
     ) {
         androidx.compose.foundation.layout.Row(Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
             Card(
                 modifier = Modifier.size(56.dp, 84.dp),
                 shape = RoundedCornerShape(8.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
             ) {
-                AsyncImage(model = manga.coverArt, contentDescription = manga.title, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+                AsyncImage(
+                    model = manga.coverArt,
+                    contentDescription = manga.title,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize(),
+                )
             }
             Spacer(Modifier.width(16.dp))
             Column(Modifier.weight(1f)) {
-                Text(manga.title, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onSurface,
-                    maxLines = 2, overflow = TextOverflow.Ellipsis)
+                Text(
+                    manga.title,
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
                 if (manga.tags.isNotEmpty()) {
                     Spacer(Modifier.height(4.dp))
-                    Text(manga.tags.take(3).joinToString(" · "), style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(
+                        manga.tags.take(3).joinToString(" · "),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
                 }
             }
         }
     }
 }
-
-
-

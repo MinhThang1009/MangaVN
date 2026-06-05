@@ -11,8 +11,8 @@ import android.provider.MediaStore
 import androidx.core.content.FileProvider
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import java.io.File
 import timber.log.Timber
+import java.io.File
 
 /**
  * Downloads manga page images and persists them for save/share workflows.
@@ -24,8 +24,9 @@ import timber.log.Timber
  * @param context Application context used to access [android.content.ContentResolver],
  * cache storage, and [FileProvider].
  */
-class ImageSaver(private val context: Context) {
-
+class ImageSaver(
+    private val context: Context,
+) {
     /** Bare OkHttpClient — no auth headers and no logging interceptors. */
     private val httpClient = OkHttpClient.Builder().build()
 
@@ -41,7 +42,10 @@ class ImageSaver(private val context: Context) {
      * @return The saved content [Uri].
      * @throws Exception when downloading or persisting the image fails.
      */
-    fun quickSave(imageUrl: String, displayName: String): Uri {
+    fun quickSave(
+        imageUrl: String,
+        displayName: String,
+    ): Uri {
         Timber.d("quickSave start: displayName=%s, imageUrl=%s", displayName, imageUrl)
         return try {
             val image = downloadImage(imageUrl)
@@ -227,7 +231,10 @@ class ImageSaver(private val context: Context) {
     }
 
     @Suppress("NewApi")
-    private fun buildMediaStoreValues(filename: String, mimeType: String): ContentValues =
+    private fun buildMediaStoreValues(
+        filename: String,
+        mimeType: String,
+    ): ContentValues =
         ContentValues().apply {
             put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
             put(MediaStore.MediaColumns.MIME_TYPE, mimeType)

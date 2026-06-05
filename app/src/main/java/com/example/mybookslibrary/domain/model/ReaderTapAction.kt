@@ -15,5 +15,5 @@ enum class ReaderTapAction {
     NEXT_PAGE,
     PREVIOUS_PAGE,
     TOGGLE_OVERLAY,
-    NONE
+    NONE,
 }

@@ -3,10 +3,10 @@
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTouchInput
-import androidx.compose.ui.test.longClick
 import com.example.mybookslibrary.data.local.LibraryItemEntity
 import com.example.mybookslibrary.data.local.LibraryStatus
 import com.example.mybookslibrary.data.repository.LibraryRepository

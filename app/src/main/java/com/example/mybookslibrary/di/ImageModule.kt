@@ -11,10 +11,10 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
+import okio.Path.Companion.toPath
 import timber.log.Timber
 import javax.inject.Named
 import javax.inject.Singleton
-import okio.Path.Companion.toPath
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -28,30 +28,30 @@ object ImageModule {
     @Singleton
     fun provideCoilImageLoader(
         @ApplicationContext context: Context,
-        @Named("ImageOkHttpClient") imageOkHttpClient: OkHttpClient
+        @Named("ImageOkHttpClient") imageOkHttpClient: OkHttpClient,
     ): ImageLoader {
         val diskCacheDir = context.cacheDir.resolve("image_cache")
         Timber.d(
             "Coil disk cache configured: dir=%s sizeBytes=%d",
             diskCacheDir,
-            IMAGE_DISK_CACHE_SIZE_BYTES
+            IMAGE_DISK_CACHE_SIZE_BYTES,
         )
-        return ImageLoader.Builder(context)
+        return ImageLoader
+            .Builder(context)
             .diskCache(
-                DiskCache.Builder()
+                DiskCache
+                    .Builder()
                     .directory(diskCacheDir.path.toPath())
                     .maxSizeBytes(IMAGE_DISK_CACHE_SIZE_BYTES)
-                    .build()
-            )
-            .memoryCache {
+                    .build(),
+            ).memoryCache {
                 // Giới hạn memory cache để giảm áp lực RAM khi đọc nhiều trang lớn (tránh OOM)
-                MemoryCache.Builder()
+                MemoryCache
+                    .Builder()
                     .maxSizePercent(context, 0.20)
                     .build()
-            }
-            .components {
+            }.components {
                 add(OkHttpNetworkFetcherFactory(callFactory = { imageOkHttpClient }))
-            }
-            .build()
+            }.build()
     }
 }

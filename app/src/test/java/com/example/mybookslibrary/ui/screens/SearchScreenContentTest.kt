@@ -4,8 +4,8 @@ import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
-import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import com.example.mybookslibrary.data.repository.MangaRepository
 import com.example.mybookslibrary.domain.model.MangaModel
 import com.example.mybookslibrary.ui.util.FakeImageLoader

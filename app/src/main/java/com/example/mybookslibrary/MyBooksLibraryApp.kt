@@ -3,14 +3,15 @@ package com.example.mybookslibrary
 import android.app.Application
 import android.content.pm.ApplicationInfo
 import android.util.Log
+import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import coil3.SingletonImageLoader
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.android.HiltAndroidApp
-import androidx.hilt.work.HiltWorkerFactory
 import dagger.hilt.components.SingletonComponent
+import timber.log.Timber
 import java.io.File
 import java.io.PrintWriter
 import java.io.StringWriter
@@ -18,18 +19,20 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
-import timber.log.Timber
 
 @HiltAndroidApp
-class MyBooksLibraryApp : Application(), Configuration.Provider {
-
+class MyBooksLibraryApp :
+    Application(),
+    Configuration.Provider {
     @Inject
     lateinit var workerFactory: HiltWorkerFactory
 
     override val workManagerConfiguration: Configuration
-        get() = Configuration.Builder()
-            .setWorkerFactory(workerFactory)
-            .build()
+        get() =
+            Configuration
+                .Builder()
+                .setWorkerFactory(workerFactory)
+                .build()
 
     override fun onCreate() {
         super.onCreate()
@@ -38,10 +41,11 @@ class MyBooksLibraryApp : Application(), Configuration.Provider {
         }
 
         SingletonImageLoader.setSafe {
-            EntryPointAccessors.fromApplication(
-                this,
-                ImageLoaderEntryPoint::class.java
-            ).imageLoader()
+            EntryPointAccessors
+                .fromApplication(
+                    this,
+                    ImageLoaderEntryPoint::class.java,
+                ).imageLoader()
         }
 
         // Bắt toàn bộ uncaught exception → ghi log ra file + logcat
@@ -61,16 +65,18 @@ class MyBooksLibraryApp : Application(), Configuration.Provider {
             try {
                 val timestamp = SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.US).format(Date())
                 val crashFile = File(cacheDir, "crash_$timestamp.txt")
-                crashFile.writeText(buildString {
-                    appendLine("═══ MyBooksLibrary Crash Report ═══")
-                    appendLine("Time: $timestamp")
-                    appendLine("Thread: ${thread.name}")
-                    appendLine("Exception: ${throwable.javaClass.name}")
-                    appendLine("Message: ${throwable.message}")
-                    appendLine()
-                    appendLine("Stack Trace:")
-                    appendLine(stackTrace)
-                })
+                crashFile.writeText(
+                    buildString {
+                        appendLine("═══ MyBooksLibrary Crash Report ═══")
+                        appendLine("Time: $timestamp")
+                        appendLine("Thread: ${thread.name}")
+                        appendLine("Exception: ${throwable.javaClass.name}")
+                        appendLine("Message: ${throwable.message}")
+                        appendLine()
+                        appendLine("Stack Trace:")
+                        appendLine(stackTrace)
+                    },
+                )
                 Log.e(TAG, "Crash log saved: ${crashFile.absolutePath}")
             } catch (_: Exception) {
                 // Không để ghi file lỗi gây thêm crash
