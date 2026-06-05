@@ -135,6 +135,7 @@ class ImageSaver(private val context: Context) {
             if (!response.isSuccessful) {
                 throw ImageSaveException("Download failed (HTTP ${response.code}): $url")
             }
+            @Suppress("USELESS_ELVIS") // OkHttp body là nullable ở runtime dù annotation nói khác
             val responseBody = response.body ?: throw ImageSaveException("Download response body was empty: $url")
             val bytes = responseBody.bytes()
             if (bytes.isEmpty()) {
