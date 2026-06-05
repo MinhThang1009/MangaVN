@@ -29,6 +29,7 @@ import javax.inject.Inject
 
 // ViewModel cho ReaderScreen — tải ảnh chapter và đồng bộ tiến độ đọc
 @HiltViewModel
+@Suppress("LongParameterList")
 class ReaderViewModel
     @Inject
     constructor(

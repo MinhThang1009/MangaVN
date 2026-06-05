@@ -48,7 +48,8 @@ class GetChapterListWithProgressUseCase
                         downloadedChapterCache.downloadedChapterIds,
                     ) { progressList, queueList, downloadedIds ->
                         Timber.v(
-                            "GetChapterListWithProgressUseCase snapshot: mangaId=%s progressRows=%d queueRows=%d downloaded=%d",
+                            "GetChapterListWithProgressUseCase snapshot: " +
+                                "mangaId=%s progressRows=%d queueRows=%d downloaded=%d",
                             mangaId,
                             progressList.size,
                             queueList.size,
