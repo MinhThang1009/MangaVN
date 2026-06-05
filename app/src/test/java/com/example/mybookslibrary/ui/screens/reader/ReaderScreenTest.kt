@@ -1,7 +1,7 @@
 package com.example.mybookslibrary.ui.screens.reader
 
 import androidx.lifecycle.SavedStateHandle
-import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.junit4.v2.createComposeRule
 import com.example.mybookslibrary.data.download.DownloadedChapterCache
 import com.example.mybookslibrary.data.download.OfflineDownloadStorage
 import com.example.mybookslibrary.data.repository.LibraryRepository
@@ -25,6 +25,7 @@ import org.robolectric.annotation.GraphicsMode
  * Smoke test cho [ReaderScreen] — kiểm tra screen không crash khi render với
  * các trạng thái khác nhau (loading, loaded, error).
  */
+@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 @coil3.annotation.ExperimentalCoilApi
