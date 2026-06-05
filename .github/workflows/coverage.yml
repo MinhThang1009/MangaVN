@@ -55,6 +55,15 @@ jobs:
           title: JVM Coverage (early check)
           update-comment: true
 
+      # Upload JaCoCo XML để có thể download phân tích sau khi CI chạy.
+      - name: Upload JaCoCo XML report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: jvm-coverage-xml
+          path: app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
+          if-no-files-found: ignore
+
       - name: Fail nếu overall JVM coverage tụt dưới 82%
         if: ${{ steps.coverage-report.outputs.coverage-overall < 82.0 }}
         run: |
