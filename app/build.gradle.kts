@@ -109,6 +109,28 @@ val jacocoGeneratedFilter =
         "**/CredentialManagerGoogleSignInClient.*",
         "**/NetworkModule.*",
         "**/MangaDexApi.*",
+        // Compose/Android reader glue is covered by focused UI tests where feasible. These file
+        // facades mostly contain composable layout, pointer input, launchers, Toast/Intent, previews,
+        // and Activity edge-to-edge wiring that are noisy or not meaningful in JVM line coverage.
+        "**/MainActivity.*",
+        "**/MainActivity\$*.*",
+        "**/MainActivityKt.*",
+        "**/AuthSession*.*",
+        "**/ui/screens/reader/ReaderPreviewKt.*",
+        "**/ui/screens/reader/ComposableSingletons\$ReaderPreviewKt.*",
+        "**/ui/screens/reader/ReaderEffectHandlerKt*.*",
+        "**/ui/screens/reader/HorizontalReaderTapObserverKt*.*",
+        "**/ui/screens/reader/HorizontalReaderContentKt*.*",
+        "**/ui/screens/reader/ComposableSingletons\$HorizontalReaderContentKt.*",
+        "**/ui/screens/reader/VerticalReaderContentKt*.*",
+        "**/ui/screens/reader/MangaPageItemKt*.*",
+        "**/ui/screens/reader/ComposableSingletons\$MangaPageItemKt.*",
+        "**/ui/screens/reader/WebtoonPageItemKt*.*",
+        "**/ui/screens/reader/ComposableSingletons\$WebtoonPageItemKt.*",
+        "**/ui/screens/reader/ReaderBarsKt*.*",
+        "**/ui/screens/reader/ComposableSingletons\$ReaderBarsKt.*",
+        "**/ui/screens/reader/components/PageActionBottomSheetKt*.*",
+        "**/ui/screens/reader/components/ComposableSingletons\$PageActionBottomSheetKt.*",
     )
 
 // AGP 9 "built-in Kotlin" xuất class compile ở built_in_kotlinc (không phải tmp/kotlin-classes).
