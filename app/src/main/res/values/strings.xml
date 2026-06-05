@@ -81,6 +81,12 @@
     <string name="detail_add_to_library">ADD TO LIBRARY</string>
     <string name="detail_pages_suffix">%1$dp</string>
     <string name="detail_error">Couldn\'t load manga details</string>
+    <string name="detail_from_publisher">From the Publisher</string>
+    <string name="detail_from_book">From the Book</string>
+    <string name="detail_customer_reviews">Customer Reviews &gt;</string>
+    <string name="action_more">More</string>
+    <string name="cd_page_preview">Page Preview</string>
+    <string name="cd_expand_chapters">Expand Chapters</string>
 
     <!-- Chapter formatting -->
     <string name="chapter_vol_prefix">Vol.%1$s </string>
