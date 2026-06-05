@@ -167,7 +167,8 @@ class ImageSaverTest {
         assertTrue(expectedFile.exists())
         assertEquals(Intent.ACTION_SEND, intent.action)
         assertEquals("image/png", intent.type)
-        assertEquals(expectedUri, intent.getParcelableExtra(Intent.EXTRA_STREAM))
+        @Suppress("DEPRECATION") // getParcelableExtra deprecated API 33; compat helper không available trong test scope
+        assertEquals(expectedUri, intent.getParcelableExtra<android.net.Uri>(Intent.EXTRA_STREAM))
     }
 
     @Test
