@@ -29,7 +29,7 @@ interface MangaDexApi {
     @Suppress("LongParameterList")
     @GET("manga")
     suspend fun searchManga(
-        @Query("title") title: String,
+        @Query("title") title: String? = null,
         @Query("limit") limit: Int = 20,
         @Query("includes[]") includes: List<String> = listOf("cover_art"),
         @Query("includedTags[]") includedTags: List<String> = emptyList(),
