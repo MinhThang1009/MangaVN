@@ -4,6 +4,7 @@ import android.content.Context
 import com.example.mybookslibrary.R
 import com.example.mybookslibrary.data.repository.AuthRepository
 import com.example.mybookslibrary.test.MainDispatcherRule
+import com.example.mybookslibrary.ui.util.UiText
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk

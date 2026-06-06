@@ -1,36 +1,17 @@
 package com.example.mybookslibrary.ui.viewmodel
 
 import android.content.Context
-import androidx.annotation.StringRes
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mybookslibrary.R
 import com.example.mybookslibrary.data.repository.AuthRepository
+import com.example.mybookslibrary.ui.util.UiText
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-
-sealed class UiText {
-    data class Resource(
-        @StringRes val id: Int,
-    ) : UiText()
-
-    data class Dynamic(
-        val value: String,
-    ) : UiText()
-
-    @Composable
-    fun asString(): String =
-        when (this) {
-            is Resource -> stringResource(id)
-            is Dynamic -> value
-        }
-}
 
 private fun authError(message: String?): UiText =
     when (message) {
