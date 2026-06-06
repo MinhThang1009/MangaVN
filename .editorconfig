@@ -1,4 +1,20 @@
 root = true
 
-[*.kt]
+[*.{kt,kts}]
+ktlint_code_style = android_studio
+max_line_length = 120
+
 ktlint_function_naming_ignore_when_annotated_with = Composable
+
+ij_kotlin_name_count_to_use_star_import = 100
+ij_kotlin_name_count_to_use_star_import_for_properties = 100
+
+ktlint_standard_argument-list-wrapping = disabled
+ktlint_standard_parameter-list-wrapping = disabled
+ktlint_standard_wrapping = disabled
+ktlint_standard_import-ordering = disabled
+
+ktlint_standard_trailing-comma-on-call-site = disabled
+ktlint_standard_trailing-comma-on-declaration-site = disabled
+
+ktlint_ignore_back_ticked_identifier = true

@@ -1,11 +1,9 @@
 package com.example.mybookslibrary.ui.viewmodel
 
 import androidx.lifecycle.SavedStateHandle
-import com.example.mybookslibrary.data.download.DownloadedChapterCache
-import com.example.mybookslibrary.data.download.OfflineDownloadStorage
-import com.example.mybookslibrary.data.repository.LibraryRepository
-import com.example.mybookslibrary.data.repository.MangaRepository
 import com.example.mybookslibrary.domain.model.ReadingMode
+import com.example.mybookslibrary.domain.usecase.LoadReaderPagesUseCase
+import com.example.mybookslibrary.domain.usecase.SyncReadingProgressUseCase
 import com.example.mybookslibrary.domain.usecase.TapZoneEvaluator
 import com.example.mybookslibrary.test.MainDispatcherRule
 import io.mockk.coEvery
@@ -40,29 +38,27 @@ class ReaderViewModelTest {
 
     @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
     @Test
-    fun missingStartPageIndex_defaultsToZero() =
-        runTest(mainDispatcherRule.dispatcher.scheduler) {
-            val viewModel = createViewModel(startPageIndex = null)
-            advanceUntilIdle()
+    fun missingStartPageIndex_defaultsToZero() = runTest(mainDispatcherRule.dispatcher.scheduler) {
+        val viewModel = createViewModel(startPageIndex = null)
+        advanceUntilIdle()
 
-            assertEquals(0, viewModel.state.value.lastReadPageIndex)
-        }
+        assertEquals(0, viewModel.state.value.lastReadPageIndex)
+    }
 
     @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
     @Test
-    fun onEvent_withToggleOverlay_togglesOverlayVisibility() =
-        runTest(mainDispatcherRule.dispatcher.scheduler) {
-            val viewModel = createViewModel(startPageIndex = 0)
-            advanceUntilIdle()
+    fun onEvent_withToggleOverlay_togglesOverlayVisibility() = runTest(mainDispatcherRule.dispatcher.scheduler) {
+        val viewModel = createViewModel(startPageIndex = 0)
+        advanceUntilIdle()
 
-            viewModel.onEvent(ReaderEvent.ToggleOverlay)
+        viewModel.onEvent(ReaderEvent.ToggleOverlay)
 
-            assertEquals(true, viewModel.state.value.isOverlayVisible)
+        assertEquals(true, viewModel.state.value.isOverlayVisible)
 
-            viewModel.onEvent(ReaderEvent.ToggleOverlay)
+        viewModel.onEvent(ReaderEvent.ToggleOverlay)
 
-            assertEquals(false, viewModel.state.value.isOverlayVisible)
-        }
+        assertEquals(false, viewModel.state.value.isOverlayVisible)
+    }
 
     @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
     @Test
@@ -133,83 +129,82 @@ class ReaderViewModelTest {
 
     @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
     @Test
-    fun onEvent_withTapInVerticalMode_togglesOverlay() =
-        runTest(mainDispatcherRule.dispatcher.scheduler) {
-            val viewModel = createViewModel(startPageIndex = 2)
-            advanceUntilIdle()
-            viewModel.onEvent(ReaderEvent.ChangeReadingMode(ReadingMode.VERTICAL))
+    fun onEvent_withTapInVerticalMode_togglesOverlay() = runTest(mainDispatcherRule.dispatcher.scheduler) {
+        val viewModel = createViewModel(startPageIndex = 2)
+        advanceUntilIdle()
+        viewModel.onEvent(ReaderEvent.ChangeReadingMode(ReadingMode.VERTICAL))
 
-            viewModel.onEvent(
-                ReaderEvent.TapOnScreen(
-                    x = 900f,
-                    y = 500f,
-                    width = 1000f,
-                    height = 1000f,
-                ),
-            )
+        viewModel.onEvent(
+            ReaderEvent.TapOnScreen(
+                x = 900f,
+                y = 500f,
+                width = 1000f,
+                height = 1000f,
+            ),
+        )
 
-            assertEquals(true, viewModel.state.value.isOverlayVisible)
-            assertEquals(2, viewModel.state.value.lastReadPageIndex)
-        }
-
-    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
-    @Test
-    fun onEvent_atPageBoundary_doesNotMovePastAvailablePages() =
-        runTest(mainDispatcherRule.dispatcher.scheduler) {
-            val firstPageViewModel = createViewModel(startPageIndex = 0)
-            advanceUntilIdle()
-
-            firstPageViewModel.onEvent(
-                ReaderEvent.TapOnScreen(
-                    x = 100f,
-                    y = 500f,
-                    width = 1000f,
-                    height = 1000f,
-                ),
-            )
-
-            assertEquals(0, firstPageViewModel.state.value.lastReadPageIndex)
-
-            val lastPageViewModel = createViewModel(startPageIndex = 7)
-            advanceUntilIdle()
-
-            lastPageViewModel.onEvent(
-                ReaderEvent.TapOnScreen(
-                    x = 900f,
-                    y = 500f,
-                    width = 1000f,
-                    height = 1000f,
-                ),
-            )
-
-            assertEquals(7, lastPageViewModel.state.value.lastReadPageIndex)
-        }
+        assertEquals(true, viewModel.state.value.isOverlayVisible)
+        assertEquals(2, viewModel.state.value.lastReadPageIndex)
+    }
 
     @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
     @Test
-    fun onEvent_withPageActionSelected_emitsQuickSaveEffect() =
-        runTest(mainDispatcherRule.dispatcher.scheduler) {
-            val viewModel = createViewModel(startPageIndex = 0)
-            advanceUntilIdle()
-            val effect = async { viewModel.effects.first() as ReaderUiEffect.QuickSavePage }
-            runCurrent()
+    fun onEvent_atPageBoundary_doesNotMovePastAvailablePages() = runTest(mainDispatcherRule.dispatcher.scheduler) {
+        val firstPageViewModel = createViewModel(startPageIndex = 0)
+        advanceUntilIdle()
 
-            viewModel.onEvent(ReaderEvent.PageLongPressed(pageUrl = "https://example.com/page-1.jpg", pageIndex = 0))
-            viewModel.onEvent(ReaderEvent.PageActionSelected(ReaderPageAction.QuickSave))
+        firstPageViewModel.onEvent(
+            ReaderEvent.TapOnScreen(
+                x = 100f,
+                y = 500f,
+                width = 1000f,
+                height = 1000f,
+            ),
+        )
 
-            assertEquals("https://example.com/page-1.jpg", effect.await().target.pageUrl)
-        }
+        assertEquals(0, firstPageViewModel.state.value.lastReadPageIndex)
+
+        val lastPageViewModel = createViewModel(startPageIndex = 7)
+        advanceUntilIdle()
+
+        lastPageViewModel.onEvent(
+            ReaderEvent.TapOnScreen(
+                x = 900f,
+                y = 500f,
+                width = 1000f,
+                height = 1000f,
+            ),
+        )
+
+        assertEquals(7, lastPageViewModel.state.value.lastReadPageIndex)
+    }
+
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    @Test
+    fun onEvent_withPageActionSelected_emitsQuickSaveEffect() = runTest(mainDispatcherRule.dispatcher.scheduler) {
+        val viewModel = createViewModel(startPageIndex = 0)
+        advanceUntilIdle()
+        val effect = async { viewModel.effects.first() as ReaderUiEffect.QuickSavePage }
+        runCurrent()
+
+        viewModel.onEvent(
+            ReaderEvent.PageLongPressed(
+                pageUrl = "https://example.com/page-1.jpg",
+                pageIndex = 0,
+            ),
+        )
+        viewModel.onEvent(ReaderEvent.PageActionSelected(ReaderPageAction.QuickSave))
+
+        assertEquals("https://example.com/page-1.jpg", effect.await().target.pageUrl)
+    }
 
     private fun createViewModel(startPageIndex: Int?): ReaderViewModel {
-        val mangaRepository = mockk<MangaRepository>()
-        val libraryRepository = mockk<LibraryRepository>(relaxed = true)
-        val downloadedChapterCache = mockk<DownloadedChapterCache>()
-        val offlineDownloadStorage = mockk<OfflineDownloadStorage>()
-        coEvery { mangaRepository.getChapterPages(CHAPTER_ID) } returns
+        val loadReaderPagesUseCase = mockk<LoadReaderPagesUseCase>()
+        val syncReadingProgressUseCase = mockk<SyncReadingProgressUseCase>(relaxed = true)
+        coEvery { loadReaderPagesUseCase(MANGA_ID, CHAPTER_ID) } returns
             Result.success(
                 listOf("page-1", "page-2", "page-3", "page-4", "page-5", "page-6", "page-7", "page-8"),
             )
-        coEvery { downloadedChapterCache.isChapterDownloaded(CHAPTER_ID) } returns false
 
         val args =
             mutableMapOf<String, Any?>(
@@ -224,11 +219,10 @@ class ReaderViewModelTest {
         return ReaderViewModel(
             application = RuntimeEnvironment.getApplication(),
             savedStateHandle = SavedStateHandle(args),
-            mangaRepository = mangaRepository,
-            libraryRepository = libraryRepository,
-            downloadedChapterCache = downloadedChapterCache,
-            offlineDownloadStorage = offlineDownloadStorage,
+            loadReaderPagesUseCase = loadReaderPagesUseCase,
+            syncReadingProgressUseCase = syncReadingProgressUseCase,
             tapZoneEvaluator = TapZoneEvaluator(),
+            pageFileBuilder = ReaderPageFileBuilder(),
             ioDispatcher = mainDispatcherRule.dispatcher,
         )
     }

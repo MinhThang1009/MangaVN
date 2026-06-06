@@ -157,15 +157,14 @@ fun jacocoExec() = files(layout.buildDirectory.file("jacoco/testDebugUnitTest.ex
 
 // Gộp .exec (unit test) + .ec (instrumented/emulator test) để đo coverage thật sau khi
 // cả hai loại test đã chạy. Dùng bởi CI job emulator-test sau khi connected test xong.
-fun jacocoExecCombined() =
-    fileTree(layout.buildDirectory.get()) {
-        include(
-            "jacoco/testDebugUnitTest.exec", // unit test (JVM)
-            "outputs/code_coverage/**/*.ec", // instrumented test (emulator, AGP path)
-            "**/*.ec", // fallback nếu AGP thay đổi path
-        )
-        exclude("tmp/**", "generated/**")
-    }
+fun jacocoExecCombined() = fileTree(layout.buildDirectory.get()) {
+    include(
+        "jacoco/testDebugUnitTest.exec", // unit test (JVM)
+        "outputs/code_coverage/**/*.ec", // instrumented test (emulator, AGP path)
+        "**/*.ec", // fallback nếu AGP thay đổi path
+    )
+    exclude("tmp/**", "generated/**")
+}
 
 tasks.register<JacocoReport>("jacocoTestReport") {
     dependsOn("testDebugUnitTest")
