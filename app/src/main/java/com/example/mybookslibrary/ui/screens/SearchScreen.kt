@@ -132,7 +132,7 @@ fun SearchScreenContent(
                         }
                     }
                 }
-                uiState.query.length < 2 -> {
+                uiState.query.length < 2 && uiState.activeFilterCount == 0 -> {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(
@@ -152,7 +152,11 @@ fun SearchScreenContent(
                 uiState.results.isEmpty() -> {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Text(
-                            appString(R.string.search_no_results, uiState.query),
+                            if (uiState.query.isBlank()) {
+                                appString(R.string.search_no_results_filter)
+                            } else {
+                                appString(R.string.search_no_results, uiState.query)
+                            },
                             style = MaterialTheme.typography.headlineMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )

@@ -34,6 +34,7 @@
     <string name="search_prompt_title">Discover your next story</string>
     <string name="search_prompt_subtitle">Type at least 2 characters to search</string>
     <string name="search_no_results">No results for \"%1$s\"</string>
+    <string name="search_no_results_filter">No results for current filters</string>
 
     <!-- Search Filters -->
     <string name="cd_filter">Filters</string>
