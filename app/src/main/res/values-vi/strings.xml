@@ -46,6 +46,7 @@
     <string name="filter_section_status">Trạng thái</string>
     <string name="filter_clear">Xoá lọc</string>
     <string name="filter_apply">Áp dụng</string>
+    <string name="filter_tags_error">Không tải được thể loại — kiểm tra kết nối</string>
     <string name="filter_lang_en">Tiếng Anh</string>
     <string name="filter_lang_vi">Tiếng Việt</string>
     <string name="filter_lang_ja">Tiếng Nhật</string>

@@ -46,6 +46,7 @@
     <string name="filter_section_status">Status</string>
     <string name="filter_clear">Clear</string>
     <string name="filter_apply">Apply</string>
+    <string name="filter_tags_error">Couldn\'t load genres — check connection</string>
     <string name="filter_lang_en">English</string>
     <string name="filter_lang_vi">Vietnamese</string>
     <string name="filter_lang_ja">Japanese</string>
