@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -49,19 +50,30 @@ import com.example.mybookslibrary.ui.theme.KansoWarning
 import com.example.mybookslibrary.ui.util.appString
 import com.example.mybookslibrary.ui.viewmodel.LibraryViewModel
 
-@Suppress("unused")
+@Suppress("unused", "LongMethod")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LibraryScreenContent(
     onOpenDetail: (mangaId: String, title: String, coverUrl: String) -> Unit = { _, _, _ -> },
+    modifier: Modifier = Modifier,
     vm: LibraryViewModel = hiltViewModel(),
 ) {
     val items by vm.libraryItems.collectAsStateWithLifecycle(initialValue = emptyList())
     var pendingRemoval by remember { mutableStateOf<LibraryItemEntity?>(null) }
 
-    Scaffold(containerColor = MaterialTheme.colorScheme.background) { innerPadding ->
+    Scaffold(
+        modifier = modifier,
+        containerColor = MaterialTheme.colorScheme.background,
+    ) { innerPadding ->
         if (items.isEmpty()) {
-            Box(Modifier.fillMaxSize().padding(innerPadding), contentAlignment = Alignment.Center) {
+            Box(
+                modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .consumeWindowInsets(innerPadding),
+                contentAlignment = Alignment.Center,
+            ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         appString(R.string.library_empty_title),
@@ -78,7 +90,11 @@ fun LibraryScreenContent(
             }
         } else {
             LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(innerPadding),
+                modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .consumeWindowInsets(innerPadding),
                 contentPadding = PaddingValues(start = 24.dp, end = 24.dp, top = 16.dp, bottom = 100.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
@@ -106,7 +122,10 @@ fun LibraryScreenContent(
             ModalBottomSheet(onDismissRequest = { pendingRemoval = null }) {
                 val item = pendingRemoval ?: return@ModalBottomSheet
                 Column(modifier = Modifier.fillMaxWidth().padding(24.dp)) {
-                    Text(text = appString(R.string.library_remove_bookmark), style = MaterialTheme.typography.titleLarge)
+                    Text(
+                        text = appString(R.string.library_remove_bookmark),
+                        style = MaterialTheme.typography.titleLarge,
+                    )
                     Spacer(Modifier.height(8.dp))
                     Text(
                         text = appString(R.string.library_remove_bookmark_confirm, item.title),
@@ -191,9 +210,9 @@ private fun StatusChip(status: LibraryStatus) {
         }
     Box(
         modifier =
-            Modifier
-                .background(color.copy(alpha = 0.1f), RoundedCornerShape(24.dp))
-                .padding(horizontal = 10.dp, vertical = 4.dp),
+        Modifier
+            .background(color.copy(alpha = 0.1f), RoundedCornerShape(24.dp))
+            .padding(horizontal = 10.dp, vertical = 4.dp),
     ) {
         Text(label, style = MaterialTheme.typography.labelMedium, color = color)
     }

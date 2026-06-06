@@ -12,7 +12,9 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
@@ -27,7 +29,6 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
@@ -149,11 +150,6 @@ fun MainNavHost(loggedInUserId: String?) {
                 dest.route?.startsWith(MangaDetailDestination.route) == true ||
                 dest.route?.startsWith(MangaReviewDestination.route) == true
         } ?: true
-    val isReaderDestination =
-        currentDestination?.hierarchy?.any { dest ->
-            dest.route?.startsWith(ReaderDestination.route) == true
-        } == true
-
     Scaffold(
         bottomBar = {
             if (showBottomBar) {
@@ -170,32 +166,30 @@ fun MainNavHost(loggedInUserId: String?) {
             }
         },
         containerColor = MaterialTheme.colorScheme.background,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { innerPadding ->
-        SharedTransitionLayout {
-            CompositionLocalProvider(LocalSharedTransitionScope provides this@SharedTransitionLayout) {
-                NavHost(
-                    navController = navController,
-                    startDestination =
-                    if (loggedInUserId == null) {
-                        AuthDestination.Login
-                    } else {
-                        BottomNavDestination.Discover.route
-                    },
-                    modifier =
-                    Modifier.padding(
-                        top = if (isReaderDestination) 0.dp else innerPadding.calculateTopPadding(),
-                        bottom = 0.dp,
-                    ),
-                    enterTransition = { fadeIn(animationSpec = tween(300, easing = FastOutSlowInEasing)) },
-                    exitTransition = { fadeOut(animationSpec = tween(300, easing = FastOutSlowInEasing)) },
-                    popEnterTransition = { fadeIn(animationSpec = tween(300, easing = FastOutSlowInEasing)) },
-                    popExitTransition = { fadeOut(animationSpec = tween(300, easing = FastOutSlowInEasing)) },
-                ) {
-                    authGraph(navController)
-                    mainTabsGraph(navController)
-                    mangaDetailGraph(navController)
-                    reviewGraph(navController)
-                    readerGraph(navController)
+        Box(modifier = Modifier.consumeWindowInsets(innerPadding)) {
+            SharedTransitionLayout {
+                CompositionLocalProvider(LocalSharedTransitionScope provides this@SharedTransitionLayout) {
+                    NavHost(
+                        navController = navController,
+                        startDestination =
+                        if (loggedInUserId == null) {
+                            AuthDestination.Login
+                        } else {
+                            BottomNavDestination.Discover.route
+                        },
+                        enterTransition = { fadeIn(animationSpec = tween(300, easing = FastOutSlowInEasing)) },
+                        exitTransition = { fadeOut(animationSpec = tween(300, easing = FastOutSlowInEasing)) },
+                        popEnterTransition = { fadeIn(animationSpec = tween(300, easing = FastOutSlowInEasing)) },
+                        popExitTransition = { fadeOut(animationSpec = tween(300, easing = FastOutSlowInEasing)) },
+                    ) {
+                        authGraph(navController)
+                        mainTabsGraph(navController)
+                        mangaDetailGraph(navController)
+                        reviewGraph(navController)
+                        readerGraph(navController)
+                    }
                 }
             }
         }

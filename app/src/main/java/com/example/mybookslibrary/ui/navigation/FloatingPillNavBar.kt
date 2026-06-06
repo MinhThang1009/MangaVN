@@ -26,10 +26,14 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import com.example.mybookslibrary.ui.util.appString
 
 @Composable
-internal fun FloatingPillNavBar(currentDestination: NavDestination?, onNavigate: (BottomNavDestination) -> Unit,) {
+internal fun FloatingPillNavBar(
+    currentDestination: NavDestination?,
+    onNavigate: (BottomNavDestination) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Box(
         modifier =
-        Modifier
+        modifier
             .fillMaxWidth()
             .navigationBarsPadding()
             .padding(horizontal = 32.dp, vertical = 16.dp)
@@ -43,7 +47,10 @@ internal fun FloatingPillNavBar(currentDestination: NavDestination?, onNavigate:
             modifier = Modifier.fillMaxWidth(),
         ) {
             Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 10.dp),
+                modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp, vertical = 10.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly,
             ) {
                 bottomDestinations.forEach { destination ->

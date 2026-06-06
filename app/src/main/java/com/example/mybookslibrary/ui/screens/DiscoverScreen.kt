@@ -1,6 +1,7 @@
 package com.example.mybookslibrary.ui.screens
 
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
@@ -16,13 +17,14 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.mybookslibrary.domain.model.MangaModel
 import com.example.mybookslibrary.ui.viewmodel.DiscoverViewModel
 
-@Suppress("unused")
+@Suppress("unused", "LongMethod", "LongParameterList")
 @Composable
 fun DiscoverScreenContent(
     onMangaClick: (MangaModel) -> Unit = {},
     onSearchClick: () -> Unit = {},
     onLibraryClick: () -> Unit = {},
     onProfileClick: () -> Unit = {},
+    modifier: Modifier = Modifier,
     vm: DiscoverViewModel = hiltViewModel(),
 ) {
     val uiState by vm.uiState.collectAsStateWithLifecycle()
@@ -36,6 +38,7 @@ fun DiscoverScreenContent(
     val exploreItems = remember(items) { if (items.size > 11) items.drop(11) else emptyList() }
 
     Scaffold(
+        modifier = modifier,
         topBar = {
             EditorialTopBar(
                 onSearchClick = onSearchClick,
@@ -46,15 +49,29 @@ fun DiscoverScreenContent(
         containerColor = MaterialTheme.colorScheme.background,
     ) { innerPadding ->
         when {
-            uiState.isLoading -> DiscoverLoadingState(Modifier.fillMaxSize().padding(innerPadding))
+            uiState.isLoading ->
+                DiscoverLoadingState(
+                    Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding)
+                        .consumeWindowInsets(innerPadding),
+                )
             uiState.error != null ->
                 DiscoverErrorState(
-                    modifier = Modifier.fillMaxSize().padding(innerPadding),
+                    modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding)
+                        .consumeWindowInsets(innerPadding),
                     onRetry = vm::loadDiscover,
                 )
             else ->
                 DiscoverContentList(
-                    modifier = Modifier.fillMaxSize().padding(innerPadding),
+                    modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding)
+                        .consumeWindowInsets(innerPadding),
                     contentPadding = PaddingValues(bottom = 100.dp),
                     spotlight = items.firstOrNull(),
                     popularItems = popularItems,
