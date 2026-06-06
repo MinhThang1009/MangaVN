@@ -1,6 +1,7 @@
 package com.example.mybookslibrary.ui.screens
 
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
@@ -46,15 +47,29 @@ fun DiscoverScreenContent(
         containerColor = MaterialTheme.colorScheme.background,
     ) { innerPadding ->
         when {
-            uiState.isLoading -> DiscoverLoadingState(Modifier.fillMaxSize().padding(innerPadding))
+            uiState.isLoading ->
+                DiscoverLoadingState(
+                    Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding)
+                        .consumeWindowInsets(innerPadding),
+                )
             uiState.error != null ->
                 DiscoverErrorState(
-                    modifier = Modifier.fillMaxSize().padding(innerPadding),
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .padding(innerPadding)
+                            .consumeWindowInsets(innerPadding),
                     onRetry = vm::loadDiscover,
                 )
             else ->
                 DiscoverContentList(
-                    modifier = Modifier.fillMaxSize().padding(innerPadding),
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .padding(innerPadding)
+                            .consumeWindowInsets(innerPadding),
                     contentPadding = PaddingValues(bottom = 100.dp),
                     spotlight = items.firstOrNull(),
                     popularItems = popularItems,
