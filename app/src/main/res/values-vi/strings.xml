@@ -34,6 +34,7 @@
     <string name="search_prompt_title">Khám phá câu chuyện tiếp theo</string>
     <string name="search_prompt_subtitle">Nhập ít nhất 2 ký tự để tìm kiếm</string>
     <string name="search_no_results">Không tìm thấy kết quả cho \"%1$s\"</string>
+    <string name="search_no_results_filter">Không có kết quả với bộ lọc hiện tại</string>
 
     <!-- Bộ lọc Search -->
     <string name="cd_filter">Bộ lọc</string>
@@ -45,6 +46,7 @@
     <string name="filter_section_status">Trạng thái</string>
     <string name="filter_clear">Xoá lọc</string>
     <string name="filter_apply">Áp dụng</string>
+    <string name="filter_tags_error">Không tải được thể loại — kiểm tra kết nối</string>
     <string name="filter_lang_en">Tiếng Anh</string>
     <string name="filter_lang_vi">Tiếng Việt</string>
     <string name="filter_lang_ja">Tiếng Nhật</string>

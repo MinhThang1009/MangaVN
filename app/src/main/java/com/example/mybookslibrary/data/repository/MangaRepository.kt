@@ -65,7 +65,7 @@ class MangaRepository(
                 runCatching {
                     api
                         .searchManga(
-                            title = query,
+                            title = query.ifBlank { null },
                             includes = listOf("cover_art"),
                             includedTags = filters.includedTagIds,
                             translatedLanguages = filters.languages,

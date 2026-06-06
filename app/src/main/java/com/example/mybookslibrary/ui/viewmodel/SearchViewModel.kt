@@ -35,6 +35,7 @@ data class SearchUiState(
     val selectedContentRatings: Set<String> = emptySet(),
     val selectedStatuses: Set<String> = emptySet(),
     val isFilterSheetOpen: Boolean = false,
+    val tagsError: Boolean = false,
     val activeFilterCount: Int = 0,
 )
 
@@ -51,12 +52,12 @@ class SearchViewModel
         private val _uiState = MutableStateFlow(SearchUiState())
         val uiState: StateFlow<SearchUiState> = _uiState.asStateFlow()
 
-        private val _query = MutableStateFlow("")
-        private val _filters = MutableStateFlow(SearchFilters())
+        private val queryFlow = MutableStateFlow("")
+        private val filtersFlow = MutableStateFlow(SearchFilters())
 
         init {
             loadTags()
-            combine(_query, _filters) { query, filters -> query to filters }
+            combine(queryFlow, filtersFlow) { query, filters -> query to filters }
                 .debounce(DEBOUNCE_MS)
                 .flatMapLatest { (query, filters) ->
                     // flatMapLatest huỷ search trước khi có (query, filters) mới → tránh kết quả cũ
@@ -79,7 +80,7 @@ class SearchViewModel
         }
 
         fun onQueryChange(query: String) {
-            _query.value = query
+            queryFlow.value = query
             _uiState.update { it.copy(query = query) }
         }
 
@@ -92,7 +93,7 @@ class SearchViewModel
         fun onToggleStatus(value: String) = updateFilters { it.copy(statuses = it.statuses.toggle(value)) }
 
         fun onClearFilters() {
-            _filters.value = SearchFilters()
+            filtersFlow.value = SearchFilters()
             syncFilterState(SearchFilters())
         }
 
@@ -102,20 +103,25 @@ class SearchViewModel
 
         private fun loadTags() {
             viewModelScope.launch {
-                repository.getTags().onSuccess { tags ->
-                    _uiState.update {
-                        it.copy(
-                            availableGenres = tags.filter { tag -> tag.group == MangaDexConstants.TAG_GROUP_GENRE },
-                            availableThemes = tags.filter { tag -> tag.group == MangaDexConstants.TAG_GROUP_THEME },
-                        )
+                repository
+                    .getTags()
+                    .onSuccess { tags ->
+                        _uiState.update {
+                            it.copy(
+                                availableGenres = tags.filter { tag -> tag.group == MangaDexConstants.TAG_GROUP_GENRE },
+                                availableThemes = tags.filter { tag -> tag.group == MangaDexConstants.TAG_GROUP_THEME },
+                                tagsError = false,
+                            )
+                        }
+                    }.onFailure {
+                        _uiState.update { it.copy(tagsError = true) }
                     }
-                }
             }
         }
 
         private fun updateFilters(transform: (SearchFilters) -> SearchFilters) {
-            val updated = transform(_filters.value)
-            _filters.value = updated
+            val updated = transform(filtersFlow.value)
+            filtersFlow.value = updated
             syncFilterState(updated)
         }
 

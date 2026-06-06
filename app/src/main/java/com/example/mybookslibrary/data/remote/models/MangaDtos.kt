@@ -11,6 +11,7 @@ object MangaDexConstants {
     const val COVER_BASE_URL = "https://uploads.mangadex.org/covers"
     const val LANG_EN = "en"
     const val LANG_VI = "vi"
+    const val LANG_JA = "ja"
 
     // Nhóm tag trả về từ /manga/tag (attributes.group)
     const val TAG_GROUP_GENRE = "genre"

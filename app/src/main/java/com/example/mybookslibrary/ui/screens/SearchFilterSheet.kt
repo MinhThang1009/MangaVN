@@ -66,6 +66,14 @@ fun SearchFilterSheet(
                 }
             }
 
+            if (state.tagsError) {
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    text = appString(R.string.filter_tags_error),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
             if (state.availableGenres.isNotEmpty()) {
                 FilterChipGroup(
                     titleRes = R.string.filter_section_genre,
@@ -88,7 +96,7 @@ fun SearchFilterSheet(
                     listOf(
                         MangaDexConstants.LANG_EN to appString(R.string.filter_lang_en),
                         MangaDexConstants.LANG_VI to appString(R.string.filter_lang_vi),
-                        LANG_JA to appString(R.string.filter_lang_ja),
+                        MangaDexConstants.LANG_JA to appString(R.string.filter_lang_ja),
                     ),
                 selected = state.selectedLanguages,
                 onToggle = onToggleLanguage,
@@ -153,5 +161,3 @@ private fun FilterChipGroup(
         }
     }
 }
-
-private const val LANG_JA = "ja"
