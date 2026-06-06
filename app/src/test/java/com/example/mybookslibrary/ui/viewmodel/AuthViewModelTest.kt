@@ -1,6 +1,7 @@
 package com.example.mybookslibrary.ui.viewmodel
 
 import android.content.Context
+import com.example.mybookslibrary.R
 import com.example.mybookslibrary.data.repository.AuthRepository
 import com.example.mybookslibrary.test.MainDispatcherRule
 import io.mockk.coEvery
@@ -28,7 +29,7 @@ class AuthViewModelTest {
             vm.login("", "pass")
             advanceUntilIdle()
 
-            assertEquals(AuthState.Error("Username and password cannot be empty"), vm.uiState.value)
+            assertEquals(AuthState.Error(UiText.Resource(R.string.auth_error_empty_fields)), vm.uiState.value)
             coVerify(exactly = 0) { repository.login(any(), any()) }
         }
 
@@ -53,7 +54,7 @@ class AuthViewModelTest {
             vm.login("u", "p")
             advanceUntilIdle()
 
-            assertEquals(AuthState.Error("sai mật khẩu"), vm.uiState.value)
+            assertEquals(AuthState.Error(UiText.Dynamic("sai mật khẩu")), vm.uiState.value)
         }
 
     @Test
@@ -65,7 +66,7 @@ class AuthViewModelTest {
             vm.login("u", "p")
             advanceUntilIdle()
 
-            assertEquals(AuthState.Error("Login failed"), vm.uiState.value)
+            assertEquals(AuthState.Error(UiText.Resource(R.string.error_unexpected)), vm.uiState.value)
         }
 
     @Test
@@ -91,7 +92,7 @@ class AuthViewModelTest {
             vm.login("user", "")
             advanceUntilIdle()
 
-            assertEquals(AuthState.Error("Username and password cannot be empty"), vm.uiState.value)
+            assertEquals(AuthState.Error(UiText.Resource(R.string.auth_error_empty_fields)), vm.uiState.value)
         }
 
     @Test
@@ -102,7 +103,7 @@ class AuthViewModelTest {
             vm.register("user", "")
             advanceUntilIdle()
 
-            assertEquals(AuthState.Error("Username and password cannot be empty"), vm.uiState.value)
+            assertEquals(AuthState.Error(UiText.Resource(R.string.auth_error_empty_fields)), vm.uiState.value)
             coVerify(exactly = 0) { repository.register(any(), any()) }
         }
 
@@ -127,7 +128,7 @@ class AuthViewModelTest {
             vm.register("u", "p")
             advanceUntilIdle()
 
-            assertEquals(AuthState.Error("Registration failed"), vm.uiState.value)
+            assertEquals(AuthState.Error(UiText.Resource(R.string.error_unexpected)), vm.uiState.value)
         }
 
     @Test
@@ -139,7 +140,7 @@ class AuthViewModelTest {
             vm.register("u", "p")
             advanceUntilIdle()
 
-            assertEquals(AuthState.Error("user tồn tại"), vm.uiState.value)
+            assertEquals(AuthState.Error(UiText.Dynamic("user tồn tại")), vm.uiState.value)
         }
 
     @Test
@@ -152,7 +153,7 @@ class AuthViewModelTest {
             vm.googleSignIn(context)
             advanceUntilIdle()
 
-            assertEquals(AuthState.Error("huỷ đăng nhập"), vm.uiState.value)
+            assertEquals(AuthState.Error(UiText.Dynamic("huỷ đăng nhập")), vm.uiState.value)
         }
 
     @Test
@@ -178,7 +179,7 @@ class AuthViewModelTest {
             vm.googleSignIn(context)
             advanceUntilIdle()
 
-            assertEquals(AuthState.Error("Google Sign-In failed"), vm.uiState.value)
+            assertEquals(AuthState.Error(UiText.Resource(R.string.error_unexpected)), vm.uiState.value)
         }
 
     @Test
@@ -189,7 +190,7 @@ class AuthViewModelTest {
             vm.register("", "p") // username rỗng -> nhánh trái của `||`
             advanceUntilIdle()
 
-            assertEquals(AuthState.Error("Username and password cannot be empty"), vm.uiState.value)
+            assertEquals(AuthState.Error(UiText.Resource(R.string.auth_error_empty_fields)), vm.uiState.value)
         }
 
     @Test

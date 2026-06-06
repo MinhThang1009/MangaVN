@@ -37,7 +37,7 @@ private fun authError(message: String?): UiText =
         "Username already exists" -> UiText.Resource(R.string.auth_error_username_exists)
         "Invalid username or password" -> UiText.Resource(R.string.auth_error_invalid_credentials)
         "Failed to save Google user" -> UiText.Resource(R.string.auth_error_google_save_failed)
-        null -> UiText.Dynamic("")
+        null -> UiText.Resource(R.string.error_unexpected)
         else -> UiText.Dynamic(message)
     }
 
