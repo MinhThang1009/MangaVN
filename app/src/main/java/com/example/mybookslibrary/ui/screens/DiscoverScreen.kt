@@ -24,6 +24,7 @@ fun DiscoverScreenContent(
     onSearchClick: () -> Unit = {},
     onLibraryClick: () -> Unit = {},
     onProfileClick: () -> Unit = {},
+    modifier: Modifier = Modifier,
     vm: DiscoverViewModel = hiltViewModel(),
 ) {
     val uiState by vm.uiState.collectAsStateWithLifecycle()
@@ -37,6 +38,7 @@ fun DiscoverScreenContent(
     val exploreItems = remember(items) { if (items.size > 11) items.drop(11) else emptyList() }
 
     Scaffold(
+        modifier = modifier,
         topBar = {
             EditorialTopBar(
                 onSearchClick = onSearchClick,

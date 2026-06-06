@@ -13,7 +13,12 @@ fun DiscoverScreen(
     onLibraryClick: () -> Unit = {},
     onProfileClick: () -> Unit = {},
 ) {
-    DiscoverScreenContent(onMangaClick, onSearchClick, onLibraryClick, onProfileClick)
+    DiscoverScreenContent(
+        onMangaClick = onMangaClick,
+        onSearchClick = onSearchClick,
+        onLibraryClick = onLibraryClick,
+        onProfileClick = onProfileClick,
+    )
 }
 
 @Composable
@@ -21,15 +26,18 @@ fun SearchScreen(
     onMangaClick: (MangaModel) -> Unit = {},
     viewModel: SearchViewModel = hiltViewModel(),
 ) {
-    SearchScreenContent(onMangaClick, viewModel)
+    SearchScreenContent(
+        onMangaClick = onMangaClick,
+        viewModel = viewModel,
+    )
 }
 
 @Composable
 fun LibraryScreen(onOpenDetail: (mangaId: String, title: String, coverUrl: String) -> Unit) {
-    LibraryScreenContent(onOpenDetail)
+    LibraryScreenContent(onOpenDetail = onOpenDetail)
 }
 
 @Composable
 fun SettingScreen(viewModel: SettingsViewModel = hiltViewModel()) {
-    SettingScreenContent(viewModel)
+    SettingScreenContent(viewModel = viewModel)
 }

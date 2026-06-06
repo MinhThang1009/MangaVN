@@ -26,14 +26,18 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import com.example.mybookslibrary.ui.util.appString
 
 @Composable
-internal fun FloatingPillNavBar(currentDestination: NavDestination?, onNavigate: (BottomNavDestination) -> Unit,) {
+internal fun FloatingPillNavBar(
+    currentDestination: NavDestination?,
+    onNavigate: (BottomNavDestination) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Box(
         modifier =
-        Modifier
-            .fillMaxWidth()
-            .navigationBarsPadding()
-            .padding(horizontal = 32.dp, vertical = 16.dp)
-            .background(Color.Transparent),
+            modifier
+                .fillMaxWidth()
+                .navigationBarsPadding()
+                .padding(horizontal = 32.dp, vertical = 16.dp)
+                .background(Color.Transparent),
         contentAlignment = Alignment.Center,
     ) {
         Card(
@@ -43,7 +47,10 @@ internal fun FloatingPillNavBar(currentDestination: NavDestination?, onNavigate:
             modifier = Modifier.fillMaxWidth(),
         ) {
             Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 10.dp),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp, vertical = 10.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly,
             ) {
                 bottomDestinations.forEach { destination ->
@@ -61,7 +68,12 @@ internal fun FloatingPillNavBar(currentDestination: NavDestination?, onNavigate:
 }
 
 @Composable
-private fun PillNavItem(icon: ImageVector, label: String, selected: Boolean, onClick: () -> Unit,) {
+private fun PillNavItem(
+    icon: ImageVector,
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
     val containerColor =
         if (selected) {
             MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
@@ -82,11 +94,11 @@ private fun PillNavItem(icon: ImageVector, label: String, selected: Boolean, onC
             imageVector = icon,
             contentDescription = label,
             tint =
-            if (selected) {
-                MaterialTheme.colorScheme.primary
-            } else {
-                MaterialTheme.colorScheme.onSurfaceVariant
-            },
+                if (selected) {
+                    MaterialTheme.colorScheme.primary
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                },
             modifier = Modifier.size(24.dp),
         )
     }

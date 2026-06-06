@@ -50,11 +50,15 @@ import com.example.mybookslibrary.ui.viewmodel.SearchViewModel
 @Composable
 fun SearchScreenContent(
     onMangaClick: (MangaModel) -> Unit = {},
+    modifier: Modifier = Modifier,
     viewModel: SearchViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    Scaffold(containerColor = MaterialTheme.colorScheme.background) { innerPadding ->
+    Scaffold(
+        modifier = modifier,
+        containerColor = MaterialTheme.colorScheme.background,
+    ) { innerPadding ->
         Column(
             Modifier
                 .fillMaxSize()

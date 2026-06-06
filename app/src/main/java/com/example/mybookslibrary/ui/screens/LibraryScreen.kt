@@ -55,12 +55,16 @@ import com.example.mybookslibrary.ui.viewmodel.LibraryViewModel
 @Composable
 fun LibraryScreenContent(
     onOpenDetail: (mangaId: String, title: String, coverUrl: String) -> Unit = { _, _, _ -> },
+    modifier: Modifier = Modifier,
     vm: LibraryViewModel = hiltViewModel(),
 ) {
     val items by vm.libraryItems.collectAsStateWithLifecycle(initialValue = emptyList())
     var pendingRemoval by remember { mutableStateOf<LibraryItemEntity?>(null) }
 
-    Scaffold(containerColor = MaterialTheme.colorScheme.background) { innerPadding ->
+    Scaffold(
+        modifier = modifier,
+        containerColor = MaterialTheme.colorScheme.background,
+    ) { innerPadding ->
         if (items.isEmpty()) {
             Box(
                 modifier =

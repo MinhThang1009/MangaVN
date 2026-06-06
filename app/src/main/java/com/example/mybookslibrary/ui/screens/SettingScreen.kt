@@ -34,7 +34,10 @@ import com.example.mybookslibrary.ui.viewmodel.SettingsViewModel
 
 @Suppress("unused")
 @Composable
-fun SettingScreenContent(viewModel: SettingsViewModel = hiltViewModel()) {
+fun SettingScreenContent(
+    modifier: Modifier = Modifier,
+    viewModel: SettingsViewModel = hiltViewModel(),
+) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
@@ -53,7 +56,10 @@ fun SettingScreenContent(viewModel: SettingsViewModel = hiltViewModel()) {
             context.contentResolver.openInputStream(uri)?.let { viewModel.restoreLibrary(it) }
         }
 
-    Scaffold(containerColor = MaterialTheme.colorScheme.background) { innerPadding ->
+    Scaffold(
+        modifier = modifier,
+        containerColor = MaterialTheme.colorScheme.background,
+    ) { innerPadding ->
         androidx.compose.foundation.lazy.LazyColumn(
             modifier =
                 Modifier
