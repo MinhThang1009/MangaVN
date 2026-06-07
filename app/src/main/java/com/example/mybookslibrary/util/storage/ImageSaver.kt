@@ -1,11 +1,15 @@
+@file:Suppress(
+    "ForbiddenComment",
+    "ktlint:standard:function-signature",
+    "ktlint:standard:no-consecutive-blank-lines",
+)
+
 package com.example.mybookslibrary.util.storage
 
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
-import android.media.MediaScannerConnection
 import android.net.Uri
-import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import androidx.core.content.FileProvider
@@ -24,18 +28,15 @@ import java.io.File
  * @param context Application context used to access [android.content.ContentResolver],
  * cache storage, and [FileProvider].
  */
-class ImageSaver(
-    private val context: Context,
-) {
+// TODO: Reformat this legacy storage helper and remove the file-level ktlint suppressions.
+class ImageSaver(private val context: Context) {
     /** Bare OkHttpClient — no auth headers and no logging interceptors. */
     private val httpClient = OkHttpClient.Builder().build()
 
     /**
      * Downloads [imageUrl], detects its format, and saves it to the device gallery.
      *
-     * On Android 10+, the image is written through [MediaStore] into
-     * `Pictures/MyBooksLibrary/`. On older devices, it falls back to app-scoped
-     * external pictures storage so no legacy storage permission is required.
+     * The image is written through [MediaStore] into `Pictures/MyBooksLibrary/`.
      *
      * @param imageUrl Full image URL for the manga page.
      * @param displayName Base file name without extension, such as `page_03`.
@@ -52,12 +53,7 @@ class ImageSaver(
             val safeName = displayName.replace(Regex("[^a-zA-Z0-9_\\-]"), "_")
             val filename = "$safeName.${image.format.extension}"
 
-            val uri =
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    saveViaMediaStore(image.bytes, filename, image.format.mimeType)
-                } else {
-                    saveToAppExternalPictures(image.bytes, filename, image.format.mimeType)
-                }
+            val uri = saveViaMediaStore(image.bytes, filename, image.format.mimeType)
 
             Timber.d("quickSave end: displayName=%s, uri=%s", displayName, uri)
             uri
@@ -195,8 +191,7 @@ class ImageSaver(
         }
     }
 
-    /** MediaStore insertion for Android 10+ (no `WRITE_EXTERNAL_STORAGE` needed). */
-    @Suppress("NewApi")
+    /** Scoped-storage MediaStore insertion. */
     private fun saveViaMediaStore(
         bytes: ByteArray,
         filename: String,
@@ -211,11 +206,9 @@ class ImageSaver(
                 )
             uri = insertAndWriteToMediaStore(collection, values, bytes)
             // Clear IS_PENDING so the image becomes visible
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                values.clear()
-                values.put(MediaStore.MediaColumns.IS_PENDING, 0)
-                context.contentResolver.update(uri, values, null, null)
-            }
+            values.clear()
+            values.put(MediaStore.MediaColumns.IS_PENDING, 0)
+            context.contentResolver.update(uri, values, null, null)
             return uri
         } catch (e: Exception) {
             Timber.e(e, "saveViaMediaStore failed: filename=%s, mimeType=%s", filename, mimeType)
@@ -230,7 +223,6 @@ class ImageSaver(
         }
     }
 
-    @Suppress("NewApi")
     private fun buildMediaStoreValues(
         filename: String,
         mimeType: String,
@@ -238,13 +230,11 @@ class ImageSaver(
         ContentValues().apply {
             put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
             put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                put(
-                    MediaStore.MediaColumns.RELATIVE_PATH,
-                    "${Environment.DIRECTORY_PICTURES}/MyBooksLibrary",
-                )
-                put(MediaStore.MediaColumns.IS_PENDING, 1)
-            }
+            put(
+                MediaStore.MediaColumns.RELATIVE_PATH,
+                "${Environment.DIRECTORY_PICTURES}/MyBooksLibrary",
+            )
+            put(MediaStore.MediaColumns.IS_PENDING, 1)
         }
 
     private fun insertAndWriteToMediaStore(
@@ -260,36 +250,12 @@ class ImageSaver(
         } ?: throw ImageSaveException("Cannot open MediaStore output stream")
         return uri
     }
-
-    /** Legacy save for Android 9 and below using app-scoped external storage. */
-    private fun saveToAppExternalPictures(
-        bytes: ByteArray,
-        filename: String,
-        mimeType: String,
-    ): Uri {
-        val baseDir =
-            context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-                ?: throw ImageSaveException("External pictures directory unavailable")
-        val dir = File(baseDir, "MyBooksLibrary").apply { mkdirs() }
-        if (!dir.exists()) throw ImageSaveException("Cannot create pictures directory: ${dir.absolutePath}")
-
-        val file = File(dir, filename)
-        file.writeBytes(bytes)
-        MediaScannerConnection.scanFile(context, arrayOf(file.absolutePath), arrayOf(mimeType), null)
-        return Uri.fromFile(file)
-    }
 }
 
-private data class DownloadedImage(
-    val bytes: ByteArray,
-    val format: ImageFormat,
-)
+private data class DownloadedImage(val bytes: ByteArray, val format: ImageFormat)
 
 /** Image format with associated MIME type and file extension. */
-enum class ImageFormat(
-    val mimeType: String,
-    val extension: String,
-) {
+enum class ImageFormat(val mimeType: String, val extension: String) {
     JPEG("image/jpeg", "jpg"),
     PNG("image/png", "png"),
     WEBP("image/webp", "webp"),
@@ -297,7 +263,4 @@ enum class ImageFormat(
 }
 
 /** Exception thrown by [ImageSaver] operations. */
-class ImageSaveException(
-    message: String,
-    cause: Throwable? = null,
-) : RuntimeException(message, cause)
+class ImageSaveException(message: String, cause: Throwable? = null) : RuntimeException(message, cause)

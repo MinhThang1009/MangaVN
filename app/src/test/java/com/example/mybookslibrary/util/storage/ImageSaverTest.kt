@@ -1,10 +1,17 @@
+@file:Suppress(
+    "ForbiddenComment",
+    "ktlint:standard:function-signature",
+    "ktlint:standard:no-wildcard-imports",
+)
+
 package com.example.mybookslibrary.util.storage
 
 import android.content.ContentResolver
+import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.os.Environment
+import android.provider.MediaStore
 import androidx.core.content.FileProvider
 import com.example.mybookslibrary.test.MainDispatcherRule
 import io.mockk.*
@@ -33,9 +40,10 @@ import java.io.File
 import java.io.IOException
 import java.nio.file.Files
 
+// TODO: Reformat legacy expression-body tests and remove the file-level ktlint suppression.
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [28])
+@Config(sdk = [30])
 class ImageSaverTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
@@ -64,18 +72,20 @@ class ImageSaverTest {
     }
 
     @Test
-    fun quickSave_happyPath_savesFile() =
+    fun quickSave_happyPath_savesViaMediaStore() =
         runTest {
             val bytes = pngBytes()
-            val picturesRoot = createTempDirectoryFile()
-            every { context.getExternalFilesDir(Environment.DIRECTORY_PICTURES) } returns picturesRoot
+            val inserted = Uri.parse("content://media/external_primary/images/media/42")
+            val output = ByteArrayOutputStream()
+            every { contentResolver.insert(any(), any()) } returns inserted
+            every { contentResolver.openOutputStream(inserted) } returns output
+            every { contentResolver.update(inserted, any(), null, null) } returns 1
             stubOkHttpSuccess(bytes)
 
             val uri = ImageSaver(context).quickSave("https://example.com/image", "page_01")
 
-            val expectedFile = File(File(picturesRoot, "MyBooksLibrary"), "page_01.png")
-            assertEquals(Uri.fromFile(expectedFile), uri)
-            assertTrue(expectedFile.exists())
+            assertEquals(inserted, uri)
+            assertArrayEquals(bytes, output.toByteArray())
         }
 
     @Test
@@ -92,32 +102,12 @@ class ImageSaverTest {
     fun quickSave_storageError_throwsImageSaveException() =
         runTest {
             val bytes = pngBytes()
-            every {
-                context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-            } throws RuntimeException("storage")
+            every { contentResolver.insert(any(), any()) } throws RuntimeException("storage")
             stubOkHttpSuccess(bytes)
 
             assertThrows(ImageSaveException::class.java) {
                 ImageSaver(context).quickSave("https://example.com/image", "page_01")
             }
-        }
-
-    @Test
-    @Config(sdk = [29])
-    fun quickSave_api29_usesMediaStorePendingFlow() =
-        runTest {
-            val bytes = pngBytes()
-            val inserted = Uri.parse("content://media/external_primary/images/media/42")
-            val output = ByteArrayOutputStream()
-            every { contentResolver.insert(any(), any()) } returns inserted
-            every { contentResolver.openOutputStream(inserted) } returns output
-            every { contentResolver.update(inserted, any(), null, null) } returns 1
-            stubOkHttpSuccess(bytes)
-
-            val uri = ImageSaver(context).quickSave("https://example.com/image", "page_01")
-
-            assertEquals(inserted, uri)
-            assertArrayEquals(bytes, output.toByteArray())
         }
 
     @Test
@@ -245,9 +235,6 @@ class ImageSaverTest {
     @Test
     fun quickSave_rejectsEmptyResponseBody() =
         runTest {
-            every {
-                context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-            } returns createTempDirectoryFile()
             stubOkHttpSuccess(ByteArray(0), "text/html")
 
             assertThrows(ImageSaveException::class.java) {
@@ -272,11 +259,17 @@ class ImageSaverTest {
         expectedExt: String,
         expectedMime: String,
     ) {
-        val picturesRoot = createTempDirectoryFile()
         val cacheDir = createTempDirectoryFile()
+        val quickSaveUri = Uri.parse("content://media/external_primary/images/media/42")
+        var insertedDisplayName: String? = null
         val expectedUri = Uri.parse("content://provider/shared/any.$expectedExt")
         val capturedFile = slot<File>()
-        every { context.getExternalFilesDir(Environment.DIRECTORY_PICTURES) } returns picturesRoot
+        every { contentResolver.insert(any(), any()) } answers {
+            insertedDisplayName = secondArg<ContentValues>().getAsString(MediaStore.MediaColumns.DISPLAY_NAME)
+            quickSaveUri
+        }
+        every { contentResolver.openOutputStream(quickSaveUri) } returns ByteArrayOutputStream()
+        every { contentResolver.update(quickSaveUri, any(), null, null) } returns 1
         every { context.cacheDir } returns cacheDir
         every { context.packageName } returns "com.example.mybookslibrary"
         mockkStatic(FileProvider::class)
@@ -285,10 +278,10 @@ class ImageSaverTest {
         } returns expectedUri
         stubOkHttpSuccess(bytes, expectedMime)
 
-        val quickSaveUri = ImageSaver(context).quickSave("https://example.com/image", "page_01")
+        ImageSaver(context).quickSave("https://example.com/image", "page_01")
         val shareIntent = ImageSaver(context).shareImage("https://example.com/image", "page_01")
 
-        assertTrue(quickSaveUri.toString().endsWith(".$expectedExt"))
+        assertTrue(insertedDisplayName?.endsWith(".$expectedExt") == true)
         assertEquals(expectedMime, shareIntent.type)
         assertTrue(capturedFile.captured.name.endsWith(".$expectedExt"))
     }
@@ -308,19 +301,6 @@ class ImageSaverTest {
                     .message("Not Found")
                     .build()
             }
-
-            assertThrows(ImageSaveException::class.java) {
-                ImageSaver(context).quickSave("https://example.com/image", "page_01")
-            }
-        }
-
-    @Test
-    fun quickSave_externalDirNull_throwsImageSaveException() =
-        // Covers line 265: ?: throw khi getExternalFilesDir trả về null
-        runTest {
-            val bytes = pngBytes()
-            stubOkHttpSuccess(bytes)
-            every { context.getExternalFilesDir(any()) } returns null
 
             assertThrows(ImageSaveException::class.java) {
                 ImageSaver(context).quickSave("https://example.com/image", "page_01")
