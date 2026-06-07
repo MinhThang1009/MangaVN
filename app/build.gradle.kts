@@ -122,6 +122,13 @@ val jacocoGeneratedFilter =
         "**/MainActivity\$*.*",
         "**/MainActivityKt.*",
         "**/AuthSession*.*",
+        // Navigation graph facades only wire typed routes, callbacks, transitions, and NavController.
+        // Their behavior is covered by navigation/UI tests, while JaCoCo cannot meaningfully trace
+        // most Compose navigation lambdas in JVM or combined reports.
+        "**/ui/navigation/MainTabsGraphKt*.*",
+        "**/ui/navigation/ComposableSingletons\$MainTabsGraphKt.*",
+        "**/ui/navigation/NavGraphExtensionsKt*.*",
+        "**/ui/navigation/ComposableSingletons\$NavGraphExtensionsKt.*",
         "**/ui/screens/reader/ReaderPreviewKt.*",
         "**/ui/screens/reader/ComposableSingletons\$ReaderPreviewKt.*",
         "**/ui/screens/reader/ReaderEffectHandlerKt*.*",
