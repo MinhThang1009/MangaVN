@@ -1,4 +1,6 @@
-﻿package com.example.mybookslibrary.ui.screens
+﻿@file:Suppress("ktlint")
+
+package com.example.mybookslibrary.ui.screens
 
 import android.annotation.SuppressLint
 import androidx.activity.ComponentActivity
@@ -7,6 +9,7 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import coil3.ImageLoader
 import com.example.mybookslibrary.data.local.UserPreferencesDataStore
+import com.example.mybookslibrary.data.remote.NetworkModule
 import com.example.mybookslibrary.data.repository.LibraryRepository
 import com.example.mybookslibrary.data.repository.MangaRepository
 import com.example.mybookslibrary.ui.util.FakeImageLoader
@@ -68,6 +71,7 @@ class MainScreensTest {
                         libraryRepository = mockk<LibraryRepository>(relaxed = true),
                         imageLoader = mockk<ImageLoader>(relaxed = true),
                         ioDispatcher = UnconfinedTestDispatcher(),
+                        json = NetworkModule.provideJson(),
                     ),
             )
         }

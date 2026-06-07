@@ -8,6 +8,7 @@ import androidx.compose.ui.test.performClick
 import coil3.ImageLoader
 import com.example.mybookslibrary.data.local.LibraryItemEntity
 import com.example.mybookslibrary.data.local.UserPreferencesDataStore
+import com.example.mybookslibrary.data.remote.NetworkModule
 import com.example.mybookslibrary.data.repository.LibraryRepository
 import com.example.mybookslibrary.ui.viewmodel.SettingsViewModel
 import io.mockk.coEvery
@@ -52,6 +53,7 @@ class SettingScreenContentTest {
             libraryRepository = libraryRepo,
             imageLoader = imageLoader,
             ioDispatcher = UnconfinedTestDispatcher(),
+            json = NetworkModule.provideJson(),
         )
     }
 
