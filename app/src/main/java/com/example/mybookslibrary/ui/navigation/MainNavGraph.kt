@@ -2,7 +2,6 @@
 
 package com.example.mybookslibrary.ui.navigation
 
-import android.net.Uri
 import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -29,96 +28,45 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.mybookslibrary.R
+import kotlin.reflect.KClass
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 val LocalSharedTransitionScope = compositionLocalOf<SharedTransitionScope?> { null }
 val LocalNavAnimatedVisibilityScope = compositionLocalOf<AnimatedVisibilityScope?> { null }
 
-sealed class BottomNavDestination(val route: String, @param:StringRes val labelRes: Int, val icon: ImageVector,) {
-    data object Discover : BottomNavDestination("discover", R.string.nav_discover, Icons.Filled.Home)
+sealed class BottomNavDestination(
+    val destination: Any,
+    val routeClass: KClass<out Any>,
+    @param:StringRes val labelRes: Int,
+    val icon: ImageVector,
+) {
+    data object DiscoverTab :
+        BottomNavDestination(Discover, Discover::class, R.string.nav_discover, Icons.Filled.Home)
 
-    data object Search : BottomNavDestination("search", R.string.nav_search, Icons.Filled.Search)
+    data object SearchTab :
+        BottomNavDestination(Search, Search::class, R.string.nav_search, Icons.Filled.Search)
 
-    data object Library : BottomNavDestination("library", R.string.nav_library, Icons.Filled.Favorite)
+    data object LibraryTab :
+        BottomNavDestination(Library, Library::class, R.string.nav_library, Icons.Filled.Favorite)
 
-    data object Setting : BottomNavDestination("setting", R.string.nav_setting, Icons.Filled.Person)
+    data object SettingTab :
+        BottomNavDestination(Setting, Setting::class, R.string.nav_setting, Icons.Filled.Person)
 }
 
 internal val bottomDestinations =
     listOf(
-        BottomNavDestination.Discover,
-        BottomNavDestination.Search,
-        BottomNavDestination.Library,
-        BottomNavDestination.Setting,
+        BottomNavDestination.DiscoverTab,
+        BottomNavDestination.SearchTab,
+        BottomNavDestination.LibraryTab,
+        BottomNavDestination.SettingTab,
     )
-
-object AuthDestination {
-    const val Login = "login"
-    const val Register = "register"
-}
-
-object ReaderDestination {
-    const val route = "reader"
-    private const val mangaIdArg = "mangaId"
-    private const val chapterIdArg = "chapterId"
-    private const val chapterTitleArg = "chapterTitle"
-    private const val startPageIndexArg = "startPageIndex"
-    const val routePattern = "$route/{$mangaIdArg}/{$chapterIdArg}/{$chapterTitleArg}/{$startPageIndexArg}"
-
-    fun createRoute(mangaId: String, chapterId: String, chapterTitle: String, startPageIndex: Int,) =
-        "$route/${Uri.encode(mangaId)}/${Uri.encode(chapterId)}/${Uri.encode(chapterTitle)}/$startPageIndex"
-
-    const val mangaIdArgumentName = mangaIdArg
-    const val chapterIdArgumentName = chapterIdArg
-    const val chapterTitleArgumentName = chapterTitleArg
-    const val startPageIndexArgumentName = startPageIndexArg
-}
-
-object MangaDetailDestination {
-    private const val NAV_ARG_DESC_MAX_LENGTH = 600
-    const val route = "manga_detail"
-    private const val mangaIdArg = "mangaId"
-    private const val titleArg = "title"
-    private const val coverArtArg = "coverArt"
-    private const val descriptionArg = "description"
-    private const val tagsArg = "tags"
-    const val routePattern = "$route/{$mangaIdArg}/{$titleArg}/{$coverArtArg}/{$descriptionArg}/{$tagsArg}"
-
-    fun createRoute(
-        mangaId: String,
-        title: String,
-        coverArt: String?,
-        description: String,
-        tags: List<String>,
-    ): String {
-        val safeDesc = description.take(NAV_ARG_DESC_MAX_LENGTH)
-        val safeTags = tags.take(3).joinToString(",")
-        return "$route/${Uri.encode(mangaId)}/${Uri.encode(title)}/${Uri.encode(coverArt ?: "")}/" +
-            "${Uri.encode(safeDesc)}/${Uri.encode(safeTags)}"
-    }
-
-    const val mangaIdArgumentName = mangaIdArg
-    const val titleArgumentName = titleArg
-    const val coverArtArgumentName = coverArtArg
-    const val descriptionArgumentName = descriptionArg
-    const val tagsArgumentName = tagsArg
-}
-
-object MangaReviewDestination {
-    const val route = "manga_review"
-    private const val mangaIdArg = "mangaId"
-    const val routePattern = "$route/{$mangaIdArg}"
-
-    fun createRoute(mangaId: String) = "$route/${Uri.encode(mangaId)}"
-
-    const val mangaIdArgumentName = mangaIdArg
-}
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -129,12 +77,11 @@ fun MainNavHost(loggedInUserId: String?) {
 
     LaunchedEffect(loggedInUserId) {
         if (loggedInUserId == null) {
-            val current = currentDestination?.route
-            if (current != null &&
-                current != AuthDestination.Login &&
-                current != AuthDestination.Register
+            if (currentDestination != null &&
+                !currentDestination.hasRoute<Login>() &&
+                !currentDestination.hasRoute<Register>()
             ) {
-                navController.navigate(AuthDestination.Login) {
+                navController.navigate(Login) {
                     popUpTo(0) { inclusive = true }
                     launchSingleTop = true
                 }
@@ -144,11 +91,11 @@ fun MainNavHost(loggedInUserId: String?) {
 
     val showBottomBar =
         currentDestination?.hierarchy?.none { dest ->
-            dest.route == AuthDestination.Login ||
-                dest.route == AuthDestination.Register ||
-                dest.route?.startsWith(ReaderDestination.route) == true ||
-                dest.route?.startsWith(MangaDetailDestination.route) == true ||
-                dest.route?.startsWith(MangaReviewDestination.route) == true
+            dest.hasRoute<Login>() ||
+                dest.hasRoute<Register>() ||
+                dest.hasRoute<Reader>() ||
+                dest.hasRoute<MangaDetail>() ||
+                dest.hasRoute<MangaReview>()
         } ?: true
     Scaffold(
         bottomBar = {
@@ -156,7 +103,7 @@ fun MainNavHost(loggedInUserId: String?) {
                 FloatingPillNavBar(
                     currentDestination = currentDestination,
                     onNavigate = { destination ->
-                        navController.navigate(destination.route) {
+                        navController.navigate(destination.destination) {
                             popUpTo(navController.graph.findStartDestination().id) { saveState = true }
                             launchSingleTop = true
                             restoreState = true
@@ -175,9 +122,9 @@ fun MainNavHost(loggedInUserId: String?) {
                         navController = navController,
                         startDestination =
                         if (loggedInUserId == null) {
-                            AuthDestination.Login
+                            Login
                         } else {
-                            BottomNavDestination.Discover.route
+                            Discover
                         },
                         enterTransition = { fadeIn(animationSpec = tween(300, easing = FastOutSlowInEasing)) },
                         exitTransition = { fadeOut(animationSpec = tween(300, easing = FastOutSlowInEasing)) },

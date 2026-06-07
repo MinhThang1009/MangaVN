@@ -3,6 +3,7 @@ package com.example.mybookslibrary.ui.viewmodel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.toRoute
 import com.example.mybookslibrary.data.download.OfflineDownloadManager
 import com.example.mybookslibrary.data.repository.LibraryRepository
 import com.example.mybookslibrary.data.repository.MangaRepository
@@ -10,7 +11,7 @@ import com.example.mybookslibrary.di.IoDispatcher
 import com.example.mybookslibrary.domain.model.ChapterWithProgressModel
 import com.example.mybookslibrary.domain.model.MangaModel
 import com.example.mybookslibrary.domain.usecase.GetChapterListWithProgressUseCase
-import com.example.mybookslibrary.ui.navigation.MangaDetailDestination
+import com.example.mybookslibrary.ui.navigation.MangaDetail
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
@@ -45,11 +46,7 @@ class MangaDetailViewModel
         private val offlineDownloadManager: OfflineDownloadManager,
         @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     ) : ViewModel() {
-        private val mangaId: String =
-            savedStateHandle
-                .get<String>(
-                    MangaDetailDestination.mangaIdArgumentName,
-                ).orEmpty()
+        private val mangaId: String = savedStateHandle.toRoute<MangaDetail>().mangaId
 
         private val _uiState = MutableStateFlow(MangaDetailUiState())
         val uiState: StateFlow<MangaDetailUiState> = _uiState.asStateFlow()
