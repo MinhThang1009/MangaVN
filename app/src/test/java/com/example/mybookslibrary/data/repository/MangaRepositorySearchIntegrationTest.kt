@@ -9,14 +9,16 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.json.Json
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
+import okhttp3.MediaType.Companion.toMediaType
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.converter.kotlinx.serialization.asConverterFactory
 
 /**
  * Integration test cho [MangaRepository.searchManga] và getTags qua Retrofit + [MockWebServer] thật.
@@ -38,7 +40,12 @@ class MangaRepositorySearchIntegrationTest {
             Retrofit
                 .Builder()
                 .baseUrl(mockWebServer.url("/"))
-                .addConverterFactory(GsonConverterFactory.create())
+                .addConverterFactory(
+                    Json {
+                        ignoreUnknownKeys = true
+                        coerceInputValues = true
+                    }.asConverterFactory("application/json".toMediaType()),
+                )
                 .build()
                 .create(MangaDexApi::class.java)
         val prefs = mockk<UserPreferencesDataStore>()

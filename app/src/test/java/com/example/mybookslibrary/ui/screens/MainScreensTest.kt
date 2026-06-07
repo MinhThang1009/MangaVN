@@ -17,6 +17,7 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.serialization.json.Json
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -68,6 +69,7 @@ class MainScreensTest {
                         libraryRepository = mockk<LibraryRepository>(relaxed = true),
                         imageLoader = mockk<ImageLoader>(relaxed = true),
                         ioDispatcher = UnconfinedTestDispatcher(),
+                        json = Json { ignoreUnknownKeys = true },
                     ),
             )
         }

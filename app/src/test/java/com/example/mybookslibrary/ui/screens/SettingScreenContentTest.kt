@@ -13,6 +13,7 @@ import com.example.mybookslibrary.ui.viewmodel.SettingsViewModel
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.serialization.json.Json
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -52,6 +53,7 @@ class SettingScreenContentTest {
             libraryRepository = libraryRepo,
             imageLoader = imageLoader,
             ioDispatcher = UnconfinedTestDispatcher(),
+            json = Json { ignoreUnknownKeys = true },
         )
     }
 
