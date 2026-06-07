@@ -259,7 +259,12 @@ class ChapterDownloadWorkerFailureTest {
                     offlineDownloadRepository,
                     storage,
                     DownloadNotifier(appContext),
-                    OkHttpClient(),
+                    PageDownloader(
+                        mangaRepository = mangaRepository,
+                        offlineDownloadStorage = storage,
+                        imageOkHttpClient = OkHttpClient(),
+                        ioDispatcher = UnconfinedTestDispatcher(),
+                    ),
                 )
         }
 
