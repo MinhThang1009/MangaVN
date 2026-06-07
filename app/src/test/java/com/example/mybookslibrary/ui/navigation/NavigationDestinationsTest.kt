@@ -19,6 +19,11 @@ class NavigationDestinationsTest {
     }
 
     @Test
+    fun mangaReview_preservesMangaId() {
+        assertEquals(MangaReview(mangaId = "manga-1"), MangaReview(mangaId = "manga-1"))
+    }
+
+    @Test
     fun reader_preservesAllArguments() {
         val route =
             Reader(
