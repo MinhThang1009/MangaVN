@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.toRoute
 import com.example.mybookslibrary.R
 import com.example.mybookslibrary.di.IoDispatcher
 import com.example.mybookslibrary.domain.model.ReaderTapAction
@@ -11,6 +12,7 @@ import com.example.mybookslibrary.domain.model.ReadingMode
 import com.example.mybookslibrary.domain.usecase.LoadReaderPagesUseCase
 import com.example.mybookslibrary.domain.usecase.SyncReadingProgressUseCase
 import com.example.mybookslibrary.domain.usecase.TapZoneEvaluator
+import com.example.mybookslibrary.ui.navigation.Reader
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -39,10 +41,11 @@ constructor(
 ) : AndroidViewModel(application) {
     private fun str(resId: Int) = getApplication<Application>().getString(resId)
 
-    private val mangaId: String = savedStateHandle.get<String>(MANGA_ID_ARG).orEmpty()
-    private val chapterId: String = savedStateHandle.get<String>(CHAPTER_ID_ARG).orEmpty()
-    private val chapterTitleArg: String = savedStateHandle.get<String>(CHAPTER_TITLE_ARG).orEmpty()
-    private val startPageIndexArg: Int = savedStateHandle.get<Int>(START_PAGE_INDEX_ARG) ?: 0
+    private val route: Reader = savedStateHandle.toRoute()
+    private val mangaId: String = route.mangaId
+    private val chapterId: String = route.chapterId
+    private val chapterTitleArg: String = route.chapterTitle
+    private val startPageIndexArg: Int = route.startPageIndex
 
     private var lastSyncedPageIndex: Int? = null
     private var pendingPageIndex: Int? = null
@@ -261,12 +264,6 @@ constructor(
         }
     }
 
-    companion object {
-        private const val MANGA_ID_ARG = "mangaId"
-        private const val CHAPTER_ID_ARG = "chapterId"
-        private const val CHAPTER_TITLE_ARG = "chapterTitle"
-        private const val START_PAGE_INDEX_ARG = "startPageIndex"
-    }
 }
 
 private fun ReadingMode.next(): ReadingMode = when (this) {
