@@ -184,8 +184,10 @@ class MangaDetailViewModel
 
         fun startChapterDownload(chapterId: String) {
             if (mangaId.isBlank() || chapterId.isBlank()) return
+            val mangaTitle = _uiState.value.mangaDetail?.title ?: ""
+            val chapterTitle = _uiState.value.chapters.find { it.chapterId == chapterId }?.title ?: ""
             launchSafe {
-                offlineDownloadManager.enqueueDownload(mangaId, chapterId)
+                offlineDownloadManager.enqueueDownload(mangaId, chapterId, mangaTitle, chapterTitle)
             }
         }
 

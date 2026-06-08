@@ -10,6 +10,7 @@ enum class ChapterDownloadStatus {
     NOT_DOWNLOADED,
     PENDING,
     DOWNLOADING,
+    PAUSED,
     DOWNLOADED,
     ERROR,
 }

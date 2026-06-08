@@ -41,6 +41,9 @@ internal fun NavGraphBuilder.authGraph(navController: NavHostController) {
 
 internal fun NavGraphBuilder.mangaDetailGraph(navController: NavHostController) {
     composable<MangaDetail>(
+        deepLinks = listOf(
+            androidx.navigation.navDeepLink<MangaDetail>(basePath = "mybookslibrary://manga")
+        ),
         enterTransition = {
             scaleIn(initialScale = 0.9f, animationSpec = navTween()) + fadeIn(animationSpec = navTween())
         },

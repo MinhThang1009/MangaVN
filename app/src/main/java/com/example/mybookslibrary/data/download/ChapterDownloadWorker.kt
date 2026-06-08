@@ -9,8 +9,11 @@ package com.example.mybookslibrary.data.download
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import android.content.pm.ServiceInfo
+import android.net.Uri
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.hilt.work.HiltWorker
@@ -63,6 +66,8 @@ class ChapterDownloadWorker
         override suspend fun doWork(): Result {
             val mangaId = inputData.getString(KEY_MANGA_ID).orEmpty()
             val chapterId = inputData.getString(KEY_CHAPTER_ID).orEmpty()
+            val mangaTitle = inputData.getString(KEY_MANGA_TITLE) ?: "Unknown Manga"
+            val chapterTitle = inputData.getString(KEY_CHAPTER_TITLE) ?: "Unknown Chapter"
 
             if (mangaId.isBlank() || chapterId.isBlank()) {
                 Timber.e("ChapterDownloadWorker missing input: mangaId=%s chapterId=%s", mangaId, chapterId)
@@ -70,7 +75,7 @@ class ChapterDownloadWorker
             }
 
             Timber.d("ChapterDownloadWorker start: mangaId=%s chapterId=%s", mangaId, chapterId)
-            setForeground(createForegroundInfo(chapterId, progressPercent = 0, indeterminate = true))
+            setForeground(createForegroundInfo(mangaId, chapterId, mangaTitle, chapterTitle, progressPercent = 0, indeterminate = true))
             offlineDownloadRepository.updateQueueStatus(chapterId, DownloadStatus.DOWNLOADING, 0)
 
             return try {
@@ -86,7 +91,7 @@ class ChapterDownloadWorker
                         errorThreshold = FAILOVER_ERROR_THRESHOLD,
                     )
                 val completedPages = AtomicInteger(0)
-                setForeground(createForegroundInfo(chapterId, progressPercent = 0, indeterminate = false))
+                setForeground(createForegroundInfo(mangaId, chapterId, mangaTitle, chapterTitle, progressPercent = 0, indeterminate = false))
 
                 (0 until failoverCoordinator.totalPages)
                     .asFlow()
@@ -115,7 +120,7 @@ class ChapterDownloadWorker
                                 progressPercent = progress,
                             )
                             setProgress(workDataOf(KEY_PROGRESS_PERCENT to progress))
-                            setForeground(createForegroundInfo(chapterId, progressPercent = progress, indeterminate = false))
+                            setForeground(createForegroundInfo(mangaId, chapterId, mangaTitle, chapterTitle, progressPercent = progress, indeterminate = false))
                             emit(Unit)
                         }
                     }.collect()
@@ -138,8 +143,8 @@ class ChapterDownloadWorker
                     Timber.w(e, "markChapterDownloaded lỗi sau khi đã ghi marker (scan sẽ tự sửa): chapterId=%s", chapterId)
                 }
                 setProgress(workDataOf(KEY_PROGRESS_PERCENT to 100))
-                setForeground(createForegroundInfo(chapterId, progressPercent = 100, indeterminate = false))
-                showFinishedNotification(chapterId, success = true, message = "Chapter download complete")
+                setForeground(createForegroundInfo(mangaId, chapterId, mangaTitle, chapterTitle, progressPercent = 100, indeterminate = false))
+                showFinishedNotification(mangaId, chapterId, mangaTitle, chapterTitle, success = true, message = "Chapter download complete")
                 Timber.d(
                     "ChapterDownloadWorker success: mangaId=%s chapterId=%s pages=%d",
                     mangaId,
@@ -159,7 +164,10 @@ class ChapterDownloadWorker
                     errorMessage = t.message,
                 )
                 showFinishedNotification(
+                    mangaId = mangaId,
                     chapterId = chapterId,
+                    mangaTitle = mangaTitle,
+                    chapterTitle = chapterTitle,
                     success = false,
                     message = t.message ?: "Chapter download failed",
                 )
@@ -187,6 +195,12 @@ class ChapterDownloadWorker
                 val pageUrl = failoverCoordinator.pageUrl(pageIndex)
 
                 try {
+                    if (offlineDownloadStorage.isPageDownloaded(mangaId, chapterId, pageIndex)) {
+                        Timber.d("downloadPage skipped (already downloaded): chapterId=%s pageIndex=%d", chapterId, pageIndex)
+                        failoverCoordinator.onPageSuccess()
+                        return
+                    }
+
                     downloadPage(
                         mangaId = mangaId,
                         chapterId = chapterId,
@@ -318,13 +332,47 @@ class ChapterDownloadWorker
 
         @ExcludeFromGeneratedCoverage // Notification/ForegroundInfo + nhánh Build.VERSION — Android glue
         private fun createForegroundInfo(
+            mangaId: String,
             chapterId: String,
+            mangaTitle: String,
+            chapterTitle: String,
             progressPercent: Int,
             indeterminate: Boolean,
         ): ForegroundInfo {
             ensureNotificationChannel()
-            val title = "Downloading chapter"
-            val content = if (indeterminate) "Preparing download" else "$progressPercent%"
+            val title = if (mangaTitle.isNotBlank()) mangaTitle else "Downloading chapter"
+            val content = if (indeterminate) "Preparing $chapterTitle" else "Downloading $chapterTitle - $progressPercent%"
+
+            val deepLinkIntent = Intent(Intent.ACTION_VIEW, Uri.parse("mybookslibrary://manga/$mangaId"))
+            val pendingDeepLink = PendingIntent.getActivity(
+                applicationContext,
+                mangaId.hashCode(),
+                deepLinkIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+
+            fun actionIntent(action: String) = Intent(applicationContext, DownloadNotificationReceiver::class.java).apply {
+                this.action = action
+                putExtra(DownloadNotificationReceiver.EXTRA_MANGA_ID, mangaId)
+                putExtra(DownloadNotificationReceiver.EXTRA_CHAPTER_ID, chapterId)
+                putExtra(DownloadNotificationReceiver.EXTRA_MANGA_TITLE, mangaTitle)
+                putExtra(DownloadNotificationReceiver.EXTRA_CHAPTER_TITLE, chapterTitle)
+            }
+
+            val pauseIntent = PendingIntent.getBroadcast(
+                applicationContext,
+                chapterId.hashCode() + 1,
+                actionIntent(DownloadNotificationReceiver.ACTION_PAUSE),
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+
+            val cancelIntent = PendingIntent.getBroadcast(
+                applicationContext,
+                chapterId.hashCode() + 2,
+                actionIntent(DownloadNotificationReceiver.ACTION_CANCEL),
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+
             val notification =
                 NotificationCompat
                     .Builder(applicationContext, NOTIFICATION_CHANNEL_ID)
@@ -333,6 +381,9 @@ class ChapterDownloadWorker
                     .setContentText(content)
                     .setOngoing(true)
                     .setOnlyAlertOnce(true)
+                    .setContentIntent(pendingDeepLink)
+                    .addAction(android.R.drawable.ic_media_pause, "Pause", pauseIntent)
+                    .addAction(android.R.drawable.ic_menu_close_clear_cancel, "Cancel", cancelIntent)
                     .setProgress(100, progressPercent.coerceIn(0, 100), indeterminate)
                     .build()
 
@@ -360,17 +411,33 @@ class ChapterDownloadWorker
 
         @ExcludeFromGeneratedCoverage // NotificationManagerCompat + permission/SecurityException — Android glue
         private fun showFinishedNotification(
+            mangaId: String,
             chapterId: String,
+            mangaTitle: String,
+            chapterTitle: String,
             success: Boolean,
             message: String,
         ) {
             ensureNotificationChannel()
+            
+            val deepLinkIntent = Intent(Intent.ACTION_VIEW, Uri.parse("mybookslibrary://manga/$mangaId"))
+            val pendingDeepLink = PendingIntent.getActivity(
+                applicationContext,
+                mangaId.hashCode(),
+                deepLinkIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+
+            val notificationTitle = if (mangaTitle.isNotBlank()) mangaTitle else (if (success) "Download complete" else "Download failed")
+            val notificationContent = if (chapterTitle.isNotBlank()) "$chapterTitle: $message" else message
+
             val notification =
                 NotificationCompat
                     .Builder(applicationContext, NOTIFICATION_CHANNEL_ID)
                     .setSmallIcon(R.drawable.ic_stat_name)
-                    .setContentTitle(if (success) "Download complete" else "Download failed")
-                    .setContentText(message)
+                    .setContentTitle(notificationTitle)
+                    .setContentText(notificationContent)
+                    .setContentIntent(pendingDeepLink)
                     .setAutoCancel(true)
                     .setOnlyAlertOnce(false)
                     .build()
@@ -386,9 +453,6 @@ class ChapterDownloadWorker
                 Timber.w(securityException, "Finished notification skipped: missing notification permission")
             }
         }
-
-        private fun notificationIdFor(chapterId: String): Int =
-            NOTIFICATION_ID_BASE + (chapterId.hashCode().absoluteValue % NOTIFICATION_ID_RANGE)
 
         private fun finishedNotificationIdFor(chapterId: String): Int =
             FINISHED_NOTIFICATION_ID_BASE + (chapterId.hashCode().absoluteValue % NOTIFICATION_ID_RANGE)
@@ -415,8 +479,91 @@ class ChapterDownloadWorker
         companion object {
             const val KEY_MANGA_ID = "manga_id"
             const val KEY_CHAPTER_ID = "chapter_id"
+            const val KEY_MANGA_TITLE = "manga_title"
+            const val KEY_CHAPTER_TITLE = "chapter_title"
             const val KEY_PROGRESS_PERCENT = "progress_percent"
             const val KEY_ERROR = "error"
+
+            fun notificationIdFor(chapterId: String): Int =
+                NOTIFICATION_ID_BASE + (chapterId.hashCode().absoluteValue % NOTIFICATION_ID_RANGE)
+
+            fun showPausedNotification(
+                context: Context,
+                mangaId: String,
+                chapterId: String,
+                mangaTitle: String,
+                chapterTitle: String,
+            ) {
+                val manager = context.getSystemService(NotificationManager::class.java)
+                val existing = manager.getNotificationChannel(NOTIFICATION_CHANNEL_ID)
+                if (existing == null) {
+                    manager.createNotificationChannel(
+                        NotificationChannel(
+                            NOTIFICATION_CHANNEL_ID,
+                            "Offline downloads",
+                            NotificationManager.IMPORTANCE_LOW,
+                        ),
+                    )
+                }
+
+                val title = if (mangaTitle.isNotBlank()) mangaTitle else "Download paused"
+                val content = if (chapterTitle.isNotBlank()) "Paused: $chapterTitle" else "Download paused"
+
+                val deepLinkIntent = Intent(Intent.ACTION_VIEW, Uri.parse("mybookslibrary://manga/$mangaId"))
+                val pendingDeepLink = PendingIntent.getActivity(
+                    context,
+                    mangaId.hashCode(),
+                    deepLinkIntent,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                )
+
+                fun actionIntent(action: String) = Intent(context, DownloadNotificationReceiver::class.java).apply {
+                    this.action = action
+                    putExtra(DownloadNotificationReceiver.EXTRA_MANGA_ID, mangaId)
+                    putExtra(DownloadNotificationReceiver.EXTRA_CHAPTER_ID, chapterId)
+                    putExtra(DownloadNotificationReceiver.EXTRA_MANGA_TITLE, mangaTitle)
+                    putExtra(DownloadNotificationReceiver.EXTRA_CHAPTER_TITLE, chapterTitle)
+                }
+
+                val resumeIntent = PendingIntent.getBroadcast(
+                    context,
+                    chapterId.hashCode() + 3,
+                    actionIntent(DownloadNotificationReceiver.ACTION_RESUME),
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                )
+
+                val cancelIntent = PendingIntent.getBroadcast(
+                    context,
+                    chapterId.hashCode() + 4,
+                    actionIntent(DownloadNotificationReceiver.ACTION_CANCEL),
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                )
+
+                val notification =
+                    NotificationCompat
+                        .Builder(context, NOTIFICATION_CHANNEL_ID)
+                        .setSmallIcon(R.drawable.ic_stat_name)
+                        .setContentTitle(title)
+                        .setContentText(content)
+                        .setOngoing(false)
+                        .setContentIntent(pendingDeepLink)
+                        .addAction(android.R.drawable.ic_media_play, "Resume", resumeIntent)
+                        .addAction(android.R.drawable.ic_menu_close_clear_cancel, "Cancel", cancelIntent)
+                        .build()
+
+                try {
+                    val notificationManager = NotificationManagerCompat.from(context)
+                    if (notificationManager.areNotificationsEnabled()) {
+                        notificationManager.notify(notificationIdFor(chapterId), notification)
+                    }
+                } catch (e: SecurityException) {
+                    Timber.w(e, "Paused notification skipped: missing permission")
+                }
+            }
+
+            fun cancelNotification(context: Context, chapterId: String) {
+                NotificationManagerCompat.from(context).cancel(notificationIdFor(chapterId))
+            }
 
             private const val PAGE_DOWNLOAD_CONCURRENCY = 3
             private const val FAILOVER_ERROR_THRESHOLD = 3

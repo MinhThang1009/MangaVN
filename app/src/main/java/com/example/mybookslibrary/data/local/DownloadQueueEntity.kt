@@ -10,6 +10,7 @@ import androidx.room.TypeConverters
 enum class DownloadStatus {
     PENDING,
     DOWNLOADING,
+    PAUSED,
     COMPLETED,
     ERROR,
 }

@@ -115,6 +115,11 @@ private fun DownloadQueueEntity?.toDownloadState(isDownloaded: Boolean): Chapter
                 status = ChapterDownloadStatus.DOWNLOADING,
                 progressPercent = progress_percent,
             )
+        DownloadStatus.PAUSED ->
+            ChapterDownloadState(
+                status = ChapterDownloadStatus.PAUSED,
+                progressPercent = progress_percent,
+            )
         DownloadStatus.COMPLETED -> ChapterDownloadState()
         DownloadStatus.ERROR ->
             ChapterDownloadState(

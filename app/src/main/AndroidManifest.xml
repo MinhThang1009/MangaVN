@@ -25,7 +25,23 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="mybookslibrary" android:host="manga" />
+            </intent-filter>
         </activity>
+
+        <receiver
+            android:name=".data.download.DownloadNotificationReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.example.mybookslibrary.action.PAUSE_DOWNLOAD" />
+                <action android:name="com.example.mybookslibrary.action.RESUME_DOWNLOAD" />
+                <action android:name="com.example.mybookslibrary.action.CANCEL_DOWNLOAD" />
+            </intent-filter>
+        </receiver>
 
         <!--
             WorkManager library (AAR) tự merge WorkManagerInitializer vào manifest.

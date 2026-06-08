@@ -225,6 +225,24 @@ private fun ChapterDownloadIndicator(
                 }
             }
         }
+        ChapterDownloadStatus.PAUSED -> {
+            IconButton(onClick = onStartDownload) {
+                Box(contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(
+                        progress = { state.progressPercent.coerceIn(0, 100) / 100f },
+                        modifier = Modifier.size(24.dp),
+                        strokeWidth = 2.dp,
+                        color = tint,
+                    )
+                    Icon(
+                        imageVector = Icons.Filled.Download,
+                        contentDescription = appString(R.string.chapter_download),
+                        modifier = Modifier.size(14.dp),
+                        tint = tint,
+                    )
+                }
+            }
+        }
         ChapterDownloadStatus.DOWNLOADED -> {
             IconButton(onClick = onDeleteDownload) {
                 Icon(

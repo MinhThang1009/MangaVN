@@ -93,6 +93,19 @@ class OfflineDownloadStorage
             }
 
         /**
+         * Checks if a specific page is already fully downloaded.
+         */
+        suspend fun isPageDownloaded(mangaId: String, chapterId: String, pageIndex: Int): Boolean =
+            withContext(ioDispatcher) {
+                val chapterDir = chapterDirectory(mangaId, chapterId)
+                if (!chapterDir.exists()) return@withContext false
+                val prefix = "$PAGE_PREFIX${pageIndex.coerceAtLeast(0).toString().padStart(PAGE_INDEX_WIDTH, '0')}."
+                chapterDir.listFiles { file ->
+                    file.isFile && file.name.startsWith(prefix) && !file.name.endsWith(TEMP_SUFFIX)
+                }?.isNotEmpty() == true
+            }
+
+        /**
          * Writes the marker used to distinguish a completed download from leftover partial pages.
          */
         suspend fun markChapterComplete(
