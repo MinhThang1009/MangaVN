@@ -149,6 +149,7 @@ fun MainNavHost(loggedInUserId: String?) {
                         mangaDetailGraph(navController)
                         reviewGraph(navController)
                         readerGraph(navController)
+                    
                     }
                 }
             }

@@ -44,6 +44,28 @@ class LibraryRepository(
         )
     }
 
+    /** Thêm sách local (ví dụ PDF) vào thư viện. */
+    suspend fun addLocalBook(
+        title: String,
+        fileUri: String,
+    ) {
+        val now = System.currentTimeMillis()
+        val generatedId = "local_${java.util.UUID.randomUUID()}"
+        libraryDao.upsert(
+            LibraryItemEntity(
+                manga_id = generatedId,
+                title = title,
+                cover_url = "", // Có thể set ảnh bìa mặc định hoặc parse từ PDF sau
+                status = LibraryStatus.READING,
+                last_read_chapter_id = null,
+                last_read_page_index = 0,
+                updated_at = now,
+                is_local = true,
+                file_uri = fileUri,
+            ),
+        )
+    }
+
     /** Xóa manga khỏi thư viện (chỉ library row, không xóa chapter progress). */
     suspend fun removeFromLibrary(mangaId: String) {
         libraryDao.deleteByMangaId(mangaId)
@@ -51,6 +73,11 @@ class LibraryRepository(
 
     /** Kiểm tra manga đã có trong thư viện chưa. */
     suspend fun isInLibrary(mangaId: String): Boolean = libraryDao.getByMangaId(mangaId) != null
+
+    /**
+     * Lấy item trong thư viện theo ID.
+     */
+    suspend fun getLibraryItemById(mangaId: String): LibraryItemEntity? = libraryDao.getByMangaId(mangaId)
 
     /** Xóa toàn bộ thư viện. Gọi khi sign out. */
     suspend fun clearAll() {

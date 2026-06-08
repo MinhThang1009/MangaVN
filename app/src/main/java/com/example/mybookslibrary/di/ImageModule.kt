@@ -52,6 +52,7 @@ object ImageModule {
                     .build()
             }.components {
                 add(OkHttpNetworkFetcherFactory(callFactory = { imageOkHttpClient }))
+                add(com.example.mybookslibrary.data.image.PdfPageFetcher.Factory(context))
             }.build()
     }
 }

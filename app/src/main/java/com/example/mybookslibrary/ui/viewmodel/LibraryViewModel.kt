@@ -26,4 +26,23 @@ class LibraryViewModel
                 repository.removeBookmark(mangaId)
             }
         }
+
+        @Suppress("TooGenericExceptionCaught")
+        fun importLocalBook(
+            context: android.content.Context,
+            uri: android.net.Uri,
+            title: String,
+        ) {
+            viewModelScope.launch(ioDispatcher) {
+                try {
+                    context.contentResolver.takePersistableUriPermission(
+                        uri,
+                        android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION,
+                    )
+                    repository.addLocalBook(title = title, fileUri = uri.toString())
+                } catch (e: Exception) {
+                    timber.log.Timber.e(e, "Failed to import local book")
+                }
+            }
+        }
     }

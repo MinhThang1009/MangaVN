@@ -1,5 +1,7 @@
 package com.example.mybookslibrary.ui.screens
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -18,11 +20,18 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Book
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -33,6 +42,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -56,16 +66,46 @@ import com.example.mybookslibrary.ui.viewmodel.LibraryViewModel
 @Composable
 fun LibraryScreenContent(
     onOpenDetail: (mangaId: String) -> Unit = {},
+    onOpenLocalBook: (mangaId: String, title: String) -> Unit = { _, _ -> },
     modifier: Modifier = Modifier,
     vm: LibraryViewModel = hiltViewModel(),
 ) {
     val items by vm.libraryItems.collectAsStateWithLifecycle(initialValue = emptyList())
     var pendingRemoval by remember { mutableStateOf<LibraryItemEntity?>(null) }
     val bottomNavPadding = LocalBottomNavPadding.current
+    val context = LocalContext.current
+
+    var showImportSheet by remember { mutableStateOf(false) }
+    var pendingImportUri by remember { mutableStateOf<android.net.Uri?>(null) }
+
+    // Launcher for file picker
+    val launcher = rememberLauncherForActivityResult(
+        contract = androidx.activity.result.contract.ActivityResultContracts.OpenDocument(),
+    ) { uri ->
+        if (uri != null) {
+            // Need a way to ask for title here, or ask for title first then pick file.
+            // Let's create a state for pending import
+            pendingImportUri = uri
+            showImportSheet = true
+        }
+    }
 
     Scaffold(
         modifier = modifier,
         containerColor = MaterialTheme.colorScheme.background,
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { launcher.launch(arrayOf("application/pdf")) },
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            ) {
+                Row(modifier = Modifier.padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Add, contentDescription = "Add")
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Add your book")
+                }
+            }
+        },
     ) { innerPadding ->
         if (items.isEmpty()) {
             Box(
@@ -119,7 +159,14 @@ fun LibraryScreenContent(
                         title = item.title,
                         coverUrl = item.cover_url,
                         status = item.status,
-                        onClick = { onOpenDetail(item.manga_id) },
+                        isLocal = item.is_local,
+                        onClick = { 
+                            if (item.is_local && item.file_uri != null) {
+                                onOpenLocalBook(item.manga_id, item.title)
+                            } else {
+                                onOpenDetail(item.manga_id)
+                            }
+                        },
                         onLongClick = { pendingRemoval = item },
                     )
                 }
@@ -155,6 +202,51 @@ fun LibraryScreenContent(
                 }
             }
         }
+
+        if (showImportSheet && pendingImportUri != null) {
+            var inputTitle by remember { mutableStateOf("") }
+            ModalBottomSheet(onDismissRequest = {
+                showImportSheet = false
+                pendingImportUri = null
+            }) {
+                Column(modifier = Modifier.fillMaxWidth().padding(24.dp)) {
+                    Text(
+                        text = "Import Local Book",
+                        style = MaterialTheme.typography.titleLarge,
+                    )
+                    Spacer(Modifier.height(16.dp))
+                    OutlinedTextField(
+                        value = inputTitle,
+                        onValueChange = { inputTitle = it },
+                        label = { Text("Book Title") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                    )
+                    Spacer(Modifier.height(24.dp))
+                    Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
+                        TextButton(onClick = {
+                            showImportSheet = false
+                            pendingImportUri = null
+                        }) {
+                            Text("Cancel")
+                        }
+                        Spacer(Modifier.width(8.dp))
+                        Button(
+                            onClick = {
+                                if (inputTitle.isNotBlank()) {
+                                    vm.importLocalBook(context, pendingImportUri!!, inputTitle)
+                                    showImportSheet = false
+                                    pendingImportUri = null
+                                }
+                            },
+                            enabled = inputTitle.isNotBlank(),
+                        ) {
+                            Text("Import")
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -163,6 +255,7 @@ private fun LibraryItemCard(
     title: String,
     coverUrl: String,
     status: LibraryStatus,
+    isLocal: Boolean = false,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
 ) {
@@ -178,12 +271,21 @@ private fun LibraryItemCard(
                 shape = RoundedCornerShape(8.dp),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
             ) {
-                AsyncImage(
-                    model = coverUrl,
-                    contentDescription = title,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize(),
-                )
+                if (isLocal) {
+                    Icon(
+                        imageVector = Icons.Default.Book,
+                        contentDescription = title,
+                        modifier = Modifier.fillMaxSize().padding(16.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                } else {
+                    coil3.compose.AsyncImage(
+                        model = coverUrl,
+                        contentDescription = title,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
             }
             Spacer(Modifier.width(16.dp))
             Column(Modifier.weight(1f)) {

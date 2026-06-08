@@ -62,6 +62,9 @@ private fun NavGraphBuilder.libraryTab(navController: NavHostController) {
                 onOpenDetail = { mangaId ->
                     navController.navigate(MangaDetail(mangaId))
                 },
+                onOpenLocalBook = { mangaId, title ->
+                    navController.navigate(Reader(mangaId, mangaId, title, 0))
+                },
             )
         }
     }

@@ -16,6 +16,7 @@ import com.example.mybookslibrary.ui.screens.MangaReviewScreen
 import com.example.mybookslibrary.ui.screens.auth.LoginScreen
 import com.example.mybookslibrary.ui.screens.auth.RegisterScreen
 import com.example.mybookslibrary.ui.screens.detail.MangaDetailScreen
+
 import com.example.mybookslibrary.ui.screens.reader.ReaderScreen
 
 internal fun NavGraphBuilder.authGraph(navController: NavHostController) {

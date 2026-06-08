@@ -5,10 +5,21 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.mybookslibrary.data.local.dao.ChapterDao
 import com.example.mybookslibrary.data.local.dao.DownloadQueueDao
 import com.example.mybookslibrary.data.local.dao.LibraryDao
 import com.example.mybookslibrary.data.local.dao.UserDao
+
+@Suppress("MagicNumber")
+val MIGRATION_3_4 =
+    object : Migration(3, 4) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE library_items ADD COLUMN is_local INTEGER NOT NULL DEFAULT 0")
+            db.execSQL("ALTER TABLE library_items ADD COLUMN file_uri TEXT")
+        }
+    }
 
 @Database(
     entities = [
@@ -17,7 +28,7 @@ import com.example.mybookslibrary.data.local.dao.UserDao
         ChapterProgressEntity::class,
         DownloadQueueEntity::class,
     ],
-    version = 3,
+    version = 4,
     exportSchema = true,
 )
 @TypeConverters(LibraryStatusConverters::class)
@@ -49,6 +60,7 @@ abstract class AppDatabase : RoomDatabase() {
                             AppDatabase::class.java,
                             "mybooks_library.db",
                         )
+                        .addMigrations(MIGRATION_3_4)
                         // Không dùng fallbackToDestructiveMigration: thiếu migration khi bump version
                         // sẽ fail loud (giữ nguyên dữ liệu trên đĩa) thay vì xóa sạch thư viện người dùng.
                         .build()
