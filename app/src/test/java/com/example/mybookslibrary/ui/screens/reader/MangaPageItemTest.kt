@@ -1,5 +1,7 @@
 ﻿package com.example.mybookslibrary.ui.screens.reader
 
+import android.graphics.Bitmap
+import android.graphics.Color
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
@@ -9,6 +11,8 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import com.example.mybookslibrary.ui.util.FakeImageLoader
 import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -16,6 +20,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
+import java.io.File
 
 @Config(qualifiers = "w411dp-h4000dp-xxhdpi")
 @RunWith(RobolectricTestRunner::class)
@@ -54,6 +59,33 @@ class MangaPageItemTest {
         }
         composeRule.waitForIdle()
         composeRule.onNodeWithContentDescription("Reader page 2").assertIsDisplayed()
+    }
+
+    @Test
+    fun rendersLocalFileUri_withoutReaderSchemeError() {
+        val localPage =
+            File(composeRule.activity.cacheDir, "reader-local-page.png").apply {
+                outputStream().use { output ->
+                    Bitmap
+                        .createBitmap(2, 2, Bitmap.Config.ARGB_8888)
+                        .apply { eraseColor(Color.WHITE) }
+                        .compress(Bitmap.CompressFormat.PNG, 100, output)
+                }
+            }
+        composeRule.setContent {
+            MangaPageItem(
+                imageUrl = localPage.toURI().toString(),
+                index = 0,
+                modifier = Modifier.fillMaxSize(),
+            )
+        }
+
+        composeRule.waitForIdle()
+
+        composeRule.onNodeWithContentDescription("Reader page 1").assertIsDisplayed()
+        assertTrue(pageImageData(localPage.toURI().toString()) is File)
+        assertEquals("https://example.com/page.jpg", pageImageData("https://example.com/page.jpg"))
+        localPage.delete()
     }
 
     @Test

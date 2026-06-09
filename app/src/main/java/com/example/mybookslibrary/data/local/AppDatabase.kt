@@ -12,6 +12,9 @@ import com.example.mybookslibrary.data.local.dao.DownloadQueueDao
 import com.example.mybookslibrary.data.local.dao.LibraryDao
 import com.example.mybookslibrary.data.local.dao.UserDao
 
+private const val PREVIOUS_DATABASE_VERSION = 3
+private const val CURRENT_DATABASE_VERSION = 4
+
 @Database(
     entities = [
         UserEntity::class,
@@ -20,7 +23,7 @@ import com.example.mybookslibrary.data.local.dao.UserDao
         DownloadQueueEntity::class,
         ChapterMetadataEntity::class,
     ],
-    version = 4,
+    version = CURRENT_DATABASE_VERSION,
     exportSchema = true,
 )
 @TypeConverters(LibraryStatusConverters::class)
@@ -63,7 +66,7 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         val migration3To4 =
-            object : Migration(3, 4) {
+            object : Migration(PREVIOUS_DATABASE_VERSION, CURRENT_DATABASE_VERSION) {
                 override fun migrate(db: SupportSQLiteDatabase) {
                     db.execSQL(
                         """

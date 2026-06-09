@@ -46,6 +46,8 @@ import me.saket.telephoto.zoomable.coil3.ZoomableAsyncImage
 import me.saket.telephoto.zoomable.rememberZoomableImageState
 import me.saket.telephoto.zoomable.rememberZoomableState
 import timber.log.Timber
+import java.io.File
+import java.net.URI
 
 /**
  * Renders one zoomable manga page with dynamic sizing, retry support, and long-press actions.
@@ -127,7 +129,8 @@ private fun buildPageImageRequest(
 ): ImageRequest =
     ImageRequest
         .Builder(context)
-        .data("$imageUrl#retry=$retryHash")
+        .data(pageImageData(imageUrl))
+        .memoryCacheKey("$imageUrl#retry=$retryHash")
         .listener(
             onStart = {
                 onLoadingChanged(false)
@@ -140,6 +143,13 @@ private fun buildPageImageRequest(
                 Timber.w(result.throwable, "Failed to load page=%d url=%s", displayPage(pageIndex), imageUrl)
             },
         ).build()
+
+internal fun pageImageData(imageUrl: String): Any =
+    if (imageUrl.startsWith(FILE_URI_PREFIX)) {
+        File(URI(imageUrl))
+    } else {
+        imageUrl
+    }
 
 @Composable
 private fun MangaPageImage(
@@ -208,6 +218,7 @@ private fun displayPage(index: Int): Int = index + 1
 private const val ERROR_OVERLAY_ALPHA = 0.7f
 private const val ERROR_ICON_ALPHA = 0.7f
 private const val ERROR_TEXT_ALPHA = 0.6f
+private const val FILE_URI_PREFIX = "file:"
 private const val PREVIEW_PAGE_URL = "https://example.com/preview-page.jpg"
 
 @Preview(name = "Manga Page Item", showBackground = true)

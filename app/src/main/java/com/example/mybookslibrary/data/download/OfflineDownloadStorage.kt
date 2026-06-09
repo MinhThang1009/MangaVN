@@ -93,6 +93,29 @@ class OfflineDownloadStorage
             }
 
         /**
+         * Verifies that [chapterId] is a completed physical download.
+         *
+         * A directory with partial pages but no completion marker is intentionally invalid.
+         */
+        suspend fun verifyDownloadedChapter(
+            mangaId: String,
+            chapterId: String,
+        ): Boolean =
+            withContext(ioDispatcher) {
+                val chapterDir = chapterDirectory(mangaId, chapterId)
+                val isDownloaded =
+                    File(chapterDir, COMPLETION_MARKER).isFile &&
+                        getValidPageFiles(chapterDir).isNotEmpty()
+                Timber.d(
+                    "verifyDownloadedChapter: mangaId=%s chapterId=%s downloaded=%s",
+                    mangaId,
+                    chapterId,
+                    isDownloaded,
+                )
+                isDownloaded
+            }
+
+        /**
          * Writes the marker used to distinguish a completed download from leftover partial pages.
          */
         suspend fun markChapterComplete(
@@ -177,7 +200,11 @@ class OfflineDownloadStorage
 
         private fun getValidPageFiles(chapterDir: File): List<File> =
             chapterDir
-                .listFiles { file -> file.isFile && file.name.startsWith(PAGE_PREFIX) && !file.name.endsWith(TEMP_SUFFIX) }
+                .listFiles { file ->
+                    file.isFile &&
+                        file.name.startsWith(PAGE_PREFIX) &&
+                        !file.name.endsWith(TEMP_SUFFIX)
+                }
                 ?.sortedBy { file -> pageIndexFromName(file.name) }
                 .orEmpty()
 
@@ -209,7 +236,10 @@ class OfflineDownloadStorage
                 .toIntOrNull()
                 ?: Int.MAX_VALUE
 
-        private fun safeSegment(raw: String): String = raw.replace(Regex("[^a-zA-Z0-9._-]"), "_").ifBlank { UNKNOWN_SEGMENT }
+        private fun safeSegment(raw: String): String =
+            raw
+                .replace(Regex("[^a-zA-Z0-9._-]"), "_")
+                .ifBlank { UNKNOWN_SEGMENT }
 
         private companion object {
             const val ROOT_DIRECTORY = "offline_manga"

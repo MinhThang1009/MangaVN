@@ -14,24 +14,26 @@ constructor(
     private val offlineDownloadStorage: OfflineDownloadStorage,
 ) {
     /**
-     * Loads local chapter pages when available, otherwise falls back to the network source.
+     * Routes verified physical downloads to local files before considering MangaDex@Home.
      */
     suspend operator fun invoke(mangaId: String, chapterId: String,): Result<List<String>> = runCatching {
-        val isDownloaded = downloadedChapterCache.isChapterDownloaded(chapterId)
-        val localPages =
-            if (isDownloaded) {
-                offlineDownloadStorage.getChapterPages(mangaId, chapterId)
-            } else {
-                emptyList()
-            }
+        val wasCachedAsDownloaded = chapterId in downloadedChapterCache.downloadedChapterIds.value
+        val isPhysicallyDownloaded = offlineDownloadStorage.verifyDownloadedChapter(mangaId, chapterId)
 
-        if (localPages.isNotEmpty()) {
-            return@runCatching localPages.map { it.toURI().toString() }
+        if (isPhysicallyDownloaded) {
+            if (!wasCachedAsDownloaded) {
+                downloadedChapterCache.addChapter(chapterId)
+            }
+            val localPages = offlineDownloadStorage.getChapterPages(mangaId, chapterId)
+            if (localPages.isNotEmpty()) {
+                return@runCatching localPages.map { it.toURI().toString() }
+            }
         }
 
-        if (isDownloaded) {
+        if (wasCachedAsDownloaded || isPhysicallyDownloaded) {
+            downloadedChapterCache.removeChapter(chapterId)
             Timber.w(
-                "LoadReaderPagesUseCase local missing, fallback network: mangaId=%s chapterId=%s",
+                "LoadReaderPagesUseCase physical download invalid, fallback network: mangaId=%s chapterId=%s",
                 mangaId,
                 chapterId,
             )

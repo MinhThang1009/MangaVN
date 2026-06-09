@@ -33,6 +33,28 @@ class OfflineDownloadStorageTest {
         }
 
     @Test
+    fun verifyDownloadedChapter_requiresCompletionMarkerAndPage() =
+        runTest {
+            val storage = storage()
+            storage.deleteChapter(MANGA_ID, CHAPTER_ID)
+
+            try {
+                assertFalse(storage.verifyDownloadedChapter(MANGA_ID, CHAPTER_ID))
+
+                storage.savePage(MANGA_ID, CHAPTER_ID, pageIndex = 0, byteStream = pageBytes())
+                assertFalse(storage.verifyDownloadedChapter(MANGA_ID, CHAPTER_ID))
+
+                storage.markChapterComplete(MANGA_ID, CHAPTER_ID)
+                assertTrue(storage.verifyDownloadedChapter(MANGA_ID, CHAPTER_ID))
+
+                storage.deleteChapter(MANGA_ID, CHAPTER_ID)
+                assertFalse(storage.verifyDownloadedChapter(MANGA_ID, CHAPTER_ID))
+            } finally {
+                storage.deleteChapter(MANGA_ID, CHAPTER_ID)
+            }
+        }
+
+    @Test
     fun backfillCompletionMarkers_marksLegacyDirectoryOnce() =
         runTest {
             val storage = storage()

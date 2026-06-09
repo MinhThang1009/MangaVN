@@ -74,6 +74,7 @@ class OfflineDownloadStorageBranchTest {
             File(dir, ".complete").createNewFile()
 
             assertFalse("marker-only" in storage.scanDownloadedChapters())
+            assertFalse(storage.verifyDownloadedChapter(MANGA, "marker-only"))
             storage.deleteChapter(MANGA, "marker-only")
         }
 
