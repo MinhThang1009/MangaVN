@@ -2,11 +2,8 @@ package com.example.mybookslibrary.data.download
 
 import android.content.Context
 import com.example.mybookslibrary.data.repository.ChapterDelivery
-import com.example.mybookslibrary.data.repository.MangaRepository
-import io.mockk.coVerify
-import io.mockk.mockk
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -34,7 +31,6 @@ import java.util.concurrent.atomic.AtomicInteger
 @OptIn(ExperimentalCoroutinesApi::class)
 class PageDownloaderTest {
     private val context: Context get() = RuntimeEnvironment.getApplication()
-    private val mangaRepository = mockk<MangaRepository>(relaxed = true)
 
     private lateinit var storage: OfflineDownloadStorage
     private lateinit var server: MockWebServer
@@ -139,8 +135,6 @@ class PageDownloaderTest {
                     }
                 val refreshCount = AtomicInteger(0)
                 val filenames = listOf("p1.png", "p2.png", "p3.png")
-                val oldBaseUrl = oldServer.url("/").toString().trimEnd('/')
-                val newBaseUrl = newServer.url("/").toString().trimEnd('/')
                 val coordinator =
                     AtHomeFailoverCoordinator(
                         initialDelivery = delivery(oldServer, filenames),
@@ -240,8 +234,8 @@ class PageDownloaderTest {
     @Test
     fun downloadPageWithFailover_skipsExistingPage() =
         runTest {
-            val file = storage.savePage(MANGA_ID, CHAPTER_ID, 0, java.io.ByteArrayInputStream("existing".toByteArray()))
-            
+            storage.savePage(MANGA_ID, CHAPTER_ID, 0, java.io.ByteArrayInputStream("existing".toByteArray()))
+
             // This should not be hit
             server.enqueue(MockResponse().setResponseCode(500).setBody("should not be called"))
             val coordinator = coordinator(delivery(server, filenames = listOf("page-1.png")))
@@ -262,7 +256,6 @@ class PageDownloaderTest {
         ioDispatcher: kotlinx.coroutines.CoroutineDispatcher = UnconfinedTestDispatcher(),
     ): PageDownloader =
         PageDownloader(
-            mangaRepository = mangaRepository,
             offlineDownloadStorage = storage,
             imageOkHttpClient = OkHttpClient(),
             ioDispatcher = ioDispatcher,

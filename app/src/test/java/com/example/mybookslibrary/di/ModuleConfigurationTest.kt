@@ -3,7 +3,6 @@ package com.example.mybookslibrary.di
 import android.content.Context
 import com.example.mybookslibrary.data.remote.NetworkModule
 import io.mockk.every
-import io.mockk.mockk
 import io.mockk.spyk
 import org.junit.Assert.assertNotNull
 import org.junit.Test

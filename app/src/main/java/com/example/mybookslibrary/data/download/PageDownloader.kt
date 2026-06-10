@@ -1,13 +1,10 @@
 package com.example.mybookslibrary.data.download
 
-import com.example.mybookslibrary.data.repository.MangaRepository
 import com.example.mybookslibrary.di.IoDispatcher
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -16,7 +13,6 @@ import timber.log.Timber
 import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Named
-import kotlin.time.TimeSource
 
 /**
  * Downloads individual MangaDex@Home pages into offline storage.
@@ -24,7 +20,7 @@ import kotlin.time.TimeSource
 class PageDownloader
     @Inject
     constructor(
-        private val mangaRepository: MangaRepository,
+
         private val offlineDownloadStorage: OfflineDownloadStorage,
         @param:Named("ImageOkHttpClient") private val imageOkHttpClient: OkHttpClient,
         @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
@@ -108,7 +104,7 @@ class PageDownloader
             }
 
             Timber.d("downloadPage start: chapterId=%s pageIndex=%d url=%s", chapterId, pageIndex, pageUrl)
-            val startedAt = TimeSource.Monotonic.markNow()
+
             var bytes = 0L
             var cached = false
             var success = false

@@ -46,7 +46,6 @@ class DownloadedChapterCache
                     storage.backfillCompletionMarkers(legacyDownloadedIds)
                     chapterDao.clearDownloadedChapterFlags()
                     scanDownloadedChapters()
-                    
                     val corruptedChapters = storage.scanCorruptedChapters()
                     for ((mangaId, chapterId) in corruptedChapters) {
                         downloadQueueDao.upsert(
@@ -59,8 +58,11 @@ class DownloadedChapterCache
                             )
                         )
                     }
-                    
-                    Timber.d("DownloadedChapterCache initialized: count=%d, corrupted=%d", downloadedChapterIds.value.size, corruptedChapters.size)
+                    Timber.d(
+                        "DownloadedChapterCache initialized: count=%d, corrupted=%d",
+                        downloadedChapterIds.value.size,
+                        corruptedChapters.size,
+                    )
                 } catch (cancellationException: CancellationException) {
                     throw cancellationException
                 } catch (t: Throwable) {

@@ -105,19 +105,19 @@ class OfflineDownloadStorage
                 val chapterDir = chapterDirectory(mangaId, chapterId)
                 val pages = getValidPageFiles(chapterDir)
                 val marker = File(chapterDir, COMPLETION_MARKER)
-                
+
                 var isValid = false
                 if (marker.isFile && pages.isNotEmpty()) {
                     val content = runCatching { marker.readText().trim() }.getOrNull()
                     val expectedPages = content?.toIntOrNull()
-                    
+
                     isValid = if (expectedPages != null) {
                         pages.size == expectedPages && pageIndexFromName(pages.last().name) == pages.size - 1
                     } else {
                         pageIndexFromName(pages.last().name) == pages.size - 1
                     }
                 }
-                
+
                 Timber.d(
                     "verifyDownloadedChapter: mangaId=%s chapterId=%s downloaded=%s",
                     mangaId,
@@ -163,7 +163,9 @@ class OfflineDownloadStorage
                                 } else {
                                     pageIndexFromName(pages.last().name) == pages.size - 1
                                 }
-                            } else false
+                            } else {
+                                false
+                            }
                         }.mapTo(linkedSetOf()) { chapterDir -> chapterDir.name }
                 Timber.d("scanDownloadedChapters: count=%d", downloadedIds.size)
                 downloadedIds
@@ -211,7 +213,7 @@ class OfflineDownloadStorage
             withContext(ioDispatcher) {
                 val chapterDir = chapterDirectory(mangaId, chapterId)
                 if (!chapterDir.exists()) return@withContext null
-                
+
                 val pages = getValidPageFiles(chapterDir)
                 pages.firstOrNull { pageIndexFromName(it.name) == pageIndex && it.length() > 0 }
             }

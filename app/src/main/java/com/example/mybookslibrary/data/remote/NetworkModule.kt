@@ -4,14 +4,11 @@ package com.example.mybookslibrary.data.remote
 
 import android.content.Context
 import android.util.Log
-import com.example.mybookslibrary.data.repository.MangaRepository
-import com.example.mybookslibrary.di.ApplicationScope
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import okhttp3.Cache

@@ -2,7 +2,6 @@ package com.example.mybookslibrary.data.repository
 
 import com.example.mybookslibrary.data.local.UserPreferencesDataStore
 import com.example.mybookslibrary.data.remote.MangaDexApi
-import com.example.mybookslibrary.data.remote.models.AtHomeReportRequest
 import com.example.mybookslibrary.data.remote.models.MangaDexConstants
 import com.example.mybookslibrary.data.remote.models.toDomainModel
 import com.example.mybookslibrary.di.IoDispatcher
@@ -10,7 +9,6 @@ import com.example.mybookslibrary.domain.model.ChapterModel
 import com.example.mybookslibrary.domain.model.MangaModel
 import com.example.mybookslibrary.domain.model.MangaTag
 import com.example.mybookslibrary.domain.model.SearchFilters
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -18,7 +16,6 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 import java.io.IOException
 import com.example.mybookslibrary.data.remote.models.toDomainModel as chapterToDomainModel
 

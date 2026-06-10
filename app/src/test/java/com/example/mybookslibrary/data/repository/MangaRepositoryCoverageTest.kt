@@ -10,7 +10,6 @@ import com.example.mybookslibrary.data.remote.models.MangaDataDto
 import com.example.mybookslibrary.data.remote.models.MangaDetailResponseDto
 import com.example.mybookslibrary.data.remote.models.MangaListResponseDto
 import io.mockk.coEvery
-import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -175,6 +174,4 @@ class MangaRepositoryCoverageTest {
             delivery.pageUrl(99)
         }
     }
-
-
 }

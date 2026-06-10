@@ -2,9 +2,6 @@ package com.example.mybookslibrary.data.remote.models
 
 import com.example.mybookslibrary.data.remote.NetworkModule
 import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -46,6 +43,4 @@ class MangaDtosSerializationTest {
         assertNull(response.baseUrl)
         assertNull(response.chapter)
     }
-
-
 }
