@@ -8,6 +8,7 @@ plugins {
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.detekt)
     alias(libs.plugins.ktlint)
+    alias(libs.plugins.roborazzi)
     jacoco
 }
 
@@ -75,6 +76,13 @@ detekt {
     buildUponDefaultConfig = true
     config.setFrom(files("$rootDir/config/detekt/detekt.yml"))
     baseline = file("$rootDir/config/detekt/baseline.xml")
+}
+
+// Screenshot testing: golden images commit vào src/test/screenshots, record/verify CHỈ trên CI
+// (Linux) — Windows render lệch nhẹ font antialiasing nên local không phải source of truth.
+// Update goldens: chạy workflow roborazzi-record trên branch PR.
+roborazzi {
+    outputDir.set(file("src/test/screenshots"))
 }
 
 ktlint {
@@ -334,6 +342,9 @@ dependencies {
     testImplementation(libs.androidx.work.testing)
     testImplementation(libs.okhttp.mockwebserver)
     testImplementation(libs.kotest.property)
+    testImplementation(libs.roborazzi.core)
+    testImplementation(libs.roborazzi.compose)
+    testImplementation(libs.roborazzi.junit.rule)
 
     // Instrumented tests
     androidTestImplementation(libs.androidx.junit)
