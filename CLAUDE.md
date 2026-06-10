@@ -38,6 +38,12 @@ JAVA_HOME="C:/Program Files/Java/jdk-21.0.10" ./gradlew assembleDebug
 - HiltAndroidTest: `@UninstallModules` để swap fake repository.
 - Mỗi test file Compose cần `@HiltAndroidTest` + `@RunWith(AndroidJUnit4::class)`.
 
+## Screenshot Tests (Roborazzi)
+- Golden images tại `app/src/test/screenshots/` — record/verify **CHỈ trên CI Linux**, KHÔNG record local (Windows render font khác → ảnh lệch). CI là source of truth.
+- Update goldens khi UI đổi có chủ đích: gắn label `record-screenshots` vào PR (gỡ rồi gắn lại để chạy lần nữa), hoặc Actions → "Roborazzi record" → Run workflow sau khi merge.
+- `captureRoboImage` là no-op khi chạy `testDebugUnitTest` thường — pre-commit hook không bị ảnh hưởng.
+- `ModalBottomSheet`/dialog render window riêng → dùng `captureScreenRoboImage()` thay vì `onRoot().captureRoboImage()`.
+
 ## Convention: @Composable không được ở ViewModel/Repository
 **ViewModel và data layer không được import `androidx.compose.**`** — `@Composable` function không chạy được trên JVM unit test, kéo coverage xuống.
 
