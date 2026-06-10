@@ -6,8 +6,10 @@ import com.example.mybookslibrary.data.repository.MangaRepository
 import com.example.mybookslibrary.di.IoDispatcher
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -139,13 +141,15 @@ class PageDownloader
                 throw ioException
             } finally {
                 val durationMillis = startedAt.elapsedNow().inWholeMilliseconds
-                sendDownloadReport(
-                    pageUrl = pageUrl,
-                    success = success,
-                    bytes = bytes,
-                    durationMillis = durationMillis,
-                    cached = cached,
-                )
+                CoroutineScope(ioDispatcher).launch {
+                    sendDownloadReport(
+                        pageUrl = pageUrl,
+                        success = success,
+                        bytes = bytes,
+                        durationMillis = durationMillis,
+                        cached = cached,
+                    )
+                }
             }
             Timber.d("downloadPage end: chapterId=%s pageIndex=%d bytes=%d", chapterId, pageIndex, bytes)
         }
