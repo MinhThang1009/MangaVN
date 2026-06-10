@@ -1,12 +1,11 @@
 package com.example.mybookslibrary.data.download
 
 import android.content.Context
-import com.example.mybookslibrary.data.remote.AtHomeReportPolicy
 import com.example.mybookslibrary.data.repository.ChapterDelivery
-import com.example.mybookslibrary.data.repository.MangaRepository
-import io.mockk.coVerify
-import io.mockk.mockk
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import okhttp3.OkHttpClient
@@ -24,13 +23,14 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import java.io.IOException
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 
 @RunWith(RobolectricTestRunner::class)
 @OptIn(ExperimentalCoroutinesApi::class)
 class PageDownloaderTest {
     private val context: Context get() = RuntimeEnvironment.getApplication()
-    private val mangaRepository = mockk<MangaRepository>(relaxed = true)
 
     private lateinit var storage: OfflineDownloadStorage
     private lateinit var server: MockWebServer
@@ -72,17 +72,6 @@ class PageDownloaderTest {
             val pages = storage.getChapterPages(MANGA_ID, CHAPTER_ID)
             assertEquals(1, pages.size)
             assertTrue(pages.single().name.endsWith(".png"))
-            assertEquals("true", server.takeRequest().getHeader(AtHomeReportPolicy.SKIP_REPORT_HEADER))
-            coVerify {
-                mangaRepository.sendAtHomeReport(
-                    match { report ->
-                        report.success &&
-                            !report.cached &&
-                            report.bytes == "page-bytes".length &&
-                            report.url.contains("/data/hash/page-1.png")
-                    },
-                )
-            }
         }
 
     @Test
@@ -103,7 +92,6 @@ class PageDownloaderTest {
                             refreshCount.incrementAndGet()
                             delivery(newServer, filenames = listOf("p1.png"))
                         },
-                        errorThreshold = 1,
                     )
 
                 downloader().downloadPageWithFailover(
@@ -124,6 +112,61 @@ class PageDownloaderTest {
         }
 
     @Test
+    fun concurrentFailures_refreshOnceAndReportEveryAttempt() =
+        runTest {
+            val oldServer = MockWebServer()
+            val newServer = MockWebServer()
+            oldServer.start()
+            newServer.start()
+            try {
+                val oldRequestsStarted = CountDownLatch(3)
+                oldServer.dispatcher =
+                    object : Dispatcher() {
+                        override fun dispatch(request: RecordedRequest): MockResponse {
+                            oldRequestsStarted.countDown()
+                            oldRequestsStarted.await(2, TimeUnit.SECONDS)
+                            return MockResponse().setResponseCode(500).setBody("old-error")
+                        }
+                    }
+                newServer.dispatcher =
+                    object : Dispatcher() {
+                        override fun dispatch(request: RecordedRequest): MockResponse =
+                            MockResponse().setResponseCode(200).setBody("new-page")
+                    }
+                val refreshCount = AtomicInteger(0)
+                val filenames = listOf("p1.png", "p2.png", "p3.png")
+                val coordinator =
+                    AtHomeFailoverCoordinator(
+                        initialDelivery = delivery(oldServer, filenames),
+                        refreshDelivery = {
+                            refreshCount.incrementAndGet()
+                            delivery(newServer, filenames)
+                        },
+                    )
+                val pageDownloader = downloader(ioDispatcher = Dispatchers.IO)
+
+                filenames.indices
+                    .map { pageIndex ->
+                        async {
+                            pageDownloader.downloadPageWithFailover(
+                                mangaId = MANGA_ID,
+                                chapterId = FAILOVER_CHAPTER_ID,
+                                pageIndex = pageIndex,
+                                failoverCoordinator = coordinator,
+                            )
+                        }
+                    }.awaitAll()
+
+                assertEquals(1, refreshCount.get())
+                assertEquals(3, oldServer.requestCount)
+                assertEquals(3, newServer.requestCount)
+            } finally {
+                oldServer.shutdown()
+                newServer.shutdown()
+            }
+        }
+
+    @Test
     fun downloadPageWithFailover_ioException_exhaustsAttemptsAndThrows() =
         runTest {
             val deadServer = MockWebServer()
@@ -134,7 +177,6 @@ class PageDownloaderTest {
                 AtHomeFailoverCoordinator(
                     initialDelivery = deadDelivery,
                     refreshDelivery = { deadDelivery },
-                    errorThreshold = 10,
                 )
 
             try {
@@ -187,24 +229,42 @@ class PageDownloaderTest {
 
             val extensions = storage.getChapterPages(MANGA_ID, EXTENSION_CHAPTER_ID).map { it.extension }
             assertEquals(listOf("jpg", "jpg", "png", "webp", "gif", "bin"), extensions)
-            coVerify(atLeast = 1) {
-                mangaRepository.sendAtHomeReport(match { report -> report.cached && report.success })
-            }
         }
 
-    private fun downloader(): PageDownloader =
+    @Test
+    fun downloadPageWithFailover_skipsExistingPage() =
+        runTest {
+            storage.savePage(MANGA_ID, CHAPTER_ID, 0, java.io.ByteArrayInputStream("existing".toByteArray()))
+
+            // This should not be hit
+            server.enqueue(MockResponse().setResponseCode(500).setBody("should not be called"))
+            val coordinator = coordinator(delivery(server, filenames = listOf("page-1.png")))
+
+            downloader().downloadPageWithFailover(
+                mangaId = MANGA_ID,
+                chapterId = CHAPTER_ID,
+                pageIndex = 0,
+                failoverCoordinator = coordinator,
+            )
+
+            assertEquals(0, server.requestCount)
+            val pages = storage.getChapterPages(MANGA_ID, CHAPTER_ID)
+            assertEquals(1, pages.size)
+        }
+
+    private fun downloader(
+        ioDispatcher: kotlinx.coroutines.CoroutineDispatcher = UnconfinedTestDispatcher(),
+    ): PageDownloader =
         PageDownloader(
-            mangaRepository = mangaRepository,
             offlineDownloadStorage = storage,
             imageOkHttpClient = OkHttpClient(),
-            ioDispatcher = UnconfinedTestDispatcher(),
+            ioDispatcher = ioDispatcher,
         )
 
     private fun coordinator(delivery: ChapterDelivery): AtHomeFailoverCoordinator =
         AtHomeFailoverCoordinator(
             initialDelivery = delivery,
             refreshDelivery = { delivery },
-            errorThreshold = 3,
         )
 
     private fun delivery(

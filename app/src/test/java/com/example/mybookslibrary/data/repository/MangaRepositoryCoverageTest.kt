@@ -3,7 +3,6 @@ package com.example.mybookslibrary.data.repository
 import com.example.mybookslibrary.data.local.UserPreferencesDataStore
 import com.example.mybookslibrary.data.remote.MangaDexApi
 import com.example.mybookslibrary.data.remote.models.AtHomeChapterDto
-import com.example.mybookslibrary.data.remote.models.AtHomeReportRequest
 import com.example.mybookslibrary.data.remote.models.AtHomeResponseDto
 import com.example.mybookslibrary.data.remote.models.ChapterListDto
 import com.example.mybookslibrary.data.remote.models.MangaAttributesDto
@@ -11,7 +10,6 @@ import com.example.mybookslibrary.data.remote.models.MangaDataDto
 import com.example.mybookslibrary.data.remote.models.MangaDetailResponseDto
 import com.example.mybookslibrary.data.remote.models.MangaListResponseDto
 import io.mockk.coEvery
-import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -87,27 +85,6 @@ class MangaRepositoryCoverageTest {
                 ),
                 pages,
             )
-        }
-
-    @Test
-    fun sendAtHomeReport_callsApi() =
-        runTest {
-            coEvery { api.sendAtHomeReport(any()) } returns Response.success(Unit)
-
-            repository().sendAtHomeReport(sampleReport())
-
-            coVerify { api.sendAtHomeReport(any()) }
-        }
-
-    @Test
-    fun sendAtHomeReport_swallowsApiError() =
-        runTest {
-            coEvery { api.sendAtHomeReport(any()) } throws RuntimeException("network down")
-
-            // Không được ném ra ngoài — lỗi report chỉ log, không làm vỡ luồng đọc.
-            repository().sendAtHomeReport(sampleReport())
-
-            coVerify { api.sendAtHomeReport(any()) }
         }
 
     @Test
@@ -197,13 +174,4 @@ class MangaRepositoryCoverageTest {
             delivery.pageUrl(99)
         }
     }
-
-    private fun sampleReport() =
-        AtHomeReportRequest(
-            url = "https://node.example/data/h1/p0.png",
-            success = true,
-            bytes = 1024,
-            duration = 12L,
-            cached = false,
-        )
 }

@@ -2,7 +2,6 @@ package com.example.mybookslibrary.data.repository
 
 import com.example.mybookslibrary.data.local.UserPreferencesDataStore
 import com.example.mybookslibrary.data.remote.MangaDexApi
-import com.example.mybookslibrary.data.remote.models.AtHomeReportRequest
 import com.example.mybookslibrary.data.remote.models.MangaDexConstants
 import com.example.mybookslibrary.data.remote.models.toDomainModel
 import com.example.mybookslibrary.di.IoDispatcher
@@ -10,7 +9,6 @@ import com.example.mybookslibrary.domain.model.ChapterModel
 import com.example.mybookslibrary.domain.model.MangaModel
 import com.example.mybookslibrary.domain.model.MangaTag
 import com.example.mybookslibrary.domain.model.SearchFilters
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -18,7 +16,6 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 import java.io.IOException
 import com.example.mybookslibrary.data.remote.models.toDomainModel as chapterToDomainModel
 
@@ -205,29 +202,6 @@ class MangaRepository(
                 filenames = filenames,
             )
         }
-
-    /**
-     * Gửi telemetry report về MangaDex@Home node. **Nuốt lỗi mạng silently** —
-     * report thất bại không ảnh hưởng trải nghiệm đọc. Chỉ re-throw [CancellationException].
-     */
-    suspend fun sendAtHomeReport(request: AtHomeReportRequest) {
-        withContext(ioDispatcher) {
-            try {
-                Timber.d("sendAtHomeReport start: payload=%s", request)
-                val response = api.sendAtHomeReport(request)
-                Timber.d(
-                    "sendAtHomeReport end: url=%s success=%s http=%d",
-                    request.url,
-                    request.success,
-                    response.code(),
-                )
-            } catch (cancellationException: CancellationException) {
-                throw cancellationException
-            } catch (t: Throwable) {
-                Timber.e(t, "sendAtHomeReport failed silently: url=%s", request.url)
-            }
-        }
-    }
 }
 
 data class ChapterDelivery(

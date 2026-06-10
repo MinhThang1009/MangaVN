@@ -20,7 +20,7 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class AppDatabaseMigrationTest {
     /**
-     * Smoke test: DB v3 (schema hiện tại) có thể mở được và tất cả bảng tồn tại.
+     * Smoke test: DB v4 (schema hiện tại) có thể mở được và tất cả bảng tồn tại.
      *
      * Dùng inMemoryDatabaseBuilder thay MigrationTestHelper.createDatabase() vì
      * Room 2.8.4 có binary incompatibility: DatabaseBundle$$serializer được compile
@@ -42,6 +42,7 @@ class AppDatabaseMigrationTest {
                 query("SELECT * FROM library_items LIMIT 1").close()
                 query("SELECT * FROM chapter_progress LIMIT 1").close()
                 query("SELECT * FROM download_queue LIMIT 1").close()
+                query("SELECT * FROM chapter_metadata LIMIT 1").close()
             }
         } finally {
             db.close()
@@ -70,7 +71,7 @@ class AppDatabaseMigrationTest {
     //     }
     //
     //     // 2. Chạy migration 3→4
-    //     val db = helper.runMigrationsAndValidate(TEST_DB, 4, true, AppDatabase.MIGRATION_3_4)
+    //     val db = helper.runMigrationsAndValidate(TEST_DB, 4, true, AppDatabase.migration3To4)
     //
     //     // 3. Verify data vẫn còn sau migration
     //     val cursor = db.query("SELECT manga_id FROM library_items WHERE manga_id = 'm1'")

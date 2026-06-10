@@ -1,16 +1,12 @@
 package com.example.mybookslibrary.data.remote
 
-import com.example.mybookslibrary.data.remote.models.AtHomeReportRequest
 import com.example.mybookslibrary.data.remote.models.AtHomeResponseDto
 import com.example.mybookslibrary.data.remote.models.ChapterListDto
 import com.example.mybookslibrary.data.remote.models.MangaDetailResponseDto
 import com.example.mybookslibrary.data.remote.models.MangaListResponseDto
 import com.example.mybookslibrary.data.remote.models.TagListResponseDto
 import retrofit2.Response
-import retrofit2.http.Body
 import retrofit2.http.GET
-import retrofit2.http.Headers
-import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
 
@@ -68,9 +64,4 @@ interface MangaDexApi {
         @Path("chapterId") chapterId: String,
     ): AtHomeResponseDto
 
-    @Headers("Content-Type: application/json")
-    @POST("https://api.mangadex.network/report")
-    suspend fun sendAtHomeReport(
-        @Body request: AtHomeReportRequest,
-    ): Response<Unit>
 }

@@ -1,9 +1,12 @@
 package com.example.mybookslibrary.domain.usecase
 
 import com.example.mybookslibrary.data.download.DownloadedChapterCache
+import com.example.mybookslibrary.data.local.ChapterMetadataEntity
+import com.example.mybookslibrary.data.local.ChapterProgressEntity
 import com.example.mybookslibrary.data.local.ChapterStatus
 import com.example.mybookslibrary.data.local.DownloadQueueEntity
 import com.example.mybookslibrary.data.local.DownloadStatus
+import com.example.mybookslibrary.data.local.toMetadataEntity
 import com.example.mybookslibrary.data.local.dao.ChapterDao
 import com.example.mybookslibrary.data.repository.MangaRepository
 import com.example.mybookslibrary.data.repository.OfflineDownloadRepository
@@ -11,10 +14,13 @@ import com.example.mybookslibrary.domain.model.ChapterDownloadState
 import com.example.mybookslibrary.domain.model.ChapterDownloadStatus
 import com.example.mybookslibrary.domain.model.ChapterReadingStatus
 import com.example.mybookslibrary.domain.model.ChapterWithProgressModel
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -27,64 +33,140 @@ class GetChapterListWithProgressUseCase
         private val downloadedChapterCache: DownloadedChapterCache,
     ) {
         /**
-         * Combines the remote chapter feed with locally persisted progress.
+         * Emits locally cached chapters immediately and silently refreshes them from MangaDex.
          *
          * Progress is keyed by chapter_id so each chapter keeps its own status and
          * last-read page independently when another chapter is opened.
          */
         operator fun invoke(mangaId: String): Flow<List<ChapterWithProgressModel>> =
             flow {
-                val remoteChapters = mangaRepository.getMangaFeed(mangaId).getOrThrow()
-                Timber.d(
-                    "GetChapterListWithProgressUseCase start: mangaId=%s remoteChapters=%d",
-                    mangaId,
-                    remoteChapters.size,
-                )
-
-                emitAll(
-                    combine(
-                        chapterDao.getChapterProgressByManga(mangaId),
-                        offlineDownloadRepository.observeQueueByManga(mangaId),
-                        downloadedChapterCache.downloadedChapterIds,
-                    ) { progressList, queueList, downloadedIds ->
-                        Timber.v(
-                            "GetChapterListWithProgressUseCase snapshot: " +
-                                "mangaId=%s progressRows=%d queueRows=%d downloaded=%d",
-                            mangaId,
-                            progressList.size,
-                            queueList.size,
-                            downloadedIds.size,
-                        )
-                        val progressMap = progressList.associateBy { it.chapter_id }
-                        val queueMap = queueList.associateBy { it.chapter_id }
-
-                        remoteChapters.map { chapter ->
-                            val progress = progressMap[chapter.id]
-                            val downloadState = queueMap[chapter.id].toDownloadState(chapter.id in downloadedIds)
-                            val totalPages =
-                                when {
-                                    progress != null && progress.total_pages > 0 -> progress.total_pages
-                                    chapter.pages > 0 -> chapter.pages
-                                    else -> 0
-                                }
-                            val mappedStatus = progress?.status.toDomainStatus()
-
-                            ChapterWithProgressModel(
-                                chapterId = chapter.id,
-                                mangaId = chapter.mangaId,
-                                volume = chapter.volume,
-                                chapterNumber = chapter.chapterNumber,
-                                title = chapter.title,
-                                status = mappedStatus,
-                                lastReadPage = progress?.last_read_page ?: 0,
-                                totalPages = totalPages,
-                                downloadState = downloadState,
+                refreshDownloadedChapterCache()
+                coroutineScope {
+                    launch { refreshChapterMetadata(mangaId) }
+                    emitAll(
+                        combine(
+                            chapterDao.getChaptersByMangaIdFlow(mangaId),
+                            chapterDao.getChapterProgressByManga(mangaId),
+                            offlineDownloadRepository.observeQueueByManga(mangaId),
+                            downloadedChapterCache.downloadedChapterIds,
+                        ) { metadata, progressList, queueList, downloadedIds ->
+                            mapChapterSnapshot(
+                                mangaId = mangaId,
+                                metadata = metadata,
+                                progressList = progressList,
+                                queueList = queueList,
+                                downloadedIds = downloadedIds,
                             )
-                        }
-                    },
+                        },
+                    )
+                }
+            }
+
+        @Suppress("TooGenericExceptionCaught")
+        private suspend fun refreshDownloadedChapterCache() {
+            try {
+                downloadedChapterCache.scanDownloadedChapters()
+            } catch (cancellationException: CancellationException) {
+                throw cancellationException
+            } catch (t: Throwable) {
+                Timber.w(t, "Chapter filesystem rescan failed")
+            }
+        }
+
+        private suspend fun refreshChapterMetadata(mangaId: String) {
+            val result = mangaRepository.getMangaFeed(mangaId)
+            val error = result.exceptionOrNull()
+            if (error != null) {
+                if (error is CancellationException) throw error
+                Timber.w(error, "Chapter feed refresh failed silently: mangaId=%s", mangaId)
+                return
+            }
+
+            val now = System.currentTimeMillis()
+            val chapters = result.getOrThrow()
+            chapterDao.syncChapterMetadata(
+                mangaId = mangaId,
+                chapters = chapters.mapIndexed { index, chapter -> chapter.toMetadataEntity(index, now) },
+                downloadedChapterIds = downloadedChapterCache.downloadedChapterIds.value,
+            )
+            Timber.d("Chapter feed refresh complete: mangaId=%s chapters=%d", mangaId, chapters.size)
+        }
+    }
+
+private fun mapChapterSnapshot(
+    mangaId: String,
+    metadata: List<ChapterMetadataEntity>,
+    progressList: List<ChapterProgressEntity>,
+    queueList: List<DownloadQueueEntity>,
+    downloadedIds: Set<String>,
+): List<ChapterWithProgressModel> {
+    val progressMap = progressList.associateBy { it.chapter_id }
+    val queueMap = queueList.associateBy { it.chapter_id }
+    val cachedIds = metadata.mapTo(mutableSetOf()) { it.chapterId }
+
+    val cachedModels =
+        metadata
+            .filterNot { it.isUnavailable }
+            .map { chapter ->
+                chapter.toChapterWithProgress(
+                    progress = progressMap[chapter.chapterId],
+                    queue = queueMap[chapter.chapterId],
+                    isDownloaded = chapter.chapterId in downloadedIds,
                 )
             }
-    }
+    val downloadedFallbacks =
+        progressList
+            .asSequence()
+            .filter { it.chapter_id in downloadedIds && it.chapter_id !in cachedIds }
+            .map { progress ->
+                ChapterWithProgressModel(
+                    chapterId = progress.chapter_id,
+                    mangaId = mangaId,
+                    volume = null,
+                    chapterNumber = null,
+                    title = null,
+                    status = progress.status.toDomainStatus(),
+                    lastReadPage = progress.last_read_page,
+                    totalPages = progress.total_pages.coerceAtLeast(0),
+                    downloadState = queueMap[progress.chapter_id].toDownloadState(isDownloaded = true),
+                )
+            }.toList()
+
+    Timber.v(
+        "Chapter snapshot: mangaId=%s metadata=%d progress=%d queue=%d downloaded=%d fallbacks=%d",
+        mangaId,
+        metadata.size,
+        progressList.size,
+        queueList.size,
+        downloadedIds.size,
+        downloadedFallbacks.size,
+    )
+    return cachedModels + downloadedFallbacks
+}
+
+private fun ChapterMetadataEntity.toChapterWithProgress(
+    progress: ChapterProgressEntity?,
+    queue: DownloadQueueEntity?,
+    isDownloaded: Boolean,
+): ChapterWithProgressModel {
+    val totalPages =
+        when {
+            progress != null && progress.total_pages > 0 -> progress.total_pages
+            pages > 0 -> pages
+            else -> 0
+        }
+    return ChapterWithProgressModel(
+        chapterId = chapterId,
+        mangaId = mangaId,
+        volume = volume,
+        chapterNumber = chapterNumber,
+        title = title,
+        status = progress?.status.toDomainStatus(),
+        lastReadPage = progress?.last_read_page ?: 0,
+        totalPages = totalPages,
+        downloadState = queue.toDownloadState(isDownloaded),
+    )
+}
 
 private fun ChapterStatus?.toDomainStatus(): ChapterReadingStatus =
     when (this) {

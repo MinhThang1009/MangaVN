@@ -19,7 +19,7 @@ class AppDatabaseInstanceTest {
     @Before
     @After
     fun resetSingleton() {
-        AppDatabase::class.java.getDeclaredField("INSTANCE").apply {
+        AppDatabase::class.java.getDeclaredField("instance").apply {
             isAccessible = true
             set(null, null)
         }

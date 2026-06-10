@@ -2,9 +2,6 @@ package com.example.mybookslibrary.data.remote.models
 
 import com.example.mybookslibrary.data.remote.NetworkModule
 import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -45,25 +42,5 @@ class MangaDtosSerializationTest {
         assertEquals("error", response.result)
         assertNull(response.baseUrl)
         assertNull(response.chapter)
-    }
-
-    @Test
-    fun atHomeReportRequest_serializesRequiredWireNames() {
-        val request =
-            AtHomeReportRequest(
-                url = "https://example.test/page.jpg",
-                success = true,
-                bytes = 42,
-                duration = 100,
-                cached = false,
-            )
-
-        val encoded = json.parseToJsonElement(json.encodeToString(request)).jsonObject
-
-        assertEquals("https://example.test/page.jpg", encoded.getValue("url").jsonPrimitive.content)
-        assertEquals("42", encoded.getValue("bytes").jsonPrimitive.content)
-        assertEquals("100", encoded.getValue("duration").jsonPrimitive.content)
-        assertEquals("true", encoded.getValue("success").jsonPrimitive.content)
-        assertEquals("false", encoded.getValue("cached").jsonPrimitive.content)
     }
 }

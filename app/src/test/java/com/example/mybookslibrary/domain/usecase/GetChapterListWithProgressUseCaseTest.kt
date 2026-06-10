@@ -1,6 +1,7 @@
 package com.example.mybookslibrary.domain.usecase
 
 import com.example.mybookslibrary.data.download.DownloadedChapterCache
+import com.example.mybookslibrary.data.local.ChapterMetadataEntity
 import com.example.mybookslibrary.data.local.ChapterProgressEntity
 import com.example.mybookslibrary.data.local.ChapterStatus
 import com.example.mybookslibrary.data.local.DownloadQueueEntity
@@ -25,6 +26,7 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import java.io.IOException
 
 class GetChapterListWithProgressUseCaseTest {
     private val mangaRepository = mockk<MangaRepository>()
@@ -39,6 +41,19 @@ class GetChapterListWithProgressUseCaseTest {
             downloadedChapterCache,
         )
 
+    private fun stubCommon(
+        metadata: List<ChapterMetadataEntity>,
+        progress: List<ChapterProgressEntity> = emptyList(),
+        downloadedIds: MutableStateFlow<Set<String>> = MutableStateFlow(emptySet()),
+    ) {
+        every { chapterDao.getChaptersByMangaIdFlow(MANGA_ID) } returns flowOf(metadata)
+        every { chapterDao.getChapterProgressByManga(MANGA_ID) } returns flowOf(progress)
+        every { offlineDownloadRepository.observeQueueByManga(MANGA_ID) } returns flowOf(emptyList())
+        every { downloadedChapterCache.downloadedChapterIds } returns downloadedIds
+        coEvery { downloadedChapterCache.scanDownloadedChapters() } returns Unit
+        coEvery { chapterDao.syncChapterMetadata(any(), any(), any()) } returns Unit
+    }
+
     @Test
     fun mapsProgressByChapterId_independently() =
         runTest {
@@ -50,15 +65,14 @@ class GetChapterListWithProgressUseCaseTest {
                         chapter(id = "chapter-3", pages = 8),
                     ),
                 )
-            every { chapterDao.getChapterProgressByManga(MANGA_ID) } returns
-                flowOf(
+            stubCommon(
+                metadata = listOf(metadata("chapter-1", 12), metadata("chapter-2", 10), metadata("chapter-3", 8)),
+                progress =
                     listOf(
                         progress("chapter-1", ChapterStatus.READING, lastReadPage = 4, totalPages = 12),
                         progress("chapter-2", ChapterStatus.COMPLETED, lastReadPage = 9, totalPages = 10),
                     ),
                 )
-            every { offlineDownloadRepository.observeQueueByManga(MANGA_ID) } returns flowOf(emptyList())
-            every { downloadedChapterCache.downloadedChapterIds } returns MutableStateFlow(emptySet())
 
             val result = useCase(MANGA_ID).first()
 
@@ -87,12 +101,10 @@ class GetChapterListWithProgressUseCaseTest {
                 Result.success(
                     listOf(chapter(id = "chapter-1", pages = 99)),
                 )
-            every { chapterDao.getChapterProgressByManga(MANGA_ID) } returns
-                flowOf(
-                    listOf(progress("chapter-1", ChapterStatus.READING, lastReadPage = 3, totalPages = 15)),
-                )
-            every { offlineDownloadRepository.observeQueueByManga(MANGA_ID) } returns flowOf(emptyList())
-            every { downloadedChapterCache.downloadedChapterIds } returns MutableStateFlow(emptySet())
+            stubCommon(
+                metadata = listOf(metadata("chapter-1", 99)),
+                progress = listOf(progress("chapter-1", ChapterStatus.READING, lastReadPage = 3, totalPages = 15)),
+            )
 
             val result = useCase(MANGA_ID).first()
 
@@ -106,9 +118,10 @@ class GetChapterListWithProgressUseCaseTest {
                 Result.success(
                     listOf(chapter(id = "chapter-1", pages = 12)),
                 )
-            every { chapterDao.getChapterProgressByManga(MANGA_ID) } returns flowOf(emptyList())
-            every { offlineDownloadRepository.observeQueueByManga(MANGA_ID) } returns flowOf(emptyList())
-            every { downloadedChapterCache.downloadedChapterIds } returns MutableStateFlow(setOf("chapter-1"))
+            stubCommon(
+                metadata = listOf(metadata("chapter-1", 12)),
+                downloadedIds = MutableStateFlow(setOf("chapter-1")),
+            )
 
             val result = useCase(MANGA_ID).first()
 
@@ -124,9 +137,7 @@ class GetChapterListWithProgressUseCaseTest {
                 Result.success(
                     listOf(chapter(id = "chapter-1", pages = 12)),
                 )
-            every { chapterDao.getChapterProgressByManga(MANGA_ID) } returns flowOf(emptyList())
-            every { offlineDownloadRepository.observeQueueByManga(MANGA_ID) } returns flowOf(emptyList())
-            every { downloadedChapterCache.downloadedChapterIds } returns downloadedIds
+            stubCommon(metadata = listOf(metadata("chapter-1", 12)), downloadedIds = downloadedIds)
 
             val firstEmission = CompletableDeferred<Unit>()
             val emissions =
@@ -151,7 +162,7 @@ class GetChapterListWithProgressUseCaseTest {
                 Result.success(
                     listOf(chapter(id = "chapter-1", pages = 12)),
                 )
-            every { chapterDao.getChapterProgressByManga(MANGA_ID) } returns flowOf(emptyList())
+            stubCommon(metadata = listOf(metadata("chapter-1", 12)))
             every { offlineDownloadRepository.observeQueueByManga(MANGA_ID) } returns
                 flowOf(
                     listOf(
@@ -163,12 +174,56 @@ class GetChapterListWithProgressUseCaseTest {
                         ),
                     ),
                 )
-            every { downloadedChapterCache.downloadedChapterIds } returns MutableStateFlow(emptySet())
-
             val result = useCase(MANGA_ID).first()
 
             assertEquals(ChapterDownloadStatus.NOT_DOWNLOADED, result.single().downloadState.status)
             assertEquals(0, result.single().downloadState.progressPercent)
+        }
+
+    @Test
+    fun feedFailure_cachedChaptersStillEmitWithoutFlowError() =
+        runTest {
+            coEvery { mangaRepository.getMangaFeed(MANGA_ID) } returns Result.failure(IOException("offline"))
+            stubCommon(metadata = listOf(metadata("chapter-1", 12)))
+
+            val result = useCase(MANGA_ID).first()
+
+            assertEquals("chapter-1", result.single().chapterId)
+        }
+
+    @Test
+    fun downloadedProgressWithoutMetadata_stillEmitsOfflineFallback() =
+        runTest {
+            coEvery { mangaRepository.getMangaFeed(MANGA_ID) } returns Result.failure(IOException("offline"))
+            stubCommon(
+                metadata = emptyList(),
+                progress = listOf(progress("chapter-1", ChapterStatus.READING, lastReadPage = 3, totalPages = 12)),
+                downloadedIds = MutableStateFlow(setOf("chapter-1")),
+            )
+
+            val result = useCase(MANGA_ID).first().single()
+
+            assertEquals("chapter-1", result.chapterId)
+            assertEquals(ChapterDownloadStatus.DOWNLOADED, result.downloadState.status)
+            assertEquals(3, result.lastReadPage)
+        }
+
+    @Test
+    fun filesystemRescanRemovingGhost_emitsNotDownloaded() =
+        runTest {
+            val downloadedIds = MutableStateFlow(setOf("chapter-1"))
+            coEvery { mangaRepository.getMangaFeed(MANGA_ID) } returns Result.failure(IOException("offline"))
+            coEvery { downloadedChapterCache.scanDownloadedChapters() } answers {
+                downloadedIds.value = emptySet()
+            }
+            every { chapterDao.getChaptersByMangaIdFlow(MANGA_ID) } returns flowOf(listOf(metadata("chapter-1", 12)))
+            every { chapterDao.getChapterProgressByManga(MANGA_ID) } returns flowOf(emptyList())
+            every { offlineDownloadRepository.observeQueueByManga(MANGA_ID) } returns flowOf(emptyList())
+            every { downloadedChapterCache.downloadedChapterIds } returns downloadedIds
+
+            val result = useCase(MANGA_ID).first().single()
+
+            assertEquals(ChapterDownloadStatus.NOT_DOWNLOADED, result.downloadState.status)
         }
 
     private fun chapter(
@@ -183,6 +238,22 @@ class GetChapterListWithProgressUseCaseTest {
             title = null,
             pages = pages,
             isUnavailable = false,
+        )
+
+    private fun metadata(
+        id: String,
+        pages: Int,
+    ): ChapterMetadataEntity =
+        ChapterMetadataEntity(
+            chapterId = id,
+            mangaId = MANGA_ID,
+            volume = null,
+            chapterNumber = id.removePrefix("chapter-"),
+            title = null,
+            pages = pages,
+            isUnavailable = false,
+            feedOrder = id.removePrefix("chapter-").toIntOrNull() ?: 0,
+            updatedAt = 1_000L,
         )
 
     private fun progress(

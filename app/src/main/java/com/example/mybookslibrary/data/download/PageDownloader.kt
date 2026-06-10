@@ -1,8 +1,5 @@
 package com.example.mybookslibrary.data.download
 
-import com.example.mybookslibrary.data.remote.AtHomeReportPolicy
-import com.example.mybookslibrary.data.remote.models.AtHomeReportRequest
-import com.example.mybookslibrary.data.repository.MangaRepository
 import com.example.mybookslibrary.di.IoDispatcher
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
@@ -16,7 +13,6 @@ import timber.log.Timber
 import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Named
-import kotlin.time.TimeSource
 
 /**
  * Downloads individual MangaDex@Home pages into offline storage.
@@ -24,7 +20,7 @@ import kotlin.time.TimeSource
 class PageDownloader
     @Inject
     constructor(
-        private val mangaRepository: MangaRepository,
+
         private val offlineDownloadStorage: OfflineDownloadStorage,
         @param:Named("ImageOkHttpClient") private val imageOkHttpClient: OkHttpClient,
         @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
@@ -45,22 +41,25 @@ class PageDownloader
             var attempt = 1
             while (true) {
                 currentCoroutineContext().ensureActive()
-                val pageUrl = failoverCoordinator.pageUrl(pageIndex)
+                val pageAttempt = failoverCoordinator.pageAttempt(pageIndex)
 
                 try {
                     downloadPage(
                         mangaId = mangaId,
                         chapterId = chapterId,
                         pageIndex = pageIndex,
-                        pageUrl = pageUrl,
+                        pageUrl = pageAttempt.url,
                     )
-                    failoverCoordinator.onPageSuccess()
                     return
                 } catch (cancellationException: CancellationException) {
                     throw cancellationException
                 } catch (t: Throwable) {
                     currentCoroutineContext().ensureActive()
-                    val failoverTriggered = failoverCoordinator.onPageFailure(chapterId)
+                    val failoverTriggered =
+                        failoverCoordinator.onPageFailure(
+                            chapterId = chapterId,
+                            failedGeneration = pageAttempt.generation,
+                        )
                     Timber.e(
                         t,
                         "downloadPage attempt failed: chapterId=%s pageIndex=%d attempt=%d failoverTriggered=%s",
@@ -98,8 +97,14 @@ class PageDownloader
             pageIndex: Int,
             pageUrl: String,
         ) = withContext(ioDispatcher) {
+            val existingFile = offlineDownloadStorage.getPageFileIfExists(mangaId, chapterId, pageIndex)
+            if (existingFile != null) {
+                Timber.d("downloadPage skipped, already exists: chapterId=%s pageIndex=%d", chapterId, pageIndex)
+                return@withContext
+            }
+
             Timber.d("downloadPage start: chapterId=%s pageIndex=%d url=%s", chapterId, pageIndex, pageUrl)
-            val startedAt = TimeSource.Monotonic.markNow()
+
             var bytes = 0L
             var cached = false
             var success = false
@@ -109,7 +114,6 @@ class PageDownloader
                     Request
                         .Builder()
                         .url(pageUrl)
-                        .header(AtHomeReportPolicy.SKIP_REPORT_HEADER, "true")
                         .build()
                 imageOkHttpClient.newCall(request).execute().use { response ->
                     cached = response
@@ -134,41 +138,8 @@ class PageDownloader
             } catch (ioException: IOException) {
                 Timber.e(ioException, "downloadPage network error: chapterId=%s pageIndex=%d", chapterId, pageIndex)
                 throw ioException
-            } finally {
-                val durationMillis = startedAt.elapsedNow().inWholeMilliseconds
-                sendDownloadReport(
-                    pageUrl = pageUrl,
-                    success = success,
-                    bytes = bytes,
-                    durationMillis = durationMillis,
-                    cached = cached,
-                )
             }
             Timber.d("downloadPage end: chapterId=%s pageIndex=%d bytes=%d", chapterId, pageIndex, bytes)
-        }
-
-        private suspend fun sendDownloadReport(
-            pageUrl: String,
-            success: Boolean,
-            bytes: Long,
-            durationMillis: Long,
-            cached: Boolean,
-        ) {
-            if (!AtHomeReportPolicy.isReportableImageUrl(pageUrl)) {
-                Timber.d("downloadPage report skipped: url=%s", pageUrl)
-                return
-            }
-
-            val report =
-                AtHomeReportRequest(
-                    url = pageUrl,
-                    success = success,
-                    bytes = AtHomeReportPolicy.bytesToInt(bytes),
-                    duration = durationMillis.coerceAtLeast(0L),
-                    cached = cached,
-                )
-            Timber.d("downloadPage report: payload=%s", report)
-            mangaRepository.sendAtHomeReport(report)
         }
 
         @Suppress("TooGenericExceptionCaught")
