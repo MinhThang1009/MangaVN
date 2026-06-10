@@ -182,7 +182,6 @@ class ChapterDownloadWorkerTest {
                         storage,
                         DownloadNotifier(appContext),
                         PageDownloader(
-                            mangaRepository = mangaRepository,
                             offlineDownloadStorage = storage,
                             imageOkHttpClient = OkHttpClient(),
                             ioDispatcher = pageDispatcher,
