@@ -25,6 +25,19 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <!-- Deep link: intercepts https://mangadex.org/title/{id} and .../title/{id}/slug.
+                 NOT using autoVerify="true" because we do not own mangadex.org. -->
+            <intent-filter android:autoVerify="false">
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:scheme="https"
+                    android:host="mangadex.org"
+                    android:pathPrefix="/title/" />
+            </intent-filter>
         </activity>
 
         <!--
