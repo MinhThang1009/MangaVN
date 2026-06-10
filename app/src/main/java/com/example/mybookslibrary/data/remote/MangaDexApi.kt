@@ -68,9 +68,4 @@ interface MangaDexApi {
         @Path("chapterId") chapterId: String,
     ): AtHomeResponseDto
 
-    @Headers("Content-Type: application/json")
-    @POST("https://api.mangadex.network/report")
-    suspend fun sendAtHomeReport(
-        @Body request: AtHomeReportRequest,
-    ): Response<Unit>
 }

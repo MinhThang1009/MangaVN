@@ -1,7 +1,5 @@
 package com.example.mybookslibrary.data.download
 
-import com.example.mybookslibrary.data.remote.AtHomeReportPolicy
-import com.example.mybookslibrary.data.remote.models.AtHomeReportRequest
 import com.example.mybookslibrary.data.repository.MangaRepository
 import com.example.mybookslibrary.di.IoDispatcher
 import kotlinx.coroutines.CancellationException
@@ -114,7 +112,6 @@ class PageDownloader
                     Request
                         .Builder()
                         .url(pageUrl)
-                        .header(AtHomeReportPolicy.SKIP_REPORT_HEADER, "true")
                         .build()
                 imageOkHttpClient.newCall(request).execute().use { response ->
                     cached = response
@@ -139,43 +136,8 @@ class PageDownloader
             } catch (ioException: IOException) {
                 Timber.e(ioException, "downloadPage network error: chapterId=%s pageIndex=%d", chapterId, pageIndex)
                 throw ioException
-            } finally {
-                val durationMillis = startedAt.elapsedNow().inWholeMilliseconds
-                CoroutineScope(ioDispatcher).launch {
-                    sendDownloadReport(
-                        pageUrl = pageUrl,
-                        success = success,
-                        bytes = bytes,
-                        durationMillis = durationMillis,
-                        cached = cached,
-                    )
-                }
             }
             Timber.d("downloadPage end: chapterId=%s pageIndex=%d bytes=%d", chapterId, pageIndex, bytes)
-        }
-
-        private suspend fun sendDownloadReport(
-            pageUrl: String,
-            success: Boolean,
-            bytes: Long,
-            durationMillis: Long,
-            cached: Boolean,
-        ) {
-            if (!AtHomeReportPolicy.isReportableImageUrl(pageUrl)) {
-                Timber.d("downloadPage report skipped: url=%s", pageUrl)
-                return
-            }
-
-            val report =
-                AtHomeReportRequest(
-                    url = pageUrl,
-                    success = success,
-                    bytes = AtHomeReportPolicy.bytesToInt(bytes),
-                    duration = durationMillis.coerceAtLeast(0L),
-                    cached = cached,
-                )
-            Timber.d("downloadPage report: payload=%s", report)
-            mangaRepository.sendAtHomeReport(report)
         }
 
         @Suppress("TooGenericExceptionCaught")

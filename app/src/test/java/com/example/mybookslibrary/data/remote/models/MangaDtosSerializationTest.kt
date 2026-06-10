@@ -47,23 +47,5 @@ class MangaDtosSerializationTest {
         assertNull(response.chapter)
     }
 
-    @Test
-    fun atHomeReportRequest_serializesRequiredWireNames() {
-        val request =
-            AtHomeReportRequest(
-                url = "https://example.test/page.jpg",
-                success = true,
-                bytes = 42,
-                duration = 100,
-                cached = false,
-            )
 
-        val encoded = json.parseToJsonElement(json.encodeToString(request)).jsonObject
-
-        assertEquals("https://example.test/page.jpg", encoded.getValue("url").jsonPrimitive.content)
-        assertEquals("42", encoded.getValue("bytes").jsonPrimitive.content)
-        assertEquals("100", encoded.getValue("duration").jsonPrimitive.content)
-        assertEquals("true", encoded.getValue("success").jsonPrimitive.content)
-        assertEquals("false", encoded.getValue("cached").jsonPrimitive.content)
-    }
 }

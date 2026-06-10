@@ -1,7 +1,6 @@
 package com.example.mybookslibrary.data.download
 
 import android.content.Context
-import com.example.mybookslibrary.data.remote.AtHomeReportPolicy
 import com.example.mybookslibrary.data.repository.ChapterDelivery
 import com.example.mybookslibrary.data.repository.MangaRepository
 import io.mockk.coVerify
@@ -77,17 +76,6 @@ class PageDownloaderTest {
             val pages = storage.getChapterPages(MANGA_ID, CHAPTER_ID)
             assertEquals(1, pages.size)
             assertTrue(pages.single().name.endsWith(".png"))
-            assertEquals("true", server.takeRequest().getHeader(AtHomeReportPolicy.SKIP_REPORT_HEADER))
-            coVerify {
-                mangaRepository.sendAtHomeReport(
-                    match { report ->
-                        report.success &&
-                            !report.cached &&
-                            report.bytes == "page-bytes".length &&
-                            report.url.contains("/data/hash/page-1.png")
-                    },
-                )
-            }
         }
 
     @Test
@@ -178,12 +166,6 @@ class PageDownloaderTest {
                 assertEquals(1, refreshCount.get())
                 assertEquals(3, oldServer.requestCount)
                 assertEquals(3, newServer.requestCount)
-                coVerify(exactly = 3) {
-                    mangaRepository.sendAtHomeReport(match { report -> !report.success && report.url.startsWith(oldBaseUrl) })
-                }
-                coVerify(exactly = 3) {
-                    mangaRepository.sendAtHomeReport(match { report -> report.success && report.url.startsWith(newBaseUrl) })
-                }
             } finally {
                 oldServer.shutdown()
                 newServer.shutdown()
@@ -253,9 +235,6 @@ class PageDownloaderTest {
 
             val extensions = storage.getChapterPages(MANGA_ID, EXTENSION_CHAPTER_ID).map { it.extension }
             assertEquals(listOf("jpg", "jpg", "png", "webp", "gif", "bin"), extensions)
-            coVerify(atLeast = 1) {
-                mangaRepository.sendAtHomeReport(match { report -> report.cached && report.success })
-            }
         }
 
     private fun downloader(

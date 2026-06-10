@@ -62,7 +62,6 @@ object NetworkModule {
     @Named("ImageOkHttpClient")
     fun provideImageOkHttpClient(
         @ApplicationContext context: Context,
-        atHomeReportInterceptor: AtHomeReportInterceptor,
     ): OkHttpClient {
         val cacheDir = context.cacheDir
         Timber.d(
@@ -73,23 +72,13 @@ object NetworkModule {
         return OkHttpClient
             .Builder()
             .cache(Cache(cacheDir, IMAGE_HTTP_CACHE_SIZE_BYTES))
-            .addInterceptor(atHomeReportInterceptor)
             .connectTimeout(15, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
             .callTimeout(60, TimeUnit.SECONDS)
             .build()
     }
 
-    @Provides
-    @Singleton
-    fun provideAtHomeReportInterceptor(
-        mangaRepository: MangaRepository,
-        @ApplicationScope applicationScope: CoroutineScope,
-    ): AtHomeReportInterceptor =
-        AtHomeReportInterceptor(
-            mangaRepository = mangaRepository,
-            applicationScope = applicationScope,
-        )
+
 
     @OptIn(ExperimentalSerializationApi::class)
     @Provides

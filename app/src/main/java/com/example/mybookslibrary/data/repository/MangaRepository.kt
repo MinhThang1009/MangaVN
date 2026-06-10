@@ -205,29 +205,6 @@ class MangaRepository(
                 filenames = filenames,
             )
         }
-
-    /**
-     * Gửi telemetry report về MangaDex@Home node. **Nuốt lỗi mạng silently** —
-     * report thất bại không ảnh hưởng trải nghiệm đọc. Chỉ re-throw [CancellationException].
-     */
-    suspend fun sendAtHomeReport(request: AtHomeReportRequest) {
-        withContext(ioDispatcher) {
-            try {
-                Timber.d("sendAtHomeReport start: payload=%s", request)
-                val response = api.sendAtHomeReport(request)
-                Timber.d(
-                    "sendAtHomeReport end: url=%s success=%s http=%d",
-                    request.url,
-                    request.success,
-                    response.code(),
-                )
-            } catch (cancellationException: CancellationException) {
-                throw cancellationException
-            } catch (t: Throwable) {
-                Timber.e(t, "sendAtHomeReport failed silently: url=%s", request.url)
-            }
-        }
-    }
 }
 
 data class ChapterDelivery(
