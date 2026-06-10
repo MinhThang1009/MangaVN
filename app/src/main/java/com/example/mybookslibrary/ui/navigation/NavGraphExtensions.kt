@@ -8,15 +8,18 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
+import androidx.navigation.navDeepLink
 import androidx.navigation.toRoute
 import com.example.mybookslibrary.ui.screens.MangaReviewScreen
 import com.example.mybookslibrary.ui.screens.auth.LoginScreen
 import com.example.mybookslibrary.ui.screens.auth.RegisterScreen
 import com.example.mybookslibrary.ui.screens.detail.MangaDetailScreen
 import com.example.mybookslibrary.ui.screens.reader.ReaderScreen
+import com.example.mybookslibrary.util.shareManga
 
 internal fun NavGraphBuilder.authGraph(navController: NavHostController) {
     composable<Login> {
@@ -41,6 +44,12 @@ internal fun NavGraphBuilder.authGraph(navController: NavHostController) {
 
 internal fun NavGraphBuilder.mangaDetailGraph(navController: NavHostController) {
     composable<MangaDetail>(
+        deepLinks = listOf(
+            // Pattern 1: https://mangadex.org/title/{mangaId}
+            navDeepLink { uriPattern = "https://mangadex.org/title/{mangaId}" },
+            // Pattern 2: https://mangadex.org/title/{mangaId}/some-slug
+            navDeepLink { uriPattern = "https://mangadex.org/title/{mangaId}/.*" },
+        ),
         enterTransition = {
             scaleIn(initialScale = 0.9f, animationSpec = navTween()) + fadeIn(animationSpec = navTween())
         },
@@ -49,6 +58,7 @@ internal fun NavGraphBuilder.mangaDetailGraph(navController: NavHostController) 
         },
     ) { backStackEntry ->
         val route = backStackEntry.toRoute<MangaDetail>()
+        val context = LocalContext.current
         CompositionLocalProvider(LocalNavAnimatedVisibilityScope provides this@composable) {
             MangaDetailScreen(
                 mangaId = route.mangaId,
@@ -58,6 +68,9 @@ internal fun NavGraphBuilder.mangaDetailGraph(navController: NavHostController) 
                 },
                 onReviewClick = { mangaId ->
                     navController.navigate(MangaReview(mangaId))
+                },
+                onShareClick = { mangaTitle ->
+                    shareManga(context, route.mangaId, mangaTitle)
                 },
             )
         }
