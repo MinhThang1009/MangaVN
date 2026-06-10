@@ -83,6 +83,20 @@ detekt {
 // Update goldens: chạy workflow roborazzi-record trên branch PR.
 roborazzi {
     outputDir.set(file("src/test/screenshots"))
+    // Tự sinh screenshot test cho MỌI @Composable có @Preview (kể cả private) —
+    // UI mới chỉ cần viết @Preview với fake data là tự có screenshot test,
+    // không phải viết *ScreenshotTest.kt tay. Record/verify vẫn CHỈ trên CI.
+    generateComposePreviewRobolectricTests {
+        enable.set(true)
+        packages.set(listOf("com.example.mybookslibrary"))
+        includePrivatePreviews.set(true)
+        // Khớp môi trường render với các *ScreenshotTest viết tay
+        robolectricConfig.set(
+            mapOf(
+                "qualifiers" to "\"w411dp-h891dp-xxhdpi\"",
+            ),
+        )
+    }
 }
 
 ktlint {
@@ -345,6 +359,8 @@ dependencies {
     testImplementation(libs.roborazzi.core)
     testImplementation(libs.roborazzi.compose)
     testImplementation(libs.roborazzi.junit.rule)
+    testImplementation(libs.roborazzi.preview.scanner.support)
+    testImplementation(libs.composable.preview.scanner)
 
     // Instrumented tests
     androidTestImplementation(libs.androidx.junit)
