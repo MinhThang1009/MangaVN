@@ -35,6 +35,9 @@ class LibraryRepositoryTest {
                 libraryDao = database.libraryDao(),
                 chapterDao = database.chapterDao(),
                 database = database,
+                firestoreDataSource = io.mockk.mockk(relaxed = true),
+                authRepository = io.mockk.mockk(relaxed = true),
+                externalScope = kotlinx.coroutines.test.TestScope()
             )
     }
 

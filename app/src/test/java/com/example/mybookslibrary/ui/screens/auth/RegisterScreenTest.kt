@@ -42,7 +42,7 @@ class RegisterScreenTest {
         }
 
         composeRule.onNodeWithText("Create an Account").assertIsDisplayed()
-        composeRule.onNodeWithText("Username").assertIsDisplayed()
+        composeRule.onNodeWithText("Email").assertIsDisplayed()
         composeRule.onNodeWithText("Password").assertIsDisplayed()
         composeRule.onNodeWithText("Confirm Password").assertIsDisplayed()
     }
@@ -63,7 +63,7 @@ class RegisterScreenTest {
             RegisterScreen(onRegisterSuccess = {}, onNavigateToLogin = {}, viewModel = viewModel())
         }
 
-        composeRule.onNodeWithText("Username").performTextInput("user1")
+        composeRule.onNodeWithText("Email").performTextInput("user1")
         composeRule.onNodeWithText("Password").performTextInput("pass123")
         composeRule.onNodeWithText("Confirm Password").performTextInput("different")
 
@@ -76,7 +76,7 @@ class RegisterScreenTest {
             RegisterScreen(onRegisterSuccess = {}, onNavigateToLogin = {}, viewModel = viewModel())
         }
 
-        composeRule.onNodeWithText("Username").performTextInput("user1")
+        composeRule.onNodeWithText("Email").performTextInput("user1")
         composeRule.onNodeWithText("Password").performTextInput("pass123")
         composeRule.onNodeWithText("Confirm Password").performTextInput("pass123")
 
@@ -107,18 +107,18 @@ class RegisterScreenTest {
     @Test
     fun errorState_showsErrorMessage() {
         val authRepository = mockk<AuthRepository>(relaxed = true)
-        coEvery { authRepository.register(any(), any()) } returns
-            Result.failure(IllegalStateException("Username already taken"))
+        coEvery { authRepository.registerWithEmail(any(), any()) } returns
+            Result.failure(IllegalStateException("Email already taken"))
         val vm = AuthViewModel(authRepository)
         composeRule.setContent {
             RegisterScreen(onRegisterSuccess = {}, onNavigateToLogin = {}, viewModel = vm)
         }
-        composeRule.onNodeWithText("Username").performTextInput("existing")
+        composeRule.onNodeWithText("Email").performTextInput("existing")
         composeRule.onNodeWithText("Password").performTextInput("pass1")
         composeRule.onNodeWithText("Confirm Password").performTextInput("pass1")
         composeRule.onNode(hasText("Register") and hasClickAction()).performClick()
         composeRule.waitForIdle()
-        composeRule.onNodeWithText("Username already taken").assertIsDisplayed()
+        composeRule.onNodeWithText("Email already taken").assertIsDisplayed()
     }
 
     @Test
@@ -126,7 +126,7 @@ class RegisterScreenTest {
         // AuthState.Success → LaunchedEffect gọi resetState() + onRegisterSuccess()
         var successCalled = false
         val repo = mockk<AuthRepository>(relaxed = true)
-        coEvery { repo.register(any(), any()) } coAnswers { Result.success(Unit) }
+        coEvery { repo.registerWithEmail(any(), any()) } coAnswers { Result.success(mockk<com.google.firebase.auth.FirebaseUser>(relaxed=true)) }
         val vm = AuthViewModel(repo)
         vm.register("newuser", "pass1")
 

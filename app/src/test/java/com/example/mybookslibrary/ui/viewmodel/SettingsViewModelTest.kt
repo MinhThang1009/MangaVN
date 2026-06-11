@@ -30,6 +30,7 @@ class SettingsViewModelTest {
 
     private val prefs = mockk<UserPreferencesDataStore>(relaxed = true)
     private val libraryRepository = mockk<LibraryRepository>(relaxed = true)
+    private val authRepository = mockk<com.example.mybookslibrary.data.repository.AuthRepository>(relaxed = true)
     private val imageLoader = mockk<ImageLoader>(relaxed = true)
 
     private fun stubDefaults(
@@ -46,6 +47,7 @@ class SettingsViewModelTest {
         SettingsViewModel(
             preferencesDataStore = prefs,
             libraryRepository = libraryRepository,
+            authRepository = authRepository,
             imageLoader = imageLoader,
             ioDispatcher = mainDispatcherRule.dispatcher,
             json = NetworkModule.provideJson(),
@@ -138,7 +140,7 @@ class SettingsViewModelTest {
 
             assertTrue(vm.uiState.value.signedOut)
             assertEquals("data", vm.uiState.value.quality)
-            coVerify { prefs.setLoggedInUserId(null) }
+            coVerify { authRepository.signOut() }
             coVerify { libraryRepository.clearAll() }
         }
 

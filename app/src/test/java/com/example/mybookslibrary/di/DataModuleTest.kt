@@ -46,10 +46,7 @@ class DataModuleTest {
         assertNotNull(DataModule.provideDownloadQueueDao(db))
     }
 
-    @Test
-    fun provideUserDao_returnsNonNull() {
-        assertNotNull(DataModule.provideUserDao(db))
-    }
+
 
     @Test
     fun provideLibraryRepository_returnsNonNull() {
@@ -58,6 +55,9 @@ class DataModuleTest {
                 libraryDao = DataModule.provideLibraryDao(db),
                 chapterDao = DataModule.provideChapterDao(db),
                 database = db,
+                firestoreDataSource = mockk(relaxed = true),
+                authRepository = mockk(relaxed = true),
+                ioDispatcher = kotlinx.coroutines.Dispatchers.IO
             )
         assertNotNull(repo)
     }

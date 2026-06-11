@@ -36,7 +36,7 @@ class LibraryRepositoryDownloadFlagTest {
                 ).allowMainThreadQueries()
                 .build()
         chapterDao = db.chapterDao()
-        repository = LibraryRepository(db.libraryDao(), chapterDao, db)
+        repository = LibraryRepository(db.libraryDao(), chapterDao, db, io.mockk.mockk(relaxed = true), io.mockk.mockk(relaxed = true), kotlinx.coroutines.test.TestScope())
     }
 
     @After

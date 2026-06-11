@@ -43,7 +43,7 @@ class LoginScreenTest {
         }
 
         composeRule.onNodeWithText("Welcome Back!").assertIsDisplayed()
-        composeRule.onNodeWithText("Username").assertIsDisplayed()
+        composeRule.onNodeWithText("Email").assertIsDisplayed()
         composeRule.onNodeWithText("Password").assertIsDisplayed()
     }
 
@@ -56,7 +56,7 @@ class LoginScreenTest {
         // Phân biệt nút "Login" với tiêu đề "Login" trên TopAppBar bằng hasClickAction.
         composeRule.onNode(hasText("Login") and hasClickAction()).performClick()
 
-        composeRule.onNodeWithText("Username and password cannot be empty").assertIsDisplayed()
+        composeRule.onNodeWithText("Email and password cannot be empty").assertIsDisplayed()
     }
 
     @Test
@@ -76,7 +76,7 @@ class LoginScreenTest {
         // AuthState.Success → LaunchedEffect gọi resetState() + onLoginSuccess()
         var successCalled = false
         val repo = mockk<AuthRepository>(relaxed = true)
-        coEvery { repo.login(any(), any()) } coAnswers { Result.success(Unit) }
+        coEvery { repo.signInWithEmail(any(), any()) } coAnswers { Result.success(mockk<com.google.firebase.auth.FirebaseUser>(relaxed=true)) }
         val vm = AuthViewModel(repo)
         vm.login("user", "pass")
 
@@ -91,16 +91,16 @@ class LoginScreenTest {
     fun loadingState_showsProgressInLoginButton() {
         // AuthState.Loading → CircularProgressIndicator thay vì Text "Login" trong nút
         val repo = mockk<AuthRepository>(relaxed = true)
-        coEvery { repo.login(any(), any()) } coAnswers {
+        coEvery { repo.signInWithEmail(any(), any()) } coAnswers {
             delay(Long.MAX_VALUE)
-            Result.success(Unit)
+            Result.success(mockk<com.google.firebase.auth.FirebaseUser>(relaxed=true))
         }
         val vm = AuthViewModel(repo)
 
         composeRule.setContent {
             LoginScreen(onLoginSuccess = {}, onNavigateToRegister = {}, viewModel = vm)
         }
-        composeRule.onNodeWithText("Username").performTextInput("user")
+        composeRule.onNodeWithText("Email").performTextInput("user")
         composeRule.onNodeWithText("Password").performTextInput("pass")
         composeRule.onNode(hasText("Login") and hasClickAction()).performClick()
         composeRule.waitForIdle()

@@ -52,7 +52,7 @@ class MainNavHostTest {
     @Test
     fun mainNavHost_nullUserId_showsLoginScreen() {
         composeRule.setContent {
-            MainNavHost(loggedInUserId = null)
+            MainNavHost(authStatus = com.example.mybookslibrary.domain.model.AuthStatus.LOGGED_OUT)
         }
         composeRule.waitForIdle()
         composeRule.onNodeWithText("Welcome Back!").assertIsDisplayed()
@@ -61,7 +61,7 @@ class MainNavHostTest {
     @Test
     fun mainNavHost_nullUserId_bottomNavBarIsHidden() {
         composeRule.setContent {
-            MainNavHost(loggedInUserId = null)
+            MainNavHost(authStatus = com.example.mybookslibrary.domain.model.AuthStatus.LOGGED_OUT)
         }
         composeRule.waitForIdle()
         // Bottom nav không hiển thị trên Login screen
@@ -70,9 +70,9 @@ class MainNavHostTest {
 
     @Test
     fun mainNavHost_signOut_navigatesToLogin() {
-        runBlocking { preferencesDataStore.setLoggedInUserId("test-user") }
+        runBlocking { preferencesDataStore.updateAuthStatus(com.example.mybookslibrary.domain.model.AuthStatus.LOGGED_IN) }
         composeRule.setContent {
-            MainNavHost(loggedInUserId = null)
+            MainNavHost(authStatus = com.example.mybookslibrary.domain.model.AuthStatus.LOGGED_OUT)
         }
         composeRule.waitForIdle()
         composeRule.onNodeWithText("Welcome Back!").assertIsDisplayed()
@@ -82,7 +82,7 @@ class MainNavHostTest {
     fun mainNavHost_withUserId_showsDiscoverScreen() {
         // loggedInUserId != null → startDestination = Discover → DiscoverScreen renders
         composeRule.setContent {
-            MainNavHost(loggedInUserId = "test-user-123")
+            MainNavHost(authStatus = com.example.mybookslibrary.domain.model.AuthStatus.LOGGED_IN)
         }
         composeRule.waitForIdle()
         // Login screen KHÔNG hiện (đã đăng nhập)
@@ -99,13 +99,13 @@ class MainNavHostTest {
     fun mainNavHost_signOutFromDiscover_navigatesToLogin() {
         // Start với userId (Discover) → đổi sang null (sign-out) → phải về Login
         // Covers LaunchedEffect sign-out branch (lines 162-168 trong MainNavGraph.kt)
-        var userId by mutableStateOf<String?>("test-user-123")
+        var authStatus by mutableStateOf(com.example.mybookslibrary.domain.model.AuthStatus.LOGGED_IN)
         composeRule.setContent {
-            MainNavHost(loggedInUserId = userId)
+            MainNavHost(authStatus = authStatus)
         }
         composeRule.waitForIdle()
         // Set null sau khi đã ở Discover — trigger recompose + LaunchedEffect navigate to Login
-        userId = null
+        authStatus = com.example.mybookslibrary.domain.model.AuthStatus.LOGGED_OUT
         composeRule.waitForIdle()
         composeRule.onNodeWithText("Welcome Back!").assertIsDisplayed()
     }
@@ -113,7 +113,7 @@ class MainNavHostTest {
     @Test
     fun mainNavHost_mainTabNavigation_displaysDestinationContent() {
         composeRule.setContent {
-            MainNavHost(loggedInUserId = "test-user-123")
+            MainNavHost(authStatus = com.example.mybookslibrary.domain.model.AuthStatus.LOGGED_IN)
         }
         composeRule.waitForIdle()
 
@@ -126,7 +126,7 @@ class MainNavHostTest {
     @Test
     fun mainNavHost_mainTabsContentContinuesBehindFloatingPill() {
         composeRule.setContent {
-            MainNavHost(loggedInUserId = "test-user-123")
+            MainNavHost(authStatus = com.example.mybookslibrary.domain.model.AuthStatus.LOGGED_IN)
         }
         composeRule.waitForIdle()
 

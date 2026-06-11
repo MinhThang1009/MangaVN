@@ -124,7 +124,7 @@ class LibraryDaoTest {
             val dao = database.libraryDao()
             dao.upsert(listOf(item("manga-1"), item("manga-2")))
 
-            dao.deleteByMangaId("manga-1")
+            dao.physicallyDelete("manga-1")
 
             assertNull(dao.getByMangaId("manga-1"))
             assertNotNull(dao.getByMangaId("manga-2"))

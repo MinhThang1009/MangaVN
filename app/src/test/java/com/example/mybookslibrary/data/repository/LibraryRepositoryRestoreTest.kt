@@ -33,7 +33,7 @@ class LibraryRepositoryRestoreTest {
                     AppDatabase::class.java,
                 ).allowMainThreadQueries()
                 .build()
-        repository = LibraryRepository(db.libraryDao(), db.chapterDao(), db)
+        repository = LibraryRepository(db.libraryDao(), db.chapterDao(), db, io.mockk.mockk(relaxed = true), io.mockk.mockk(relaxed = true), kotlinx.coroutines.test.TestScope())
     }
 
     @After

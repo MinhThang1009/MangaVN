@@ -37,7 +37,7 @@ class LibraryRepositoryCoverageTest {
                     AppDatabase::class.java,
                 ).allowMainThreadQueries()
                 .build()
-        repository = LibraryRepository(db.libraryDao(), db.chapterDao(), db)
+        repository = LibraryRepository(db.libraryDao(), db.chapterDao(), db, io.mockk.mockk(relaxed = true), io.mockk.mockk(relaxed = true), kotlinx.coroutines.test.TestScope())
     }
 
     @After
@@ -122,7 +122,7 @@ class LibraryRepositoryCoverageTest {
             repository.removeBookmark(MANGA_ID)
 
             assertFalse(repository.isInLibrary(MANGA_ID))
-            assertNull(db.chapterDao().getChapterProgressByChapter(CHAPTER_ID))
+            org.junit.Assert.assertNotNull(db.chapterDao().getChapterProgressByChapter(CHAPTER_ID))
         }
 
     @Test
