@@ -26,7 +26,7 @@ fun RegisterScreen(
     onNavigateToLogin: () -> Unit,
     viewModel: AuthViewModel = hiltViewModel(),
 ) {
-    var username by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
@@ -64,11 +64,12 @@ fun RegisterScreen(
             )
 
             OutlinedTextField(
-                value = username,
-                onValueChange = { username = it },
-                label = { Text(stringResource(R.string.auth_username)) },
+                value = email,
+                onValueChange = { email = it },
+                label = { Text(stringResource(R.string.auth_email)) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -120,11 +121,11 @@ fun RegisterScreen(
             Button(
                 onClick = {
                     if (password == confirmPassword) {
-                        viewModel.register(username, password)
+                        viewModel.register(email, password)
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
-                enabled = uiState !is AuthState.Loading && password == confirmPassword && password.isNotEmpty() && username.isNotEmpty(),
+                enabled = uiState !is AuthState.Loading && password == confirmPassword && password.isNotEmpty() && email.isNotEmpty(),
             ) {
                 if (uiState is AuthState.Loading) {
                     CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)

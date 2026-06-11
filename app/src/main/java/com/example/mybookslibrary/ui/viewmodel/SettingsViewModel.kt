@@ -8,6 +8,7 @@ import coil3.ImageLoader
 import com.example.mybookslibrary.data.local.LibraryBackupItem
 import com.example.mybookslibrary.data.local.UserPreferencesDataStore
 import com.example.mybookslibrary.data.local.toBackupItem
+import com.example.mybookslibrary.data.repository.AuthRepository
 import com.example.mybookslibrary.data.repository.LibraryRepository
 import com.example.mybookslibrary.di.IoDispatcher
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -52,6 +53,7 @@ data class SettingsUiState(
 class SettingsViewModel
     @Inject
     constructor(
+        private val authRepository: AuthRepository,
         private val preferencesDataStore: UserPreferencesDataStore,
         private val libraryRepository: LibraryRepository,
         private val imageLoader: ImageLoader,
@@ -111,7 +113,7 @@ class SettingsViewModel
                 try {
                     // Chỉ reset quality về mặc định, giữ nguyên language + theme
                     preferencesDataStore.setReaderQuality("data")
-                    preferencesDataStore.setLoggedInUserId(null)
+                    authRepository.signOut()
                     libraryRepository.clearAll()
                     _uiState.update { it.copy(signedOut = true, quality = "data") }
                 } catch (c: CancellationException) {

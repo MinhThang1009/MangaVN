@@ -10,15 +10,13 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.mybookslibrary.data.local.dao.ChapterDao
 import com.example.mybookslibrary.data.local.dao.DownloadQueueDao
 import com.example.mybookslibrary.data.local.dao.LibraryDao
-import com.example.mybookslibrary.data.local.dao.UserDao
 
 @Suppress("UnusedPrivateProperty")
-private const val PREVIOUS_DATABASE_VERSION = 4
-private const val CURRENT_DATABASE_VERSION = 5
+private const val PREVIOUS_DATABASE_VERSION = 5
+private const val CURRENT_DATABASE_VERSION = 6
 
 @Database(
     entities = [
-        UserEntity::class,
         LibraryItemEntity::class,
         ChapterProgressEntity::class,
         DownloadQueueEntity::class,
@@ -29,8 +27,6 @@ private const val CURRENT_DATABASE_VERSION = 5
 )
 @TypeConverters(LibraryStatusConverters::class)
 abstract class AppDatabase : RoomDatabase() {
-    abstract fun userDao(): UserDao
-
     abstract fun libraryDao(): LibraryDao
 
     abstract fun chapterDao(): ChapterDao
@@ -56,7 +52,7 @@ abstract class AppDatabase : RoomDatabase() {
                             AppDatabase::class.java,
                             "mybooks_library.db",
                         )
-                        .addMigrations(migration3To4, migration4To5)
+                        .addMigrations(migration3To4, migration4To5, migration5To6)
                         // Không dùng fallbackToDestructiveMigration: thiếu migration khi bump version
                         // sẽ fail loud (giữ nguyên dữ liệu trên đĩa) thay vì xóa sạch thư viện người dùng.
                         .build()
@@ -102,5 +98,15 @@ abstract class AppDatabase : RoomDatabase() {
                     )
                 }
             }
+
+        // Migration 5→6: Xóa bảng users — auth chuyển sang Firebase Auth.
+        @Suppress("MagicNumber")
+        val migration5To6 =
+            object : Migration(5, 6) {
+                override fun migrate(db: SupportSQLiteDatabase) {
+                    db.execSQL("DROP TABLE IF EXISTS `users`")
+                }
+            }
     }
 }
+

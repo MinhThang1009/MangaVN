@@ -38,6 +38,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.mybookslibrary.R
+import com.example.mybookslibrary.domain.model.AuthStatus
 import kotlin.reflect.KClass
 
 @OptIn(ExperimentalSharedTransitionApi::class)
@@ -74,13 +75,13 @@ internal val bottomDestinations =
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun MainNavHost(loggedInUserId: String?, incomingMangaId: String? = null) {
+fun MainNavHost(authStatus: AuthStatus, incomingMangaId: String? = null) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
-    LaunchedEffect(loggedInUserId) {
-        if (loggedInUserId == null) {
+    LaunchedEffect(authStatus) {
+        if (authStatus == AuthStatus.LOGGED_OUT) {
             if (currentDestination != null &&
                 !currentDestination.hasRoute<Login>() &&
                 !currentDestination.hasRoute<Register>()
@@ -95,7 +96,7 @@ fun MainNavHost(loggedInUserId: String?, incomingMangaId: String? = null) {
 
     // Navigate to manga detail when app is opened via share sheet (ACTION_SEND from browser).
     LaunchedEffect(incomingMangaId) {
-        if (!incomingMangaId.isNullOrBlank() && loggedInUserId != null) {
+        if (!incomingMangaId.isNullOrBlank() && authStatus != AuthStatus.LOGGED_OUT) {
             navController.navigate(MangaDetail(incomingMangaId)) {
                 launchSingleTop = true
             }
@@ -143,7 +144,7 @@ fun MainNavHost(loggedInUserId: String?, incomingMangaId: String? = null) {
                     NavHost(
                         navController = navController,
                         startDestination =
-                        if (loggedInUserId == null) {
+                        if (authStatus == AuthStatus.LOGGED_OUT) {
                             Login
                         } else {
                             Discover
