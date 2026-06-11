@@ -239,7 +239,6 @@ internal fun DetailShareButton(onShareClick: () -> Unit, modifier: Modifier = Mo
     }
 }
 
-
 @Composable
 private fun coverRequest(mangaId: String, coverUrl: String?,): ImageRequest = ImageRequest
     .Builder(LocalContext.current)
