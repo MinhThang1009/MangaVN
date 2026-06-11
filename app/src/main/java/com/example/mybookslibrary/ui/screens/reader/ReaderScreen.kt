@@ -2,6 +2,7 @@
 
 package com.example.mybookslibrary.ui.screens.reader
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.MaterialTheme
@@ -9,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
@@ -16,8 +18,12 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.mybookslibrary.data.local.UserPreferencesDataStore
+import com.example.mybookslibrary.data.local.userPreferencesDataStore
+import com.example.mybookslibrary.ui.screens.onboarding.ReaderSpotlightOverlay
 import com.example.mybookslibrary.ui.viewmodel.ReaderEvent
 import com.example.mybookslibrary.ui.viewmodel.ReaderViewModel
+import kotlinx.coroutines.launch
 
 /**
  * Main reader route that wires ViewModel state/effects to stateless reader UI.
@@ -67,13 +73,27 @@ fun ReaderScreen(
         onEvent = onEvent,
     )
 
-    ReaderContentHost(
-        state = state,
-        listState = listState,
-        pagerState = pagerState,
-        readerBarColors = readerBarColors,
-        onBackClick = onBackClick,
-        onEvent = onEvent,
-        modifier = modifier,
-    )
+    val prefsDataStore = remember(context) {
+        UserPreferencesDataStore(context.userPreferencesDataStore)
+    }
+    val readerHintDone by prefsDataStore.observeReaderHintDone()
+        .collectAsStateWithLifecycle(initialValue = true)
+    val hintScope = rememberCoroutineScope()
+
+    Box(modifier = modifier) {
+        ReaderContentHost(
+            state = state,
+            listState = listState,
+            pagerState = pagerState,
+            readerBarColors = readerBarColors,
+            onBackClick = onBackClick,
+            onEvent = onEvent,
+        )
+        ReaderSpotlightOverlay(
+            visible = !readerHintDone && state.pages.isNotEmpty(),
+            onDismiss = {
+                hintScope.launch { prefsDataStore.setReaderHintDone(true) }
+            },
+        )
+    }
 }
