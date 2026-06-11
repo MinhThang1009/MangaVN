@@ -46,6 +46,8 @@ data class SettingsUiState(
     val signedOut: Boolean = false,
     val backupResult: BackupRestoreResult? = null,
     val restoreResult: BackupRestoreResult? = null,
+    val isSyncing: Boolean = false,
+    val syncSuccess: Boolean? = null,
 )
 
 @OptIn(coil3.annotation.ExperimentalCoilApi::class)
@@ -111,7 +113,6 @@ class SettingsViewModel
         fun signOut() {
             viewModelScope.launch(ioDispatcher) {
                 try {
-                    // Chỉ reset quality về mặc định, giữ nguyên language + theme
                     preferencesDataStore.setReaderQuality("data")
                     authRepository.signOut()
                     libraryRepository.clearAll()
@@ -119,9 +120,21 @@ class SettingsViewModel
                 } catch (c: CancellationException) {
                     throw c
                 } catch (e: Exception) {
-                    // Tránh crash app do exception không bắt trong viewModelScope (Room/IO có thể ném)
                     Timber.e(e, "signOut thất bại")
                     _uiState.update { it.copy(signedOut = false) }
+                }
+            }
+        }
+
+        fun forceSync() {
+            viewModelScope.launch(ioDispatcher) {
+                _uiState.update { it.copy(isSyncing = true, syncSuccess = null) }
+                try {
+                    libraryRepository.syncPendingItems()
+                    _uiState.update { it.copy(isSyncing = false, syncSuccess = true) }
+                } catch (e: Exception) {
+                    Timber.e(e, "Lỗi đồng bộ thủ công")
+                    _uiState.update { it.copy(isSyncing = false, syncSuccess = false) }
                 }
             }
         }

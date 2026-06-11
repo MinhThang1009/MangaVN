@@ -135,6 +135,11 @@
     <string name="settings_restore_subtitle">Import from a backup file</string>
     <string name="settings_restore_success">Restored %1$d items</string>
     <string name="settings_restore_failed">Restore failed: %1$s</string>
+    <string name="settings_sync">Cloud Sync</string>
+    <string name="settings_sync_subtitle">Tap to sync library with Firestore</string>
+    <string name="settings_sync_syncing">Syncing…</string>
+    <string name="settings_sync_success">Sync completed successfully</string>
+    <string name="settings_sync_failed">Sync failed</string>
     <string name="settings_sign_out">Sign Out</string>
     <string name="settings_signed_out">Signed Out</string>
     <string name="settings_sign_out_subtitle">Clear all local data</string>
