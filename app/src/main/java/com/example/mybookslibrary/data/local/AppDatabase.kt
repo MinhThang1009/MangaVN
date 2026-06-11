@@ -12,8 +12,8 @@ import com.example.mybookslibrary.data.local.dao.DownloadQueueDao
 import com.example.mybookslibrary.data.local.dao.LibraryDao
 import com.example.mybookslibrary.data.local.dao.UserDao
 
-private const val PREVIOUS_DATABASE_VERSION = 3
-private const val CURRENT_DATABASE_VERSION = 4
+private const val PREVIOUS_DATABASE_VERSION = 4
+private const val CURRENT_DATABASE_VERSION = 5
 
 @Database(
     entities = [
@@ -55,7 +55,7 @@ abstract class AppDatabase : RoomDatabase() {
                             AppDatabase::class.java,
                             "mybooks_library.db",
                         )
-                        .addMigrations(migration3To4)
+                        .addMigrations(migration3To4, migration4To5)
                         // Không dùng fallbackToDestructiveMigration: thiếu migration khi bump version
                         // sẽ fail loud (giữ nguyên dữ liệu trên đĩa) thay vì xóa sạch thư viện người dùng.
                         .build()
@@ -66,7 +66,7 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         val migration3To4 =
-            object : Migration(PREVIOUS_DATABASE_VERSION, CURRENT_DATABASE_VERSION) {
+            object : Migration(3, 4) {
                 override fun migrate(db: SupportSQLiteDatabase) {
                     db.execSQL(
                         """
@@ -87,6 +87,15 @@ abstract class AppDatabase : RoomDatabase() {
                     db.execSQL(
                         "CREATE INDEX IF NOT EXISTS `index_chapter_metadata_manga_id` " +
                             "ON `chapter_metadata` (`manga_id`)",
+                    )
+                }
+            }
+
+        val migration4To5 =
+            object : Migration(4, 5) {
+                override fun migrate(db: SupportSQLiteDatabase) {
+                    db.execSQL(
+                        "ALTER TABLE `chapter_metadata` ADD COLUMN `translated_language` TEXT"
                     )
                 }
             }

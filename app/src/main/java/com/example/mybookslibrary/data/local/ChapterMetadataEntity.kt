@@ -19,6 +19,7 @@ data class ChapterMetadataEntity(
     val title: String?,
     val pages: Int,
     @ColumnInfo(name = "is_unavailable") val isUnavailable: Boolean,
+    @ColumnInfo(name = "translated_language") val translatedLanguage: String?,
     @ColumnInfo(name = "feed_order") val feedOrder: Int,
     @ColumnInfo(name = "updated_at") val updatedAt: Long,
 )
@@ -35,6 +36,7 @@ fun ChapterModel.toMetadataEntity(
         title = title,
         pages = pages,
         isUnavailable = isUnavailable,
+        translatedLanguage = translatedLanguage,
         feedOrder = feedOrder,
         updatedAt = updatedAt,
     )

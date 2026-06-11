@@ -164,6 +164,7 @@ private fun ChapterMetadataEntity.toChapterWithProgress(
         status = progress?.status.toDomainStatus(),
         lastReadPage = progress?.last_read_page ?: 0,
         totalPages = totalPages,
+        translatedLanguage = translatedLanguage,
         downloadState = queue.toDownloadState(isDownloaded),
     )
 }
