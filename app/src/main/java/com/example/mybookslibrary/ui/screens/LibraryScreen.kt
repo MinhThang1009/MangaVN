@@ -43,11 +43,11 @@ import com.example.mybookslibrary.R
 import com.example.mybookslibrary.data.local.LibraryItemEntity
 import com.example.mybookslibrary.data.local.LibraryStatus
 import com.example.mybookslibrary.ui.navigation.LocalBottomNavPadding
-import com.example.mybookslibrary.ui.theme.KansoDarkBackground
-import com.example.mybookslibrary.ui.theme.KansoDarkSuccess
-import com.example.mybookslibrary.ui.theme.KansoDarkWarning
-import com.example.mybookslibrary.ui.theme.KansoSuccess
-import com.example.mybookslibrary.ui.theme.KansoWarning
+import com.example.mybookslibrary.ui.theme.CinemaDarkBackground
+import com.example.mybookslibrary.ui.theme.CinemaDarkSuccess
+import com.example.mybookslibrary.ui.theme.CinemaDarkWarning
+import com.example.mybookslibrary.ui.theme.CinemaSuccess
+import com.example.mybookslibrary.ui.theme.CinemaWarning
 import com.example.mybookslibrary.ui.util.appString
 import com.example.mybookslibrary.ui.viewmodel.LibraryViewModel
 
@@ -203,7 +203,7 @@ private fun LibraryItemCard(
 
 @Composable
 private fun StatusChip(status: LibraryStatus) {
-    val isDark = MaterialTheme.colorScheme.background == KansoDarkBackground
+    val isDark = MaterialTheme.colorScheme.background == CinemaDarkBackground
     val label =
         when (status) {
             LibraryStatus.READING -> appString(R.string.status_reading)
@@ -213,8 +213,8 @@ private fun StatusChip(status: LibraryStatus) {
     val color =
         when (status) {
             LibraryStatus.READING -> MaterialTheme.colorScheme.tertiary
-            LibraryStatus.COMPLETED -> if (isDark) KansoDarkSuccess else KansoSuccess
-            LibraryStatus.FAVORITE -> if (isDark) KansoDarkWarning else KansoWarning
+            LibraryStatus.COMPLETED -> if (isDark) CinemaDarkSuccess else CinemaSuccess
+            LibraryStatus.FAVORITE -> if (isDark) CinemaDarkWarning else CinemaWarning
         }
     Box(
         modifier =

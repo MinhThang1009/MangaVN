@@ -308,6 +308,8 @@ Backlog hỏi user (đụng behavior, KHÔNG tự làm): pull-to-refresh cho Dis
 
 **Nguyên tắc**: không animation trong scroll path LazyList; mỗi animation phải có chức năng (định hướng/feedback); reduce-motion: Compose tự scale qua `MotionDurationScale` (verify khi implement), hiệu ứng tự viết (parallax, stagger, loop) check thủ công `LocalReducedMotion` (đọc `Settings.Global.ANIMATOR_DURATION_SCALE == 0`) → thay bằng hiển thị tĩnh.
 
+**Deviation Phase 1**: `MotionScheme.expressive()` còn INTERNAL trong material3 1.4.0 (BOM 2026.05.01, compiler xác nhận 2026-06-11). Theme dùng motion mặc định M3 — quyết bump material3 lên 1.5+ (expressive public) tại GATE 1 nếu stable.
+
 ## 7. Dark mode — xử lý riêng (không phải đảo màu)
 
 1. Tách lớp: dark = 4 bậc surfaceContainer + tắt `surfaceTint`; light = shadow.
