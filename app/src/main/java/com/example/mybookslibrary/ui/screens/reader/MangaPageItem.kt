@@ -15,8 +15,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.BrokenImage
+import com.composables.icons.lucide.ImageOff
+import com.composables.icons.lucide.Lucide
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -190,7 +190,7 @@ private fun MangaPageRetryOverlay(onRetry: () -> Unit) {
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Icon(
-                imageVector = Icons.Filled.BrokenImage,
+                imageVector = Lucide.ImageOff,
                 contentDescription = null,
                 tint = Color.White.copy(alpha = ERROR_ICON_ALPHA),
                 modifier = Modifier.size(48.dp),

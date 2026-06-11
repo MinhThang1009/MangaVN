@@ -25,12 +25,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.MenuBook
-import androidx.compose.material.icons.filled.AutoStories
-import androidx.compose.material.icons.filled.ImportContacts
 import androidx.compose.material3.Icon
+import com.composables.icons.lucide.ArrowLeft
+import com.composables.icons.lucide.BookOpen
+import com.composables.icons.lucide.BookOpenCheck
+import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.Scroll
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -46,6 +46,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.mybookslibrary.R
 import com.example.mybookslibrary.domain.model.ReadingMode
+import com.example.mybookslibrary.ui.theme.Dimens
 import com.example.mybookslibrary.ui.theme.MyBooksLibraryTheme
 import com.example.mybookslibrary.ui.util.appString
 import timber.log.Timber
@@ -116,7 +117,7 @@ internal fun BoxScope.ReaderTopBar(
                     .background(colors.container)
                     .consumeReaderOverlayGestures()
                     .statusBarsPadding()
-                    .padding(horizontal = 8.dp, vertical = 12.dp),
+                    .padding(horizontal = Dimens.SpacingSm, vertical = Dimens.SpacingMd),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(onClick = {
@@ -132,7 +133,7 @@ internal fun BoxScope.ReaderTopBar(
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(
-                        Icons.AutoMirrored.Filled.ArrowBack,
+                        Lucide.ArrowLeft,
                         contentDescription = appString(R.string.cd_back),
                         tint = colors.content,
                         modifier = Modifier.size(20.dp),
@@ -247,9 +248,9 @@ internal fun BoxScope.ReaderBottomBar(
     // Icon and content description cycle: VERTICAL → LTR → RTL
     val modeIcon =
         when (state.currentReadingMode) {
-            ReadingMode.VERTICAL -> Icons.AutoMirrored.Filled.MenuBook
-            ReadingMode.LTR -> Icons.Filled.ImportContacts
-            ReadingMode.RTL -> Icons.Filled.AutoStories
+            ReadingMode.VERTICAL -> Lucide.BookOpen
+            ReadingMode.LTR -> Lucide.BookOpenCheck
+            ReadingMode.RTL -> Lucide.Scroll
         }
 
     AnimatedVisibility(
@@ -265,7 +266,7 @@ internal fun BoxScope.ReaderBottomBar(
                     .background(colors.container)
                     .consumeReaderOverlayGestures()
                     .navigationBarsPadding()
-                    .padding(horizontal = 24.dp, vertical = 8.dp),
+                    .padding(horizontal = Dimens.ScreenPaddingCompact, vertical = Dimens.SpacingSm),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(

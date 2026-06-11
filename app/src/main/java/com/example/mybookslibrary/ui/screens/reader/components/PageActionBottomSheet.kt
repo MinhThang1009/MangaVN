@@ -10,10 +10,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Download
-import androidx.compose.material.icons.outlined.Save
-import androidx.compose.material.icons.outlined.Share
+import com.composables.icons.lucide.Download
+import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.Save
+import com.composables.icons.lucide.Share2
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
@@ -81,7 +81,7 @@ fun PageActionBottomSheet(
             horizontalArrangement = Arrangement.SpaceEvenly,
         ) {
             ActionItem(
-                icon = Icons.Outlined.Download,
+                icon = Lucide.Download,
                 label = appString(R.string.reader_action_quick_save),
                 onClick = {
                     onAction(PageAction.QuickSave)
@@ -89,7 +89,7 @@ fun PageActionBottomSheet(
                 },
             )
             ActionItem(
-                icon = Icons.Outlined.Save,
+                icon = Lucide.Save,
                 label = appString(R.string.reader_action_save_as),
                 onClick = {
                     onAction(PageAction.SaveAs)
@@ -97,7 +97,7 @@ fun PageActionBottomSheet(
                 },
             )
             ActionItem(
-                icon = Icons.Outlined.Share,
+                icon = Lucide.Share2,
                 label = appString(R.string.reader_action_share),
                 onClick = {
                     onAction(PageAction.Share)
