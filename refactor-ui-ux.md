@@ -117,7 +117,7 @@ Backlog hỏi user (đụng behavior, KHÔNG tự làm): pull-to-refresh cho Dis
 - **Baseline test** (P4): **626 test pass / 0 fail** (đã chạy 2026-06-11, BUILD SUCCESSFUL 3m06s) — mọi phase sau phải giữ ≥ mức này.
 - `scripts/check-strings-parity.sh`: fail nếu key `values/strings.xml` ≠ `values-vi/strings.xml`; gắn vào pre-commit hook.
 - `scripts/check-design-tokens.sh` (dời từ Phase 1B về đây theo audit): chặn `Color(0x`/`fontSize =`/`FontFamily.` ngoài `ui/theme/` — **chỉ scan staged files** để code Kanso cũ không chặn commit trước khi được refactor tới; gắn vào pre-commit hook.
-- Thêm `material3-window-size-class` (BOM-managed) + `com.composables:icons-lucide` 2.2.1 vào `libs.versions.toml` + `app/build.gradle.kts`.
+- Thêm `material3-window-size-class` (BOM-managed) + `com.composables:icons-lucide` **1.1.0** (biến thể ImageVector — xem §2 row 8) vào `libs.versions.toml` + `app/build.gradle.kts`.
 - Font files vào `app/src/main/res/font/` (Bricolage Grotesque variable + Be Vietnam Pro 4 weight, license OFL → `assets/licenses/`).
 
 ### Phase 1 — Design system (M)
@@ -258,12 +258,12 @@ Backlog hỏi user (đụng behavior, KHÔNG tự làm): pull-to-refresh cho Dis
 - [ ] Build/test/lint pass; 🛑 **GATE 4**
 
 **Phase 9 DONE khi:**
-- [ ] Landscape sweep đủ 20 mục §9 (từng mục ghi OK/lý do)
+- [ ] Landscape sweep đủ 22 hàng §9 (1, 1b, 1c, 2–20 — từng hàng ghi OK/lý do)
 - [ ] Bảng contrast AA đầy đủ mọi cặp màu đang dùng; fix hết cặp fail
 - [ ] fontScale 2.0: hero/nút không vỡ (maxLines+ellipsis); touch target ≥48dp; TalkBack sweep các màn chính
 - [ ] reduce-motion verify 2 lớp: unit test `LocalReducedMotion = true` → stagger/parallax/shimmer render thẳng final state (automated, chạy được trong suite); cộng kiểm thủ công animator scale 0 trên emulator
 - [ ] Dead code audit: 0 orphan import/component Kanso; gỡ `material-icons-extended` nếu grep 0 usage
-- [ ] Checklist §9 đủ 20 hàng trạng thái; 🛑 **GATE 5** — đóng dự án
+- [ ] Checklist §9 đủ 22 hàng trạng thái; 🛑 **GATE 5** — đóng dự án
 
 ## 5. Onboarding spec (Phase 8)
 
