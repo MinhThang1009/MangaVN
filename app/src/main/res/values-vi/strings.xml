@@ -269,4 +269,10 @@
     <string name="stats_reading">Đang đọc</string>
     <string name="stats_completed">Hoàn thành</string>
     <string name="stats_favorite">Yêu thích</string>
+
+    <!-- Rate App -->
+    <string name="rate_app_title">Bạn thích MangaVN?</string>
+    <string name="rate_app_body">Nếu bạn thích ứng dụng, hãy dành chút thời gian đánh giá nhé. Cảm ơn bạn đã ủng hộ!</string>
+    <string name="rate_app_rate">Đánh giá ngay</string>
+    <string name="rate_app_later">Để sau</string>
 </resources>

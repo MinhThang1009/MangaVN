@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
@@ -33,6 +34,8 @@ class UserPreferencesDataStore(
         private val ONBOARDING_WELCOME_DONE = booleanPreferencesKey("onboarding_welcome_done")
         private val READER_HINT_DONE = booleanPreferencesKey("reader_hint_done")
         private val IN_APP_TOUR_DONE = booleanPreferencesKey("in_app_tour_done")
+        private val FIRST_OPEN_TIME = longPreferencesKey("first_open_time")
+        private val RATE_APP_DISMISSED = booleanPreferencesKey("rate_app_dismissed")
 
         private const val DEFAULT_QUALITY = "data"
         private const val DEFAULT_LANGUAGE = "vi"
@@ -126,6 +129,23 @@ class UserPreferencesDataStore(
 
     suspend fun setInAppTourDone(done: Boolean) {
         dataStore.edit { it[IN_APP_TOUR_DONE] = done }
+    }
+
+    suspend fun getFirstOpenTime(): Long {
+        val stored = safeData.first()[FIRST_OPEN_TIME]
+        if (stored == null) {
+            val now = System.currentTimeMillis()
+            dataStore.edit { it[FIRST_OPEN_TIME] = now }
+            return now
+        }
+        return stored
+    }
+
+    fun observeRateAppDismissed(): Flow<Boolean> =
+        safeData.map { it[RATE_APP_DISMISSED] ?: false }
+
+    suspend fun setRateAppDismissed(dismissed: Boolean) {
+        dataStore.edit { it[RATE_APP_DISMISSED] = dismissed }
     }
 
     suspend fun clearAll() {

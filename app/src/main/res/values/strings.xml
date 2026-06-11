@@ -270,4 +270,10 @@
     <string name="stats_reading">Reading</string>
     <string name="stats_completed">Completed</string>
     <string name="stats_favorite">Favorite</string>
+
+    <!-- Rate App -->
+    <string name="rate_app_title">Enjoying MangaVN?</string>
+    <string name="rate_app_body">If you like our app, please take a moment to rate it. Thank you for your support!</string>
+    <string name="rate_app_rate">Rate now</string>
+    <string name="rate_app_later">Maybe later</string>
 </resources>
