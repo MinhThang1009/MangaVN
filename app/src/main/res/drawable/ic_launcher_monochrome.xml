@@ -4,37 +4,25 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-  <!-- Thân sách phủ đầy — tinted bởi hệ thống -->
+  <!-- Sách mở silhouette -->
   <path
-      android:pathData="M26,22C26,19.24 28.24,17 31,17H77C79.76,17 82,19.24 82,22V86C82,88.76 79.76,91 77,91H31C28.24,91 26,88.76 26,86V22Z"
+      android:pathData="M22,32L50,28V80L22,84Z"
       android:fillColor="#000000"/>
-
-  <!-- Trang trắng bên trong -->
   <path
-      android:pathData="M35,17H77C79.76,17 82,19.24 82,22V86C82,88.76 79.76,91 77,91H35V17Z"
-      android:fillColor="#FFFFFF"/>
-
-  <!-- Dòng text -->
+      android:pathData="M58,28L86,32V84L58,80Z"
+      android:fillColor="#000000"/>
+  <!-- Gáy -->
   <path
-      android:pathData="M42,34H72"
-      android:strokeColor="#000000"
-      android:strokeWidth="3.5"
-      android:strokeLineCap="round"/>
+      android:pathData="M50,28C52,29 56,29 58,28L58,80C56,81 52,81 50,80Z"
+      android:fillColor="#000000"
+      android:fillAlpha="0.5"/>
+  <!-- Page curl -->
   <path
-      android:pathData="M42,43H68"
-      android:strokeColor="#000000"
-      android:strokeWidth="2"
-      android:strokeLineCap="round"
-      android:strokeAlpha="0.2"/>
+      android:pathData="M58,28L78,24C80,23.5 82,25 81,27L62,78C61,80 58,80 58,78Z"
+      android:fillColor="#000000"
+      android:fillAlpha="0.3"/>
+  <!-- Sparkle -->
   <path
-      android:pathData="M42,50H70"
-      android:strokeColor="#000000"
-      android:strokeWidth="2"
-      android:strokeLineCap="round"
-      android:strokeAlpha="0.2"/>
-
-  <!-- Bookmark -->
-  <path
-      android:pathData="M63,17V44L68,39.5L73,44V17Z"
-      android:fillColor="#FFFFFF"/>
+      android:pathData="M76,22L77.5,26L81.5,27.5L77.5,29L76,33L74.5,29L70.5,27.5L74.5,26Z"
+      android:fillColor="#000000"/>
 </vector>

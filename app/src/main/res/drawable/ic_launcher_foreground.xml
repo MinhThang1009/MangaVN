@@ -4,57 +4,63 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-  <!-- Nền vermilion phủ TOÀN BỘ 108×108 — adaptive icon tự cắt theo mask -->
-  <path
-      android:pathData="M0,0H108V108H0Z"
-      android:fillColor="#FF5A3C"/>
+  <!-- Nền gradient warm — vermilion → deep rose -->
+  <path android:pathData="M0,0H108V108H0Z">
+    <aapt:attr name="android:fillColor" xmlns:aapt="http://schemas.android.com/aapt">
+      <gradient
+          android:type="linear"
+          android:startX="0" android:startY="0"
+          android:endX="108" android:endY="108"
+          android:startColor="#FF5A3C"
+          android:endColor="#E8352A"/>
+    </aapt:attr>
+  </path>
 
-  <!-- Sách — căn giữa safe zone, đủ lớn tràn viền -->
-  <!-- Thân sách -->
+  <!-- Glow circle nhẹ — tạo depth -->
   <path
-      android:pathData="M26,22C26,19.24 28.24,17 31,17H77C79.76,17 82,19.24 82,22V86C82,88.76 79.76,91 77,91H31C28.24,91 26,88.76 26,86V22Z"
+      android:pathData="M54,54m-32,0a32,32 0,1 1,64 0a32,32 0,1 1,-64 0"
+      android:fillColor="#FFFFFF"
+      android:fillAlpha="0.08"/>
+
+  <!-- Trang sách trái (nghiêng, tạo cảm giác mở) -->
+  <path
+      android:pathData="M22,32L50,28V80L22,84Z"
+      android:fillColor="#FFFFFF"
+      android:fillAlpha="0.92"/>
+
+  <!-- Trang sách phải (nghiêng ngược) -->
+  <path
+      android:pathData="M58,28L86,32V84L58,80Z"
       android:fillColor="#FFFFFF"/>
 
-  <!-- Gáy sách -->
+  <!-- Gáy sách giữa — đường gập -->
   <path
-      android:pathData="M26,22C26,19.24 28.24,17 31,17H35V91H31C28.24,91 26,88.76 26,86V22Z"
-      android:fillColor="#F0E8E6"/>
+      android:pathData="M50,28C52,29 56,29 58,28L58,80C56,81 52,81 50,80Z"
+      android:fillColor="#F0E0DC"
+      android:fillAlpha="0.6"/>
 
-  <!-- Dòng title (vermilion trên trang trắng) -->
+  <!-- Trang đang lật — hiệu ứng page curl -->
   <path
-      android:pathData="M42,34H72"
-      android:strokeColor="#FF5A3C"
-      android:strokeWidth="3.5"
-      android:strokeLineCap="round"/>
+      android:pathData="M58,28L78,24C80,23.5 82,25 81,27L62,78C61,80 58,80 58,78Z"
+      android:fillColor="#FFFFFF"
+      android:fillAlpha="0.55"/>
 
-  <!-- Dòng text giả -->
-  <path
-      android:pathData="M42,43H68"
-      android:strokeColor="#1A1C22"
-      android:strokeWidth="2"
-      android:strokeLineCap="round"
-      android:strokeAlpha="0.15"/>
-  <path
-      android:pathData="M42,50H70"
-      android:strokeColor="#1A1C22"
-      android:strokeWidth="2"
-      android:strokeLineCap="round"
-      android:strokeAlpha="0.15"/>
-  <path
-      android:pathData="M42,57H64"
-      android:strokeColor="#1A1C22"
-      android:strokeWidth="2"
-      android:strokeLineCap="round"
-      android:strokeAlpha="0.15"/>
-  <path
-      android:pathData="M42,64H66"
-      android:strokeColor="#1A1C22"
-      android:strokeWidth="2"
-      android:strokeLineCap="round"
-      android:strokeAlpha="0.15"/>
+  <!-- Dòng text trên trang trái -->
+  <path android:pathData="M28,42L44,40" android:strokeColor="#FF5A3C" android:strokeWidth="2.2" android:strokeLineCap="round" android:strokeAlpha="0.7"/>
+  <path android:pathData="M28,49L42,47" android:strokeColor="#1A1C22" android:strokeWidth="1.5" android:strokeLineCap="round" android:strokeAlpha="0.12"/>
+  <path android:pathData="M28,55L40,53.5" android:strokeColor="#1A1C22" android:strokeWidth="1.5" android:strokeLineCap="round" android:strokeAlpha="0.12"/>
 
-  <!-- Bookmark ribbon gold -->
+  <!-- Dòng text trên trang phải -->
+  <path android:pathData="M64,42L80,44" android:strokeColor="#FFC24B" android:strokeWidth="2.2" android:strokeLineCap="round" android:strokeAlpha="0.8"/>
+  <path android:pathData="M64,49L78,50.5" android:strokeColor="#1A1C22" android:strokeWidth="1.5" android:strokeLineCap="round" android:strokeAlpha="0.12"/>
+  <path android:pathData="M64,55L76,56.5" android:strokeColor="#1A1C22" android:strokeWidth="1.5" android:strokeLineCap="round" android:strokeAlpha="0.12"/>
+
+  <!-- Sparkle nhỏ — điểm nhấn premium -->
   <path
-      android:pathData="M63,17V44L68,39.5L73,44V17Z"
+      android:pathData="M76,22L77.5,26L81.5,27.5L77.5,29L76,33L74.5,29L70.5,27.5L74.5,26Z"
       android:fillColor="#FFC24B"/>
+  <path
+      android:pathData="M30,70L31,72.5L33.5,73.5L31,74.5L30,77L29,74.5L26.5,73.5L29,72.5Z"
+      android:fillColor="#FFC24B"
+      android:fillAlpha="0.7"/>
 </vector>
