@@ -107,8 +107,21 @@ jobs:
           }
           EOF
 
-      - name: Chạy unit test
-        run: ./gradlew :app:testDebugUnitTest --console=plain
+      # verifyRoborazziDebug chạy chính testDebugUnitTest + so sánh screenshot với
+      # goldens (src/test/screenshots) — không chạy test 2 lần, .exec coverage vẫn sinh ra.
+      - name: Chạy unit test + verify screenshots
+        run: ./gradlew :app:verifyRoborazziDebug --console=plain
+
+      # Report so sánh ảnh (có diff image) khi screenshot verify fail.
+      - name: Upload Roborazzi report
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: roborazzi-report
+          path: |
+            app/build/reports/roborazzi/
+            app/build/outputs/roborazzi/
+          if-no-files-found: ignore
 
       - name: Upload unit test exec (ubuntu — dùng bởi emulator-test cho combined report)
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
