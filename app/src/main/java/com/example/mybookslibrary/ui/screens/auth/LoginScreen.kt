@@ -1,12 +1,32 @@
 package com.example.mybookslibrary.ui.screens.auth
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -16,7 +36,14 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.composables.icons.lucide.Eye
+import com.composables.icons.lucide.EyeOff
+import com.composables.icons.lucide.Lucide
 import com.example.mybookslibrary.R
+import com.example.mybookslibrary.ui.screens.components.ErrorMessageBox
+import com.example.mybookslibrary.ui.screens.components.LoadingIndicator
+import com.example.mybookslibrary.ui.screens.components.LoadingSize
+import com.example.mybookslibrary.ui.theme.Dimens
 import com.example.mybookslibrary.ui.viewmodel.AuthState
 import com.example.mybookslibrary.ui.viewmodel.AuthViewModel
 
@@ -78,12 +105,14 @@ fun LoginScreen(
                 value = password,
                 onValueChange = { password = it },
                 label = { Text(stringResource(R.string.auth_password)) },
-                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                visualTransformation =
+                    if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 trailingIcon = {
-                    val image = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
+                    val image = if (passwordVisible) Lucide.Eye else Lucide.EyeOff
+                    val desc = if (passwordVisible) "Hide password" else "Show password"
                     IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                        Icon(imageVector = image, contentDescription = if (passwordVisible) "Hide password" else "Show password")
+                        Icon(imageVector = image, contentDescription = desc)
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
@@ -93,10 +122,9 @@ fun LoginScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             if (uiState is AuthState.Error) {
-                Text(
-                    text = (uiState as AuthState.Error).message.asString(),
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(bottom = 16.dp),
+                ErrorMessageBox(
+                    message = (uiState as AuthState.Error).message.asString(),
+                    modifier = Modifier.padding(bottom = Dimens.SpacingLg),
                 )
             }
 
@@ -106,7 +134,10 @@ fun LoginScreen(
                 enabled = uiState !is AuthState.Loading,
             ) {
                 if (uiState is AuthState.Loading) {
-                    CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
+                    LoadingIndicator(
+                        size = LoadingSize.Small,
+                        color = MaterialTheme.colorScheme.onPrimary,
+                    )
                 } else {
                     Text(stringResource(R.string.auth_login_button))
                 }

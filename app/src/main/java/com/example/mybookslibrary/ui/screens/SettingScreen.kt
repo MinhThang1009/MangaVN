@@ -31,6 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.example.mybookslibrary.ui.theme.Dimens
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.mybookslibrary.R
@@ -75,17 +76,17 @@ fun SettingScreenContent(modifier: Modifier = Modifier, viewModel: SettingsViewM
                 .consumeWindowInsets(innerPadding),
             contentPadding =
                 PaddingValues(
-                    start = 24.dp,
-                    end = 24.dp,
-                    top = 16.dp,
-                    bottom = bottomNavPadding + 16.dp,
+                    start = Dimens.ScreenPaddingCompact,
+                    end = Dimens.ScreenPaddingCompact,
+                    top = Dimens.SpacingLg,
+                    bottom = bottomNavPadding + Dimens.SpacingLg,
                 ),
         ) {
             item {
                 Text(
                     appString(R.string.settings_title),
                     style = MaterialTheme.typography.displayMedium,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
                 Spacer(Modifier.height(32.dp))
             }
@@ -224,11 +225,9 @@ private fun SettingsSectionLabel(title: String) {
 @Composable
 private fun SettingsCard(content: @Composable () -> Unit) {
     Card(
-        shape =
-        androidx.compose.foundation.shape
-            .RoundedCornerShape(16.dp),
+        shape = MaterialTheme.shapes.large,
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
         modifier = Modifier.fillMaxWidth(),
     ) {
         Column(Modifier.fillMaxWidth()) { content() }
@@ -270,7 +269,7 @@ private fun SettingsDivider() {
             .fillMaxWidth()
             .height(1.dp)
             .padding(horizontal = 20.dp)
-            .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.12f)),
+            .background(MaterialTheme.colorScheme.outlineVariant),
     )
 }
 
