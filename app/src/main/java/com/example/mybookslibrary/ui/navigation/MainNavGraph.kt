@@ -11,6 +11,8 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
@@ -24,9 +26,16 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -96,6 +105,20 @@ fun MainNavHost(
     val coachMarkState = rememberCoachMarkState()
     val showTour = loggedInUserId != null && !inAppTourDone
 
+    var navBarVisible by remember { mutableStateOf(true) }
+    val navBarScrollConnection = remember {
+        object : NestedScrollConnection {
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                if (available.y > 1f) {
+                    navBarVisible = true
+                } else if (available.y < -1f) {
+                    navBarVisible = false
+                }
+                return Offset.Zero
+            }
+        }
+    }
+
     LaunchedEffect(loggedInUserId) {
         if (loggedInUserId == null) {
             if (currentDestination != null &&
@@ -157,10 +180,25 @@ fun MainNavHost(
                         else -> Discover
                     },
                     modifier = modifier,
-                    enterTransition = { fadeIn(animationSpec = tween(300, easing = FastOutSlowInEasing)) },
-                    exitTransition = { fadeOut(animationSpec = tween(300, easing = FastOutSlowInEasing)) },
-                    popEnterTransition = { fadeIn(animationSpec = tween(300, easing = FastOutSlowInEasing)) },
-                    popExitTransition = { fadeOut(animationSpec = tween(300, easing = FastOutSlowInEasing)) },
+                    enterTransition = {
+                        fadeIn(tween(250)) + scaleIn(
+                            initialScale = 0.94f,
+                            animationSpec = tween(250, easing = FastOutSlowInEasing),
+                        )
+                    },
+                    exitTransition = { fadeOut(tween(200)) },
+                    popEnterTransition = {
+                        fadeIn(tween(250)) + scaleIn(
+                            initialScale = 0.94f,
+                            animationSpec = tween(250, easing = FastOutSlowInEasing),
+                        )
+                    },
+                    popExitTransition = {
+                        fadeOut(tween(200)) + scaleOut(
+                            targetScale = 0.94f,
+                            animationSpec = tween(200, easing = FastOutSlowInEasing),
+                        )
+                    },
                 ) {
                     onboardingGraph(navController, onWelcomeDone)
                     authGraph(navController)
@@ -191,7 +229,8 @@ fun MainNavHost(
                         currentDestination = currentDestination,
                         onNavigate = navBarCallback,
                         modifier = Modifier.testTag(FLOATING_PILL_NAV_TAG),
-                coachMarkState = if (showTour) coachMarkState else null,
+                        isVisible = navBarVisible,
+                        coachMarkState = if (showTour) coachMarkState else null,
                     )
                 }
             },
@@ -202,6 +241,7 @@ fun MainNavHost(
                 modifier =
                     Modifier
                         .consumeWindowInsets(innerPadding)
+                        .nestedScroll(navBarScrollConnection)
                         .testTag(MAIN_NAV_CONTENT_TAG),
             ) {
                 NavContent()

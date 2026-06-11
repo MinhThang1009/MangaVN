@@ -2,6 +2,8 @@ package com.example.mybookslibrary.ui.navigation
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.spring
@@ -52,11 +54,18 @@ internal fun FloatingPillNavBar(
     currentDestination: NavDestination?,
     onNavigate: (BottomNavDestination) -> Unit,
     modifier: Modifier = Modifier,
+    isVisible: Boolean = true,
     coachMarkState: CoachMarkState? = null,
 ) {
     val widthSizeClass = LocalWindowWidthSizeClass.current
     if (widthSizeClass == WindowWidthSizeClass.Compact) {
-        PillBottomBar(currentDestination, onNavigate, modifier, coachMarkState)
+        AnimatedVisibility(
+            visible = isVisible,
+            enter = slideInVertically(initialOffsetY = { it }),
+            exit = slideOutVertically(targetOffsetY = { it }),
+        ) {
+            PillBottomBar(currentDestination, onNavigate, modifier, coachMarkState)
+        }
     } else {
         RailSideBar(currentDestination, onNavigate, modifier, coachMarkState)
     }
