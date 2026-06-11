@@ -37,11 +37,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
+import com.example.mybookslibrary.ui.screens.onboarding.CoachMarkState
 import com.example.mybookslibrary.ui.theme.Dimens
 import com.example.mybookslibrary.ui.util.appString
 
@@ -50,12 +52,13 @@ internal fun FloatingPillNavBar(
     currentDestination: NavDestination?,
     onNavigate: (BottomNavDestination) -> Unit,
     modifier: Modifier = Modifier,
+    coachMarkState: CoachMarkState? = null,
 ) {
     val widthSizeClass = LocalWindowWidthSizeClass.current
     if (widthSizeClass == WindowWidthSizeClass.Compact) {
-        PillBottomBar(currentDestination, onNavigate, modifier)
+        PillBottomBar(currentDestination, onNavigate, modifier, coachMarkState)
     } else {
-        RailSideBar(currentDestination, onNavigate, modifier)
+        RailSideBar(currentDestination, onNavigate, modifier, coachMarkState)
     }
 }
 
@@ -64,6 +67,7 @@ private fun PillBottomBar(
     currentDestination: NavDestination?,
     onNavigate: (BottomNavDestination) -> Unit,
     modifier: Modifier = Modifier,
+    coachMarkState: CoachMarkState? = null,
 ) {
     Box(
         modifier =
@@ -90,11 +94,18 @@ private fun PillBottomBar(
                     currentDestination?.hierarchy?.any {
                         it.hasRoute(destination.routeClass)
                     } == true
+                val coachKey = navDestinationCoachKey(destination)
                 PillNavItem(
                     icon = destination.icon,
                     label = appString(destination.labelRes),
                     selected = selected,
                     onClick = { onNavigate(destination) },
+                    modifier =
+                        if (coachMarkState != null && coachKey != null) {
+                            Modifier.onGloballyPositioned { coachMarkState.registerTarget(coachKey, it) }
+                        } else {
+                            Modifier
+                        },
                 )
             }
         }
@@ -106,6 +117,7 @@ private fun RailSideBar(
     currentDestination: NavDestination?,
     onNavigate: (BottomNavDestination) -> Unit,
     modifier: Modifier = Modifier,
+    coachMarkState: CoachMarkState? = null,
 ) {
     Column(
         modifier =
@@ -124,15 +136,30 @@ private fun RailSideBar(
                 currentDestination?.hierarchy?.any {
                     it.hasRoute(destination.routeClass)
                 } == true
+            val coachKey = navDestinationCoachKey(destination)
             RailNavItem(
                 icon = destination.icon,
                 label = appString(destination.labelRes),
                 selected = selected,
                 onClick = { onNavigate(destination) },
+                modifier =
+                    if (coachMarkState != null && coachKey != null) {
+                        Modifier.onGloballyPositioned { coachMarkState.registerTarget(coachKey, it) }
+                    } else {
+                        Modifier
+                    },
             )
         }
     }
 }
+
+private fun navDestinationCoachKey(destination: BottomNavDestination): String? =
+    when (destination) {
+        BottomNavDestination.DiscoverTab -> "tab_discover"
+        BottomNavDestination.SearchTab -> "tab_search"
+        BottomNavDestination.LibraryTab -> "tab_library"
+        BottomNavDestination.SettingTab -> "tab_settings"
+    }
 
 @Composable
 private fun PillNavItem(
@@ -140,6 +167,7 @@ private fun PillNavItem(
     label: String,
     selected: Boolean,
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val bgColor by animateColorAsState(
         if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f) else Color.Transparent,
@@ -157,7 +185,7 @@ private fun PillNavItem(
 
     Row(
         modifier =
-            Modifier
+            modifier
                 .clip(CircleShape)
                 .background(bgColor)
                 .clickable(
@@ -191,6 +219,7 @@ private fun RailNavItem(
     label: String,
     selected: Boolean,
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val bgColor by animateColorAsState(
         if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f) else Color.Transparent,
@@ -203,7 +232,7 @@ private fun RailNavItem(
 
     Column(
         modifier =
-            Modifier
+            modifier
                 .clip(CircleShape)
                 .background(bgColor)
                 .clickable(

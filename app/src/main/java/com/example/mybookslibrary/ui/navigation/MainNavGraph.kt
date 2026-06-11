@@ -27,7 +27,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -179,10 +178,8 @@ fun MainNavHost(
             FloatingPillNavBar(
                 currentDestination = currentDestination,
                 onNavigate = navBarCallback,
-                modifier =
-                    Modifier
-                        .testTag(FLOATING_PILL_NAV_TAG)
-                        .onGloballyPositioned { coachMarkState.registerTarget("nav_bar", it) },
+                modifier = Modifier.testTag(FLOATING_PILL_NAV_TAG),
+                coachMarkState = if (showTour) coachMarkState else null,
             )
             NavContent(modifier = Modifier.weight(1f))
         }
@@ -193,10 +190,8 @@ fun MainNavHost(
                     FloatingPillNavBar(
                         currentDestination = currentDestination,
                         onNavigate = navBarCallback,
-                        modifier =
-                    Modifier
-                        .testTag(FLOATING_PILL_NAV_TAG)
-                        .onGloballyPositioned { coachMarkState.registerTarget("nav_bar", it) },
+                        modifier = Modifier.testTag(FLOATING_PILL_NAV_TAG),
+                coachMarkState = if (showTour) coachMarkState else null,
                     )
                 }
             },
@@ -207,8 +202,7 @@ fun MainNavHost(
                 modifier =
                     Modifier
                         .consumeWindowInsets(innerPadding)
-                        .testTag(MAIN_NAV_CONTENT_TAG)
-                        .onGloballyPositioned { coachMarkState.registerTarget("content_area", it) },
+                        .testTag(MAIN_NAV_CONTENT_TAG),
             ) {
                 NavContent()
             }
@@ -220,12 +214,12 @@ fun MainNavHost(
         state = coachMarkState,
         steps =
             listOf(
-                CoachMarkStep("content_area", R.string.tour_step1_title, R.string.tour_step1_body),
-                CoachMarkStep("nav_bar", R.string.tour_step2_title, R.string.tour_step2_body),
-                CoachMarkStep("content_area", R.string.tour_step3_title, R.string.tour_step3_body),
-                CoachMarkStep("nav_bar", R.string.tour_step4_title, R.string.tour_step4_body),
-                CoachMarkStep("nav_bar", R.string.tour_step5_title, R.string.tour_step5_body),
-                CoachMarkStep("nav_bar", R.string.tour_step6_title, R.string.tour_step6_body),
+                CoachMarkStep("tab_discover", R.string.tour_step1_title, R.string.tour_step1_body),
+                CoachMarkStep("tab_search", R.string.tour_step2_title, R.string.tour_step2_body),
+                CoachMarkStep("tab_discover", R.string.tour_step3_title, R.string.tour_step3_body),
+                CoachMarkStep("tab_library", R.string.tour_step4_title, R.string.tour_step4_body),
+                CoachMarkStep("tab_library", R.string.tour_step5_title, R.string.tour_step5_body),
+                CoachMarkStep("tab_settings", R.string.tour_step6_title, R.string.tour_step6_body),
             ),
         onDismiss = onTourDone,
     )
