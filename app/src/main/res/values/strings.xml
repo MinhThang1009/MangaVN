@@ -299,4 +299,10 @@
     <string name="downloads_delete_confirm">Delete this downloaded chapter?</string>
     <string name="downloads_chapter">Chapter %1$s</string>
     <string name="profile_downloads">Downloads</string>
+    <string name="profile_edit">Edit profile</string>
+    <string name="profile_edit_title">Edit Profile</string>
+    <string name="profile_display_name">Display name</string>
+    <string name="profile_change_avatar">Change avatar</string>
+    <string name="profile_save">Save</string>
+    <string name="profile_saved">Profile saved!</string>
 </resources>

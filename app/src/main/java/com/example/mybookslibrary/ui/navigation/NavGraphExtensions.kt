@@ -16,6 +16,7 @@ import androidx.navigation.navDeepLink
 import androidx.navigation.toRoute
 import com.example.mybookslibrary.ui.screens.MangaReviewScreen
 import com.example.mybookslibrary.ui.screens.DownloadsScreen
+import com.example.mybookslibrary.ui.screens.EditProfileScreen
 import com.example.mybookslibrary.ui.screens.ProfileScreen
 import com.example.mybookslibrary.ui.screens.ReadingHistoryScreen
 import com.example.mybookslibrary.ui.screens.StatisticsScreen
@@ -109,6 +110,7 @@ internal fun NavGraphBuilder.profileGraph(navController: NavHostController) {
             onReadingHistoryClick = { navController.navigate(ReadingHistory) },
             onStatisticsClick = { navController.navigate(Statistics) },
             onDownloadsClick = { navController.navigate(Downloads) },
+            onEditProfileClick = { navController.navigate(EditProfile) },
             onSettingsClick = {
                 navController.navigate(Setting) {
                     launchSingleTop = true
@@ -124,6 +126,12 @@ internal fun NavGraphBuilder.readingHistoryGraph(navController: NavHostControlle
             onBackClick = { navController.popBackStack() },
             onMangaClick = { mangaId -> navController.navigate(MangaDetail(mangaId)) },
         )
+    }
+}
+
+internal fun NavGraphBuilder.editProfileGraph(navController: NavHostController) {
+    composable<EditProfile> {
+        EditProfileScreen(onBackClick = { navController.popBackStack() })
     }
 }
 

@@ -298,4 +298,10 @@
     <string name="downloads_delete_confirm">Xóa chương đã tải này?</string>
     <string name="downloads_chapter">Chương %1$s</string>
     <string name="profile_downloads">Tải xuống</string>
+    <string name="profile_edit">Chỉnh sửa hồ sơ</string>
+    <string name="profile_edit_title">Chỉnh sửa hồ sơ</string>
+    <string name="profile_display_name">Tên hiển thị</string>
+    <string name="profile_change_avatar">Đổi ảnh đại diện</string>
+    <string name="profile_save">Lưu</string>
+    <string name="profile_saved">Đã lưu hồ sơ!</string>
 </resources>

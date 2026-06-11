@@ -36,6 +36,8 @@ class UserPreferencesDataStore(
         private val IN_APP_TOUR_DONE = booleanPreferencesKey("in_app_tour_done")
         private val FIRST_OPEN_TIME = longPreferencesKey("first_open_time")
         private val RATE_APP_DISMISSED = booleanPreferencesKey("rate_app_dismissed")
+        private val DISPLAY_NAME = stringPreferencesKey("display_name")
+        private val AVATAR_URI = stringPreferencesKey("avatar_uri")
 
         private const val DEFAULT_QUALITY = "data"
         private const val DEFAULT_LANGUAGE = "vi"
@@ -146,6 +148,20 @@ class UserPreferencesDataStore(
 
     suspend fun setRateAppDismissed(dismissed: Boolean) {
         dataStore.edit { it[RATE_APP_DISMISSED] = dismissed }
+    }
+
+    fun observeDisplayName(): Flow<String> =
+        safeData.map { it[DISPLAY_NAME] ?: "" }
+
+    suspend fun setDisplayName(name: String) {
+        dataStore.edit { it[DISPLAY_NAME] = name }
+    }
+
+    fun observeAvatarUri(): Flow<String> =
+        safeData.map { it[AVATAR_URI] ?: "" }
+
+    suspend fun setAvatarUri(uri: String) {
+        dataStore.edit { it[AVATAR_URI] = uri }
     }
 
     suspend fun clearAll() {

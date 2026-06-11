@@ -215,6 +215,7 @@ fun MainNavHost(
                     mangaDetailGraph(navController)
                     reviewGraph(navController)
                     profileGraph(navController)
+                    editProfileGraph(navController)
                     readingHistoryGraph(navController)
                     statisticsGraph(navController)
                     downloadsGraph(navController)

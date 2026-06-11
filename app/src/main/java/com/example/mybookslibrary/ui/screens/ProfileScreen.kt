@@ -54,6 +54,7 @@ fun ProfileScreen(
     onReadingHistoryClick: () -> Unit,
     onStatisticsClick: () -> Unit,
     onDownloadsClick: () -> Unit,
+    onEditProfileClick: () -> Unit,
     onSettingsClick: () -> Unit,
     modifier: Modifier = Modifier,
     vm: ProfileViewModel = hiltViewModel(),
@@ -84,7 +85,14 @@ fun ProfileScreen(
                 vertical = Dimens.SpacingLg,
             ),
         ) {
-            item { ProfileHeader(userId = state.userId) }
+            item {
+                ProfileHeader(
+                    userId = state.userId,
+                    displayName = state.displayName,
+                    avatarUri = state.avatarUri,
+                    onEditClick = onEditProfileClick,
+                )
+            }
             item { Spacer(Modifier.height(Dimens.SpacingXxl)) }
             item {
                 ProfileStatsRow(
@@ -130,7 +138,12 @@ fun ProfileScreen(
 }
 
 @Composable
-private fun ProfileHeader(userId: String?) {
+private fun ProfileHeader(
+    userId: String?,
+    displayName: String,
+    avatarUri: String,
+    onEditClick: () -> Unit,
+) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -142,9 +155,16 @@ private fun ProfileHeader(userId: String?) {
                 .background(MaterialTheme.colorScheme.primaryContainer),
             contentAlignment = Alignment.Center,
         ) {
-            if (userId != null && userId.isNotBlank()) {
+            if (avatarUri.isNotBlank()) {
+                coil3.compose.AsyncImage(
+                    model = avatarUri,
+                    contentDescription = null,
+                    contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            } else if (!userId.isNullOrBlank()) {
                 Text(
-                    text = userId.first().uppercase(),
+                    text = (displayName.ifBlank { userId }).first().uppercase(),
                     style = MaterialTheme.typography.displayMedium,
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
@@ -157,13 +177,24 @@ private fun ProfileHeader(userId: String?) {
                 )
             }
         }
-        Spacer(Modifier.height(Dimens.SpacingLg))
+        Spacer(Modifier.height(Dimens.SpacingMd))
         Text(
-            text = userId ?: "—",
+            text = displayName.ifBlank { userId ?: "—" },
             style = MaterialTheme.typography.headlineMedium,
             color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center,
         )
+        if (!userId.isNullOrBlank() && displayName.isNotBlank()) {
+            Text(
+                text = "@$userId",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Spacer(Modifier.height(Dimens.SpacingSm))
+        androidx.compose.material3.TextButton(onClick = onEditClick) {
+            Text(appString(R.string.profile_edit))
+        }
     }
 }
 

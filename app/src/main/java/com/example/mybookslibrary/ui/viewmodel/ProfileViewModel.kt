@@ -14,6 +14,8 @@ import javax.inject.Inject
 
 data class ProfileUiState(
     val userId: String? = null,
+    val displayName: String = "",
+    val avatarUri: String = "",
     val bookmarkCount: Int = 0,
     val mangaReadCount: Int = 0,
     val chaptersCompleted: Int = 0,
@@ -30,16 +32,20 @@ class ProfileViewModel
         val uiState: StateFlow<ProfileUiState> =
             combine(
                 preferencesDataStore.observeLoggedInUserId(),
+                preferencesDataStore.observeDisplayName(),
+                preferencesDataStore.observeAvatarUri(),
                 libraryDao.observeCount(),
                 libraryDao.observeReadCount(),
-                chapterDao.observeCompletedChapterCount(),
-            ) { userId, bookmarks, mangaRead, chapters ->
+            ) { userId, displayName, avatarUri, bookmarks, mangaRead ->
                 ProfileUiState(
                     userId = userId,
+                    displayName = displayName,
+                    avatarUri = avatarUri,
                     bookmarkCount = bookmarks,
                     mangaReadCount = mangaRead,
-                    chaptersCompleted = chapters,
                 )
+            }.combine(chapterDao.observeCompletedChapterCount()) { state, chapters ->
+                state.copy(chaptersCompleted = chapters)
             }.stateIn(
                 viewModelScope,
                 SharingStarted.WhileSubscribed(SUBSCRIPTION_TIMEOUT),
