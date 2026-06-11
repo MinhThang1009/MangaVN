@@ -87,6 +87,8 @@
     <string name="action_more">More</string>
     <string name="cd_page_preview">Page Preview</string>
     <string name="cd_expand_chapters">Expand Chapters</string>
+    <string name="cd_share">Share</string>
+    <string name="filter_all_languages">All</string>
 
     <!-- Chapter formatting -->
     <string name="chapter_vol_prefix">Vol.%1$s </string>

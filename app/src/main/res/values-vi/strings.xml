@@ -87,6 +87,8 @@
     <string name="action_more">Xem thêm</string>
     <string name="cd_page_preview">Xem trước trang truyện</string>
     <string name="cd_expand_chapters">Mở rộng danh sách chương</string>
+    <string name="cd_share">Chia sẻ</string>
+    <string name="filter_all_languages">Tất cả</string>
 
     <!-- Chapter -->
     <string name="chapter_vol_prefix">Tập %1$s </string>
