@@ -74,7 +74,7 @@ internal val bottomDestinations =
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun MainNavHost(loggedInUserId: String?) {
+fun MainNavHost(loggedInUserId: String?, incomingMangaId: String? = null) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
@@ -89,6 +89,15 @@ fun MainNavHost(loggedInUserId: String?) {
                     popUpTo(0) { inclusive = true }
                     launchSingleTop = true
                 }
+            }
+        }
+    }
+
+    // Navigate to manga detail when app is opened via share sheet (ACTION_SEND from browser).
+    LaunchedEffect(incomingMangaId) {
+        if (!incomingMangaId.isNullOrBlank() && loggedInUserId != null) {
+            navController.navigate(MangaDetail(incomingMangaId)) {
+                launchSingleTop = true
             }
         }
     }

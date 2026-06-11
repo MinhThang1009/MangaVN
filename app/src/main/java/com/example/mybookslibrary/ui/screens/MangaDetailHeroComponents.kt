@@ -21,6 +21,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -207,6 +208,30 @@ internal fun DetailBackButton(onBackClick: () -> Unit, modifier: Modifier = Modi
             Icon(
                 Icons.AutoMirrored.Filled.ArrowBack,
                 appString(R.string.cd_back),
+                tint = MaterialTheme.colorScheme.onPrimary,
+                modifier = Modifier.size(20.dp),
+            )
+        }
+    }
+}
+
+@Composable
+internal fun DetailShareButton(onShareClick: () -> Unit, modifier: Modifier = Modifier) {
+    IconButton(
+        onClick = onShareClick,
+        modifier = modifier.statusBarsPadding().padding(8.dp),
+    ) {
+        Box(
+            modifier =
+            Modifier
+                .size(40.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.55f)),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                Icons.Filled.Share,
+                contentDescription = "Share manga",
                 tint = MaterialTheme.colorScheme.onPrimary,
                 modifier = Modifier.size(20.dp),
             )

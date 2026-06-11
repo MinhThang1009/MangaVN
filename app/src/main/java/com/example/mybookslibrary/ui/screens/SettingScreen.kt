@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -22,6 +24,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -32,6 +38,8 @@ import com.example.mybookslibrary.ui.navigation.LocalBottomNavPadding
 import com.example.mybookslibrary.ui.util.appString
 import com.example.mybookslibrary.ui.viewmodel.BackupRestoreResult
 import com.example.mybookslibrary.ui.viewmodel.SettingsViewModel
+import com.example.mybookslibrary.util.isOpenLinksGranted
+import com.example.mybookslibrary.util.openAppLinkSettings
 
 @Suppress("unused", "CyclomaticComplexMethod", "LongMethod")
 @Composable
@@ -166,6 +174,14 @@ fun SettingScreenContent(modifier: Modifier = Modifier, viewModel: SettingsViewM
                 Spacer(Modifier.height(24.dp))
             }
 
+            item { SettingsSectionLabel(appString(R.string.settings_section_links)) }
+            item {
+                SettingsCard {
+                    OpenLinksRow(context = context)
+                }
+                Spacer(Modifier.height(24.dp))
+            }
+
             item { SettingsSectionLabel(appString(R.string.settings_section_account)) }
             item {
                 val signOutTitle =
@@ -256,4 +272,77 @@ private fun SettingsDivider() {
             .padding(horizontal = 20.dp)
             .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.12f)),
     )
+}
+
+/**
+ * Row that shows the "Open Supported Links" permission status.
+ * Tapping Grant opens the system App Settings → Open by default screen so the
+ * user can enable the deep-link permission manually.
+ * The granted state is re-evaluated every time the composable enters composition
+ * (i.e. after returning from system Settings).
+ */
+@Composable
+private fun OpenLinksRow(context: android.content.Context) {
+    // Re-check on every composition so it reflects changes made in system Settings.
+    var granted by remember { mutableStateOf(isOpenLinksGranted(context)) }
+
+    // Refresh when the user comes back from system Settings.
+    androidx.compose.runtime.DisposableEffect(Unit) {
+        onDispose { /* no-op */ }
+    }
+    // Use lifecycle observer to re-check when Activity resumes.
+    val lifecycle = androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle
+    androidx.compose.runtime.DisposableEffect(lifecycle) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
+                granted = isOpenLinksGranted(context)
+            }
+        }
+        lifecycle.addObserver(observer)
+        onDispose { lifecycle.removeObserver(observer) }
+    }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp, vertical = 14.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(Modifier.weight(1f).padding(end = 12.dp)) {
+            Text(
+                appString(R.string.settings_open_links),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Spacer(Modifier.height(2.dp))
+            Text(
+                appString(R.string.settings_open_links_subtitle),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Button(
+            onClick = { openAppLinkSettings(context) },
+            enabled = !granted,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+                disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            ),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                horizontal = 16.dp, vertical = 8.dp,
+            ),
+        ) {
+            Text(
+                text = if (granted) {
+                    appString(R.string.settings_open_links_granted)
+                } else {
+                    appString(R.string.settings_open_links_grant)
+                },
+                style = MaterialTheme.typography.labelMedium,
+            )
+        }
+    }
 }

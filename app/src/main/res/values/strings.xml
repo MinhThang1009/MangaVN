@@ -115,7 +115,12 @@
     <string name="settings_section_reading">Reading</string>
     <string name="settings_section_storage">Storage</string>
     <string name="settings_section_data">Data</string>
+    <string name="settings_section_links">Links</string>
     <string name="settings_section_account">Account</string>
+    <string name="settings_open_links">Open Supported Links</string>
+    <string name="settings_open_links_subtitle">Allow the app to open MangaDex links</string>
+    <string name="settings_open_links_granted">Granted</string>
+    <string name="settings_open_links_grant">Grant</string>
     <string name="settings_image_quality">Image Quality</string>
     <string name="settings_quality_original">Original</string>
     <string name="settings_quality_data_saver">Data Saver</string>
