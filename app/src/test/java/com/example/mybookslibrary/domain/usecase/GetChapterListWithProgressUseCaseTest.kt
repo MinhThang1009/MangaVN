@@ -281,6 +281,24 @@ class GetChapterListWithProgressUseCaseTest {
         assertEquals(2, result.chapters.size)
     }
 
+    @Test
+    fun selectedLanguageFoundInAvailableLanguages_returnsFilteredList() = runTest {
+        coEvery { mangaRepository.getMangaFeed(MANGA_ID) } returns Result.success(listOf(
+            chapter("c1", 10, "vi"),
+            chapter("c2", 10, "en")
+        ))
+        stubCommon(
+            metadata = listOf(metadata("c1", 10, "vi"), metadata("c2", 10, "en"))
+        )
+        every { userPreferencesDataStore.observePreferredChapterLanguage() } returns flowOf("vi")
+
+        val result = useCase(MANGA_ID).first()
+        assertEquals(listOf("en", "vi"), result.availableLanguages)
+        assertEquals("vi", result.selectedLanguage)
+        assertEquals(1, result.chapters.size)
+        assertEquals("c1", result.chapters[0].chapterId)
+    }
+
     private fun chapter(
         id: String,
         pages: Int,

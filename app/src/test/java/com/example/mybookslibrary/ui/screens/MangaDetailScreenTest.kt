@@ -59,6 +59,8 @@ class MangaDetailScreenTest {
         title: String = "Naruto",
         inLibrary: Boolean = false,
         chapters: List<ChapterWithProgressModel> = emptyList(),
+        availableLanguages: List<String> = emptyList(),
+        selectedLanguage: String = "",
         detailError: Boolean = false,
     ): MangaDetailViewModel {
         if (detailError) {
@@ -67,7 +69,7 @@ class MangaDetailScreenTest {
             coEvery { mangaRepo.getMangaDetail(any()) } returns
                 Result.success(MangaModel("m1", title, "Desc", null, emptyList()))
         }
-        every { useCase(any()) } returns flowOf(ChapterListResult(chapters, emptyList(), ""))
+        every { useCase(any()) } returns flowOf(ChapterListResult(chapters, availableLanguages, selectedLanguage))
         coEvery { libraryRepo.isInLibrary(any()) } returns inLibrary
         coEvery { mangaRepo.getChapterPages(any()) } returns Result.success(emptyList())
         return MangaDetailViewModel(
@@ -95,6 +97,8 @@ class MangaDetailScreenTest {
         title: String = "Naruto",
         inLibrary: Boolean = false,
         chapters: List<ChapterWithProgressModel> = emptyList(),
+        availableLanguages: List<String> = emptyList(),
+        selectedLanguage: String = "",
         detailError: Boolean = false,
     ) {
         composeRule.setContent {
@@ -107,6 +111,8 @@ class MangaDetailScreenTest {
                     title = title,
                     inLibrary = inLibrary,
                     chapters = chapters,
+                    availableLanguages = availableLanguages,
+                    selectedLanguage = selectedLanguage,
                     detailError = detailError,
                 ),
             )
@@ -236,6 +242,31 @@ class MangaDetailScreenTest {
             composeRule.onRoot().performTouchInput { swipeUp() }
         }
         composeRule.waitForIdle()
+    }
+
+    @Test
+    fun withAvailableLanguages_rendersLanguageFilterRow() {
+        screen(availableLanguages = listOf("en", "vi"))
+        scrollTo("Chapters")
+        composeRule.onNodeWithText("Chapters").performClick()
+        composeRule.waitForIdle()
+
+        composeRule.onNodeWithText("All").assertIsDisplayed()
+        composeRule.onNodeWithText("EN").assertIsDisplayed()
+        composeRule.onNodeWithText("VI").assertIsDisplayed()
+    }
+
+    @Test
+    fun clickLanguageFilter_callsViewModel() {
+        screen(availableLanguages = listOf("en", "vi"))
+        scrollTo("Chapters")
+        composeRule.onNodeWithText("Chapters").performClick()
+        composeRule.waitForIdle()
+
+        composeRule.onNodeWithText("VI").performClick()
+        composeRule.waitForIdle()
+
+        io.mockk.coVerify { userPreferencesDataStore.setPreferredChapterLanguage("vi") }
     }
 
     private fun chapter(
