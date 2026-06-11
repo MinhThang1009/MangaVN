@@ -216,10 +216,8 @@ fun MainNavHost(
             listOf(
                 CoachMarkStep("tab_discover", R.string.tour_step1_title, R.string.tour_step1_body),
                 CoachMarkStep("tab_search", R.string.tour_step2_title, R.string.tour_step2_body),
-                CoachMarkStep("tab_discover", R.string.tour_step3_title, R.string.tour_step3_body),
-                CoachMarkStep("tab_library", R.string.tour_step4_title, R.string.tour_step4_body),
-                CoachMarkStep("tab_library", R.string.tour_step5_title, R.string.tour_step5_body),
-                CoachMarkStep("tab_settings", R.string.tour_step6_title, R.string.tour_step6_body),
+                CoachMarkStep("tab_library", R.string.tour_step3_title, R.string.tour_step3_body),
+                CoachMarkStep("tab_settings", R.string.tour_step4_title, R.string.tour_step4_body),
             ),
         onDismiss = onTourDone,
     )

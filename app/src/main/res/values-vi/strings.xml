@@ -216,15 +216,11 @@
     <string name="tour_skip">Bỏ qua tất cả</string>
     <string name="tour_done">Xong</string>
     <string name="tour_step1_title">Khám phá manga</string>
-    <string name="tour_step1_body">Đây là trang chủ — xem truyện thịnh hành, mới ra, và khám phá theo thể loại</string>
-    <string name="tour_step2_title">Tìm kiếm nhanh</string>
-    <string name="tour_step2_body">Chạm Tìm kiếm trên thanh điều hướng để tìm truyện theo tên, thể loại hoặc ngôn ngữ</string>
-    <string name="tour_step3_title">Chạm để đọc</string>
-    <string name="tour_step3_body">Chạm vào bìa truyện bất kỳ để xem chi tiết, danh sách chương và bắt đầu đọc ngay</string>
-    <string name="tour_step4_title">Lưu vào thư viện</string>
-    <string name="tour_step4_body">Nhấn nút đánh dấu trên bất kỳ truyện nào để thêm vào thư viện cá nhân</string>
-    <string name="tour_step5_title">Thư viện của bạn</string>
-    <string name="tour_step5_body">Tất cả truyện đã lưu nằm ở đây — theo dõi đang đọc, đã xong, hoặc yêu thích</string>
-    <string name="tour_step6_title">Tuỳ chỉnh cài đặt</string>
-    <string name="tour_step6_body">Đổi giao diện, ngôn ngữ, chất lượng ảnh và quản lý dữ liệu trong Cài đặt</string>
+    <string name="tour_step1_body">Trang chủ — xem truyện thịnh hành, mới ra và khám phá theo thể loại. Chạm vào bìa để đọc!</string>
+    <string name="tour_step2_title">Tìm kiếm</string>
+    <string name="tour_step2_body">Tìm truyện theo tên, thể loại hoặc ngôn ngữ. Lọc theo trạng thái, mức nội dung và hơn nữa</string>
+    <string name="tour_step3_title">Thư viện</string>
+    <string name="tour_step3_body">Truyện đã lưu nằm ở đây. Nhấn nút đánh dấu trên truyện bất kỳ để thêm vào</string>
+    <string name="tour_step4_title">Cài đặt</string>
+    <string name="tour_step4_body">Đổi giao diện, ngôn ngữ, chất lượng ảnh và quản lý dữ liệu</string>
 </resources>
