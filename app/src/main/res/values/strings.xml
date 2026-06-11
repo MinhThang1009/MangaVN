@@ -145,6 +145,13 @@
     <string name="settings_sign_out_subtitle">Clear all local data</string>
     <string name="settings_signed_out_subtitle">All data cleared</string>
     <string name="action_cancel">Cancel</string>
+    <string name="sign_out_confirm_title">Sign out?</string>
+    <string name="sign_out_confirm_body">You will need to log in again to access your library and reading progress</string>
+    <string name="settings_about">About</string>
+    <string name="settings_about_subtitle">Version and licenses</string>
+    <string name="about_version">Version %1$s</string>
+    <string name="about_source_code">Source Code</string>
+    <string name="about_licenses">Open Source Licenses</string>
     <string name="settings_dark_mode">Theme</string>
     <string name="settings_theme_system">System</string>
     <string name="settings_theme_light">Light</string>

@@ -145,6 +145,13 @@
     <string name="settings_sign_out_subtitle">Xóa toàn bộ dữ liệu</string>
     <string name="settings_signed_out_subtitle">Đã xóa dữ liệu</string>
     <string name="action_cancel">Huỷ</string>
+    <string name="sign_out_confirm_title">Đăng xuất?</string>
+    <string name="sign_out_confirm_body">Bạn sẽ cần đăng nhập lại để truy cập thư viện và tiến độ đọc</string>
+    <string name="settings_about">Giới thiệu</string>
+    <string name="settings_about_subtitle">Phiên bản và giấy phép</string>
+    <string name="about_version">Phiên bản %1$s</string>
+    <string name="about_source_code">Mã nguồn</string>
+    <string name="about_licenses">Giấy phép mã nguồn mở</string>
     <string name="settings_dark_mode">Chủ đề</string>
     <string name="settings_theme_system">Theo hệ thống</string>
     <string name="settings_theme_light">Sáng</string>

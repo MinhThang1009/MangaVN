@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -48,6 +49,7 @@ fun SettingScreenContent(modifier: Modifier = Modifier, viewModel: SettingsViewM
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val bottomNavPadding = LocalBottomNavPadding.current
+    var showSignOutConfirm by remember { mutableStateOf(false) }
 
     val backupLauncher =
         rememberLauncherForActivityResult(
@@ -183,6 +185,24 @@ fun SettingScreenContent(modifier: Modifier = Modifier, viewModel: SettingsViewM
                 Spacer(Modifier.height(24.dp))
             }
 
+            item { SettingsSectionLabel(appString(R.string.settings_about)) }
+            item {
+                val versionName =
+                    try {
+                        context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "—"
+                    } catch (_: Exception) {
+                        "—"
+                    }
+                SettingsCard {
+                    SettingsRow(
+                        title = appString(R.string.about_version, versionName),
+                        subtitle = appString(R.string.settings_about_subtitle),
+                        onClick = {},
+                    )
+                }
+                Spacer(Modifier.height(Dimens.SpacingXl))
+            }
+
             item { SettingsSectionLabel(appString(R.string.settings_section_account)) }
             item {
                 val signOutTitle =
@@ -203,12 +223,36 @@ fun SettingScreenContent(modifier: Modifier = Modifier, viewModel: SettingsViewM
                     SettingsRow(
                         title = signOutTitle,
                         subtitle = signOutSub,
-                        titleColor = MaterialTheme.colorScheme.tertiary,
-                        onClick = viewModel::signOut,
+                        titleColor = MaterialTheme.colorScheme.error,
+                        onClick = { showSignOutConfirm = true },
                     )
                 }
             }
         }
+    }
+
+    if (showSignOutConfirm) {
+        AlertDialog(
+            onDismissRequest = { showSignOutConfirm = false },
+            title = { Text(appString(R.string.sign_out_confirm_title)) },
+            text = { Text(appString(R.string.sign_out_confirm_body)) },
+            confirmButton = {
+                com.example.mybookslibrary.ui.screens.components.AppButton(
+                    text = appString(R.string.settings_sign_out),
+                    onClick = {
+                        showSignOutConfirm = false
+                        viewModel.signOut()
+                    },
+                )
+            },
+            dismissButton = {
+                com.example.mybookslibrary.ui.screens.components.AppButton(
+                    text = appString(R.string.action_cancel),
+                    onClick = { showSignOutConfirm = false },
+                    style = com.example.mybookslibrary.ui.screens.components.AppButtonStyle.Text,
+                )
+            },
+        )
     }
 }
 

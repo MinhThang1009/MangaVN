@@ -128,7 +128,7 @@ fun MainNavHost(
                 dest.hasRoute<Reader>() ||
                 dest.hasRoute<MangaDetail>() ||
                 dest.hasRoute<MangaReview>()
-        } ?: true
+        } ?: false
 
     val widthSizeClass = LocalWindowWidthSizeClass.current
     val useRail = showNav && widthSizeClass != WindowWidthSizeClass.Compact
