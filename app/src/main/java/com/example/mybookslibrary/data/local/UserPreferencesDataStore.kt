@@ -29,6 +29,7 @@ class UserPreferencesDataStore(
         private val THEME_MODE = stringPreferencesKey("theme_mode")
         private val DOWNLOAD_ONLY_ON_WIFI = booleanPreferencesKey("download_only_on_wifi")
         private val LOGGED_IN_USER_ID = stringPreferencesKey("logged_in_user_id")
+        private val PREFERRED_CHAPTER_LANGUAGE = stringPreferencesKey("preferred_chapter_language")
 
         private const val DEFAULT_QUALITY = "data"
         private const val DEFAULT_LANGUAGE = "en"
@@ -57,6 +58,13 @@ class UserPreferencesDataStore(
 
     suspend fun setLanguage(language: String) {
         dataStore.edit { it[LANGUAGE] = language }
+    }
+
+    // Ngôn ngữ chapter ưu tiên (rỗng/all = hiển thị tất cả, hoặc fallback theo logic)
+    fun observePreferredChapterLanguage(): Flow<String> = safeData.map { it[PREFERRED_CHAPTER_LANGUAGE] ?: "" }
+
+    suspend fun setPreferredChapterLanguage(language: String) {
+        dataStore.edit { it[PREFERRED_CHAPTER_LANGUAGE] = language }
     }
 
     // Chế độ giao diện: "system", "light", "dark"
