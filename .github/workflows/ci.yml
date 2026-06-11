@@ -32,6 +32,10 @@ jobs:
     needs: wrapper-validation
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    # security-events: write để upload SARIF của Android Lint vào Code Scanning.
+    permissions:
+      contents: read
+      security-events: write
     defaults:
       run:
         shell: bash
@@ -55,6 +59,10 @@ jobs:
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@5e2ebd065dc2488b7a6ad670704656cbbe1e8f60 # v6
+        with:
+          # Mã hóa để cache được configuration-cache giữa các run (chứa dữ liệu nhạy
+          # cảm nên setup-gradle yêu cầu key). Secret chưa tồn tại → input rỗng, action bỏ qua.
+          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
 
       # Stub AuthSecrets để build được trên CI (file thật bị gitignore).
       - name: Stub AuthSecrets
@@ -72,6 +80,16 @@ jobs:
       - name: Lint + detekt + ktlint
         run: ./gradlew lintDebug lintRelease detekt ktlintCheck --console=plain
 
+      # Đẩy kết quả Android Lint vào GitHub Code Scanning → warning hiện inline
+      # trong tab Security và annotation trên PR (sarifReport bật trong build.gradle.kts).
+      - name: Upload Lint SARIF lên Code Scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@8aad20d150bbac5944a9f9d289da16a4b0d87c1e # v4
+        with:
+          sarif_file: app/build/reports/lint-results-debug.sarif
+          category: android-lint
+        continue-on-error: true
+
   build-test:
     needs: wrapper-validation
     runs-on: ubuntu-latest
@@ -79,6 +97,8 @@ jobs:
     permissions:
       contents: write
       checks: write
+      # pull-requests: write để comment danh sách screenshot lệch khi verify fail.
+      pull-requests: write
     defaults:
       run:
         shell: bash
@@ -93,6 +113,10 @@ jobs:
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@5e2ebd065dc2488b7a6ad670704656cbbe1e8f60 # v6
+        with:
+          # Mã hóa để cache được configuration-cache giữa các run (chứa dữ liệu nhạy
+          # cảm nên setup-gradle yêu cầu key). Secret chưa tồn tại → input rỗng, action bỏ qua.
+          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
 
       # Stub AuthSecrets để build được trên CI (file thật bị gitignore).
       - name: Stub AuthSecrets
@@ -122,6 +146,29 @@ jobs:
             app/build/reports/roborazzi/
             app/build/outputs/roborazzi/
           if-no-files-found: ignore
+
+      # Comment danh sách golden bị lệch + link artifact thẳng lên PR — đỡ phải mở
+      # log tìm artifact tay khi screenshot verify fail.
+      - name: Comment screenshot diff lên PR
+        if: failure() && github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          DIFFS=$(find app/build/outputs/roborazzi -name '*_compare.png' 2>/dev/null | sed 's|.*/||; s|_compare\.png$||')
+          [ -z "$DIFFS" ] && exit 0
+          {
+            echo "<!-- roborazzi-diff -->"
+            echo "## 📸 Screenshot verify FAILED"
+            echo ""
+            echo "Golden bị lệch:"
+            echo "$DIFFS" | sed 's/^/- `/; s/$/`/'
+            echo ""
+            echo "Ảnh diff: tải artifact **roborazzi-report** tại ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            echo ""
+            echo "UI đổi có chủ đích? → gắn label \`record-screenshots\` vào PR để re-record goldens."
+          } > /tmp/roborazzi-comment.md
+          gh pr comment "${{ github.event.pull_request.number }}" --repo "${{ github.repository }}" --body-file /tmp/roborazzi-comment.md
+        continue-on-error: true
 
       # Gate coverage per-package (jacocoCoverageVerification trong build.gradle.kts).
       # Trước đây task này KHÔNG được gọi ở đâu (chỉ wire vào `check` mà CI không chạy)
@@ -207,6 +254,10 @@ jobs:
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@5e2ebd065dc2488b7a6ad670704656cbbe1e8f60 # v6
+        with:
+          # Mã hóa để cache được configuration-cache giữa các run (chứa dữ liệu nhạy
+          # cảm nên setup-gradle yêu cầu key). Secret chưa tồn tại → input rỗng, action bỏ qua.
+          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
 
       - name: Stub AuthSecrets
         run: |
@@ -237,12 +288,38 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
+      # Cache AVD + boot snapshot: lần đầu tạo AVD và boot đầy đủ để chụp snapshot,
+      # các run sau emulator khởi động từ snapshot — cắt đáng kể thời gian boot.
+      - name: AVD cache
+        id: avd-cache
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: |
+            ~/.android/avd/*
+            ~/.android/adb*
+          key: avd-api34-x86_64-pixel6-v1
+
+      - name: Tạo AVD và chụp boot snapshot (chỉ khi cache miss)
+        if: steps.avd-cache.outputs.cache-hit != 'true'
+        uses: reactivecircus/android-emulator-runner@e89f39f1abbbd05b1113a29cf4db69e7540cae5a # v2
+        with:
+          api-level: 34
+          arch: x86_64
+          profile: pixel_6
+          force-avd-creation: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: false
+          script: echo "AVD snapshot đã tạo để cache."
+
       - name: Run instrumented tests on emulator
         uses: reactivecircus/android-emulator-runner@e89f39f1abbbd05b1113a29cf4db69e7540cae5a # v2
         with:
           api-level: 34
           arch: x86_64
           profile: pixel_6
+          # force-avd-creation: false + -no-snapshot-save → tái dùng AVD/snapshot từ cache,
+          # không ghi đè snapshot sau khi test (giữ snapshot sạch).
+          force-avd-creation: false
           # Tắt animation hệ thống: giảm flakiness do transition chưa xong khi assert.
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
           disable-animations: true

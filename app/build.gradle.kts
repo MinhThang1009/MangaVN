@@ -48,6 +48,10 @@ android {
     buildFeatures {
         compose = true
     }
+    // Xuất SARIF để CI upload vào GitHub Code Scanning (warning hiện inline trên PR).
+    lint {
+        sarifReport = true
+    }
     // Robolectric cần merged manifest + resources (vd ComponentActivity của ui-test-manifest)
     // để chạy Compose UI test trên JVM.
     testOptions {
