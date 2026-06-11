@@ -83,7 +83,7 @@
     <string name="detail_error">Không tải được chi tiết truyện</string>
     <string name="detail_from_publisher">Từ nhà xuất bản</string>
     <string name="detail_from_book">Trích từ truyện</string>
-    <string name="detail_customer_reviews">Đánh giá của độc giả &gt;</string>
+    <string name="detail_customer_reviews">Đánh giá của độc giả</string>
     <string name="review_out_of_5">trên 5</string>
     <string name="review_ratings_count">%1$d lượt đánh giá</string>
     <string name="review_section_title">Đánh giá</string>

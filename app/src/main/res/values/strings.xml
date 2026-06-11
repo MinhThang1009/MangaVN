@@ -83,7 +83,7 @@
     <string name="detail_error">Couldn\'t load manga details</string>
     <string name="detail_from_publisher">From the Publisher</string>
     <string name="detail_from_book">From the Book</string>
-    <string name="detail_customer_reviews">Customer Reviews &gt;</string>
+    <string name="detail_customer_reviews">Customer Reviews</string>
     <string name="review_out_of_5">out of 5</string>
     <string name="review_ratings_count">%1$d Ratings</string>
     <string name="review_section_title">Reviews</string>
