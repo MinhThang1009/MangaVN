@@ -32,7 +32,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.widthIn
 import com.example.mybookslibrary.ui.theme.Dimens
+import com.example.mybookslibrary.ui.util.adaptiveMaxWidth
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.mybookslibrary.R
@@ -70,12 +72,12 @@ fun SettingScreenContent(modifier: Modifier = Modifier, viewModel: SettingsViewM
         modifier = modifier,
         containerColor = MaterialTheme.colorScheme.background,
     ) { innerPadding ->
+        Box(
+            modifier = Modifier.fillMaxSize().padding(innerPadding).consumeWindowInsets(innerPadding),
+            contentAlignment = Alignment.TopCenter,
+        ) {
         androidx.compose.foundation.lazy.LazyColumn(
-            modifier =
-            Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .consumeWindowInsets(innerPadding),
+            modifier = Modifier.widthIn(max = adaptiveMaxWidth()),
             contentPadding =
                 PaddingValues(
                     start = Dimens.ScreenPaddingCompact,
@@ -228,6 +230,7 @@ fun SettingScreenContent(modifier: Modifier = Modifier, viewModel: SettingsViewM
                     )
                 }
             }
+        }
         }
     }
 

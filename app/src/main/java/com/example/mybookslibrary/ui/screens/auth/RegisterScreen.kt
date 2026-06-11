@@ -1,9 +1,13 @@
 package com.example.mybookslibrary.ui.screens.auth
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -44,6 +48,7 @@ import com.example.mybookslibrary.ui.screens.components.ErrorMessageBox
 import com.example.mybookslibrary.ui.screens.components.LoadingIndicator
 import com.example.mybookslibrary.ui.screens.components.LoadingSize
 import com.example.mybookslibrary.ui.theme.Dimens
+import com.example.mybookslibrary.ui.util.adaptiveFormMaxWidth
 import com.example.mybookslibrary.ui.util.appString
 import com.example.mybookslibrary.ui.viewmodel.AuthState
 import com.example.mybookslibrary.ui.viewmodel.AuthViewModel
@@ -80,11 +85,15 @@ fun RegisterScreen(
             )
         },
     ) { innerPadding ->
+        Box(
+            modifier = Modifier.fillMaxSize().padding(innerPadding),
+            contentAlignment = Alignment.Center,
+        ) {
         Column(
             modifier =
                 Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
+                    .widthIn(max = adaptiveFormMaxWidth())
+                    .verticalScroll(rememberScrollState())
                     .padding(Dimens.ScreenPaddingMedium),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
@@ -196,6 +205,7 @@ fun RegisterScreen(
             TextButton(onClick = onNavigateToLogin) {
                 Text(appString(R.string.auth_have_account_action))
             }
+        }
         }
     }
 }

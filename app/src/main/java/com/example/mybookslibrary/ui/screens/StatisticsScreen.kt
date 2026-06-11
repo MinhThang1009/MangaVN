@@ -46,6 +46,7 @@ import com.example.mybookslibrary.R
 import com.example.mybookslibrary.ui.screens.components.SectionHeader
 import com.example.mybookslibrary.ui.theme.Dimens
 import com.example.mybookslibrary.ui.util.appString
+import com.example.mybookslibrary.ui.util.isLandscape
 import com.example.mybookslibrary.ui.viewmodel.StatisticsViewModel
 import ir.ehsannarmani.compose_charts.ColumnChart
 import ir.ehsannarmani.compose_charts.LineChart
@@ -181,9 +182,10 @@ private fun WeeklyColumnChart(activity: List<Int>) {
         }
     }
 
+    val chartHeight = if (isLandscape()) 140.dp else 180.dp
     ChartCard {
         ColumnChart(
-            modifier = Modifier.fillMaxWidth().height(180.dp).padding(Dimens.SpacingSm),
+            modifier = Modifier.fillMaxWidth().height(chartHeight).padding(Dimens.SpacingSm),
             data = barsData,
             barProperties = BarProperties(
                 cornerRadius = Bars.Data.Radius.Rectangle(topRight = 6.dp, topLeft = 6.dp),
@@ -220,9 +222,10 @@ private fun MonthlyLineChart(trend: List<Int>) {
         )
     }
 
+    val lineChartHeight = if (isLandscape()) 140.dp else 180.dp
     ChartCard {
         LineChart(
-            modifier = Modifier.fillMaxWidth().height(180.dp).padding(Dimens.SpacingSm),
+            modifier = Modifier.fillMaxWidth().height(lineChartHeight).padding(Dimens.SpacingSm),
             data = lineData,
         )
     }
@@ -326,9 +329,10 @@ private fun StatusRowChart(reading: Int, completed: Int, favorite: Int) {
         )
     }
 
+    val rowChartHeight = if (isLandscape()) 120.dp else 160.dp
     ChartCard {
         RowChart(
-            modifier = Modifier.fillMaxWidth().height(160.dp).padding(Dimens.SpacingSm),
+            modifier = Modifier.fillMaxWidth().height(rowChartHeight).padding(Dimens.SpacingSm),
             data = rowData,
             barProperties = BarProperties(
                 cornerRadius = Bars.Data.Radius.Rectangle(topRight = 6.dp, bottomRight = 6.dp),

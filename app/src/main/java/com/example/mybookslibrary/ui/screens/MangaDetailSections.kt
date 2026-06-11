@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -95,7 +96,7 @@ internal fun FirstChapterPreviewSection(pageUrls: List<String>) {
                 Card(
                     shape = MaterialTheme.shapes.small,
                     elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-                    modifier = Modifier.width(200.dp).height(300.dp),
+                    modifier = Modifier.width(160.dp).aspectRatio(2f / 3f),
                 ) {
                     AsyncImage(
                         model = pageUrl,

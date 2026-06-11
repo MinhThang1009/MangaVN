@@ -36,7 +36,9 @@ import com.example.mybookslibrary.domain.model.MangaModel
 import com.example.mybookslibrary.ui.screens.components.MangaCoverCard
 import com.example.mybookslibrary.ui.screens.components.SectionHeader
 import com.example.mybookslibrary.ui.theme.Dimens
+import com.example.mybookslibrary.ui.util.adaptiveGridColumns
 import com.example.mybookslibrary.ui.util.appString
+import com.example.mybookslibrary.ui.util.isLandscape
 
 @Composable
 @Suppress("LongParameterList")
@@ -151,9 +153,10 @@ private fun androidx.compose.foundation.lazy.LazyListScope.shelfSection(
 
 @Composable
 private fun SpotlightCard(manga: MangaModel, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val spotlightHeight = if (isLandscape()) 220.dp else 340.dp
     Card(
         onClick = onClick,
-        modifier = modifier.fillMaxWidth().height(340.dp),
+        modifier = modifier.fillMaxWidth().height(spotlightHeight),
         shape = MaterialTheme.shapes.large,
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
     ) {
@@ -220,7 +223,8 @@ private fun HorizontalBookScroll(items: List<MangaModel>, onItemClick: (MangaMod
 
 @Composable
 private fun ExpandedBookGrid(items: List<MangaModel>, onItemClick: (MangaModel) -> Unit) {
-    val chunked = remember(items) { items.chunked(GRID_COLUMNS) }
+    val columns = adaptiveGridColumns()
+    val chunked = remember(items, columns) { items.chunked(columns) }
     Column(
         modifier = Modifier.padding(horizontal = Dimens.ScreenPaddingCompact),
         verticalArrangement = Arrangement.spacedBy(Dimens.SpacingMd),
@@ -233,13 +237,11 @@ private fun ExpandedBookGrid(items: List<MangaModel>, onItemClick: (MangaModel) 
                 row.forEach { manga ->
                     MangaCardItem(manga, { onItemClick(manga) }, Modifier.weight(1f))
                 }
-                repeat(GRID_COLUMNS - row.size) { Spacer(Modifier.weight(1f)) }
+                repeat(columns - row.size) { Spacer(Modifier.weight(1f)) }
             }
         }
     }
 }
-
-private const val GRID_COLUMNS = 3
 
 @Composable
 private fun MangaCardItem(manga: MangaModel, onClick: () -> Unit, modifier: Modifier = Modifier) {

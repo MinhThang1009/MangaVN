@@ -16,6 +16,7 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
+import android.content.res.Configuration
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
@@ -28,6 +29,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -159,7 +161,8 @@ fun MainNavHost(
         } ?: false
 
     val widthSizeClass = LocalWindowWidthSizeClass.current
-    val useRail = showNav && widthSizeClass != WindowWidthSizeClass.Compact
+    val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+    val useRail = showNav && (widthSizeClass != WindowWidthSizeClass.Compact || isLandscape)
 
     val navBarCallback: (BottomNavDestination) -> Unit = { destination ->
         navController.navigate(destination.destination) {
