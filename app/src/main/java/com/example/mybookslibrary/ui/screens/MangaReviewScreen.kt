@@ -108,7 +108,7 @@ fun MangaReviewScreen(onBackClick: () -> Unit) {
                             color = MaterialTheme.colorScheme.onSurface,
                         )
                         Text(
-                            "out of 5",
+                            appString(R.string.review_out_of_5),
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -124,7 +124,7 @@ fun MangaReviewScreen(onBackClick: () -> Unit) {
                         RatingBarRow(stars = 2, progress = 0.05f)
                         RatingBarRow(stars = 1, progress = 0.05f)
                         Text(
-                            "177 Ratings",
+                            appString(R.string.review_ratings_count, 177),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.align(Alignment.End).padding(top = Dimens.SpacingXs),
@@ -141,7 +141,7 @@ fun MangaReviewScreen(onBackClick: () -> Unit) {
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        "Reviews",
+                        appString(R.string.review_section_title),
                         style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.onSurface,
                     )

@@ -32,7 +32,7 @@ import com.composables.icons.lucide.EyeOff
 import com.composables.icons.lucide.Lucide
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
+import com.example.mybookslibrary.ui.util.appString
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -66,7 +66,7 @@ fun RegisterScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.auth_register_title)) },
+                title = { Text(appString(R.string.auth_register_title)) },
             )
         },
     ) { innerPadding ->
@@ -80,7 +80,7 @@ fun RegisterScreen(
             verticalArrangement = Arrangement.Center,
         ) {
             Text(
-                text = stringResource(R.string.auth_create_account),
+                text = appString(R.string.auth_create_account),
                 style = MaterialTheme.typography.headlineMedium,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(bottom = 32.dp),
@@ -89,7 +89,7 @@ fun RegisterScreen(
             OutlinedTextField(
                 value = username,
                 onValueChange = { username = it },
-                label = { Text(stringResource(R.string.auth_username)) },
+                label = { Text(appString(R.string.auth_username)) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
             )
@@ -99,7 +99,7 @@ fun RegisterScreen(
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
-                label = { Text(stringResource(R.string.auth_password)) },
+                label = { Text(appString(R.string.auth_password)) },
                 visualTransformation =
                     if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
@@ -119,7 +119,7 @@ fun RegisterScreen(
             OutlinedTextField(
                 value = confirmPassword,
                 onValueChange = { confirmPassword = it },
-                label = { Text(stringResource(R.string.auth_confirm_password)) },
+                label = { Text(appString(R.string.auth_confirm_password)) },
                 visualTransformation =
                     if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
@@ -137,7 +137,7 @@ fun RegisterScreen(
                 )
             } else if (password != confirmPassword && confirmPassword.isNotEmpty()) {
                 Text(
-                    text = stringResource(R.string.auth_passwords_no_match),
+                    text = appString(R.string.auth_passwords_no_match),
                     color = MaterialTheme.colorScheme.error,
                     modifier = Modifier.padding(bottom = 16.dp),
                 )
@@ -162,14 +162,14 @@ fun RegisterScreen(
                         color = MaterialTheme.colorScheme.onPrimary,
                     )
                 } else {
-                    Text(stringResource(R.string.auth_register_title))
+                    Text(appString(R.string.auth_register_title))
                 }
             }
 
             Spacer(modifier = Modifier.height(32.dp))
 
             TextButton(onClick = onNavigateToLogin) {
-                Text(stringResource(R.string.auth_have_account_login))
+                Text(appString(R.string.auth_have_account_login))
             }
         }
     }

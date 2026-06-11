@@ -35,7 +35,7 @@ class UserPreferencesDataStore(
         private val IN_APP_TOUR_DONE = booleanPreferencesKey("in_app_tour_done")
 
         private const val DEFAULT_QUALITY = "data"
-        private const val DEFAULT_LANGUAGE = "en"
+        private const val DEFAULT_LANGUAGE = "vi"
         private const val DEFAULT_THEME = "system"
         private const val DEFAULT_DOWNLOAD_ONLY_ON_WIFI = true
     }

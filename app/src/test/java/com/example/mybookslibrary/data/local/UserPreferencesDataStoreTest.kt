@@ -53,13 +53,13 @@ class UserPreferencesDataStoreTest {
     fun language_macDinhSetVaObserve() =
         runTest {
             val store = store()
-            assertEquals("en", store.getLanguage())
-            assertEquals("en", store.observeLanguage().first())
-
-            store.setLanguage("vi")
-
             assertEquals("vi", store.getLanguage())
             assertEquals("vi", store.observeLanguage().first())
+
+            store.setLanguage("en")
+
+            assertEquals("en", store.getLanguage())
+            assertEquals("en", store.observeLanguage().first())
         }
 
     @Test
@@ -114,7 +114,7 @@ class UserPreferencesDataStoreTest {
 
             store.clearAll()
 
-            assertEquals("en", store.getLanguage())
+            assertEquals("vi", store.getLanguage())
             assertEquals("data", store.getReaderQuality())
             assertNull(store.getLoggedInUserId())
         }

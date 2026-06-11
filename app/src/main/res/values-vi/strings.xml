@@ -84,6 +84,9 @@
     <string name="detail_from_publisher">Từ nhà xuất bản</string>
     <string name="detail_from_book">Trích từ truyện</string>
     <string name="detail_customer_reviews">Đánh giá của độc giả &gt;</string>
+    <string name="review_out_of_5">trên 5</string>
+    <string name="review_ratings_count">%1$d lượt đánh giá</string>
+    <string name="review_section_title">Đánh giá</string>
     <string name="action_more">Xem thêm</string>
     <string name="cd_page_preview">Xem trước trang truyện</string>
     <string name="cd_expand_chapters">Mở rộng danh sách chương</string>
