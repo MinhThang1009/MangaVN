@@ -13,7 +13,7 @@
 - **Theming hiện tại**: design system "Kanso Editorial" (serif + ink/paper/terracotta) — sẽ **thay thế hoàn toàn** bằng hướng mới (quyết định của user).
 - **Localization**: `values/strings.xml` + `values-vi/strings.xml`, 159 key parity 100%. App dùng custom `appString()` + `LocalAppLocale` (`ui/util/LocaleHelper.kt`) — **KHÔNG dùng `stringResource()`**; đổi ngôn ngữ runtime không recreate Activity. Mọi UI mới phải theo cơ chế này.
 - **Hardcode duy nhất tìm thấy**: `Text("All")` tại `ui/screens/MangaDetailScreen.kt:252` — fix ở Phase 4.
-- **Test**: ~105 unit test file, coverage gate **85%** (overall + diff), Roborazzi **23 goldens** (record/verify CHỈ trên CI Linux qua label `record-screenshots`), instrumented test cần emulator (required check CI).
+- **Test**: ~104 file unit test (con số xê dịch ±2 tùy cách đếm helper/fixture), coverage gate **85%** (overall + diff), Roborazzi **23 goldens** (record/verify CHỈ trên CI Linux qua label `record-screenshots`), instrumented test cần emulator (required check CI).
 - **Onboarding hiện tại**: chưa có gì. `UserPreferencesDataStore` chưa có flag first-launch.
 - **Orientation/responsive**: app không khóa orientation (xoay được, state sống nhờ ViewModel/DataStore) nhưng **0 chỗ dùng `WindowSizeClass`** — layout phone-portrait cứng. Yêu cầu bổ sung: responsive + xoay ngang/dọc.
 - **Reduce-motion**: chưa xử lý ở đâu (đã verify grep = 0).
@@ -64,7 +64,8 @@ Lý do: nền gần-đen pha xanh (tránh OLED smearing, giữ được depth), 
 - `ui/theme/Dimens.kt` (mới): grid 4dp — `4/8/12/16/24/32`; screen padding 16 (compact) / 24 (medium+).
 - `ui/theme/Shape.kt` (mới): small 8, medium 12, large 16, extraLarge 24, cover art 10, pill = full.
 - Elevation: dark = surface container 4 bậc + **tắt `surfaceTint`** (set = surface, tránh ám tím M3); light = shadow mềm 2 lớp.
-- `ui/theme/Motion.kt` (mới): duration tokens `Fast 150ms / Default 250ms / Emphasized 400ms` + `MotionScheme.expressive()` qua MaterialTheme + `LocalReducedMotion`.
+- `ui/theme/Motion.kt` (mới, tạo ở Phase 1): duration tokens `Fast 150ms / Default 250ms / Emphasized 400ms` (easing: dùng nguyên `MotionScheme.expressive()` của M3 qua MaterialTheme, không tự chế curve) + `LocalReducedMotion` (định nghĩa tại đây, đọc `Settings.Global.ANIMATOR_DURATION_SCALE == 0`).
+- Elevation light mode (giá trị chốt, khỏi đoán): card nghỉ `2dp`, card nhấn/kéo `6dp`, dialog/sheet `8dp` — shadow mềm; dark mode KHÔNG dùng shadow, chỉ 4 bậc surface container như trên.
 
 ## 3B. Blueprint bố cục & navigation chrome (bổ sung theo yêu cầu user 2026-06-11)
 
@@ -130,7 +131,7 @@ Backlog hỏi user (đụng behavior, KHÔNG tự làm): pull-to-refresh cho Dis
 > Yêu cầu user (2026-06-11): "đồng nhất tuyệt đối, không inconsistency, không vỡ layout, không khoảng trắng thừa, không màu lộn xộn". Cơ chế: mọi màn hình CHỈ được ghép từ bộ component này — một chỗ sửa, cả app đổi theo; không màn nào tự vẽ riêng.
 - Mới `ui/screens/components/` (hoặc `ui/util/` cho non-visual): `MangaCoverCard` (ratio 2:3 DUY NHẤT toàn app, shape + border outline thống nhất), `SectionHeader` (title + "Xem tất cả"), `StatusChip`, `EmptyState` (illustration + title + subtitle), `ErrorState` (+ nút thử lại), `SkeletonShimmer` (loading placeholder thay spinner trơ — shimmer tắt khi reduce-motion), `AppButton` (primary/secondary/text), `RatingBadge`.
 - Gate tự động chống lệch token: `scripts/check-design-tokens.sh` — ĐÃ TẠO ở Phase 0 (xem trên), Phase 1B chỉ cần tuân thủ.
-- **Component bổ sung theo audit 2026-06-11**: `StyledDropdownMenu` (container `surfaceContainerHigh`, shape medium — thay 2 chỗ: `ChapterComponents.kt:149`, `DiscoverChromeComponents.kt:98`), `StyledBadge` (primary bg, pill, 18dp, labelSmall — thay Badge ở `SearchScreen.kt:107`), `AppFilterChip` (wrapper FilterChip — selected = primaryContainer bg + onPrimaryContainer text; unselected = surface + onSurfaceVariant; shape medium 12dp; outline 1dp; dùng cho SearchFilterSheet + LanguageFilterRow), `ErrorMessageBox` (container + icon + text — dùng cho lỗi auth thay Text trơ), `LoadingIndicator` wrapper (size variants S/M/L). `DetailMessage` (local ở MangaDetailScreen) hợp nhất vào `EmptyState`/`ErrorState`.
+- **Component bổ sung theo audit 2026-06-11**: `StyledDropdownMenu` (container `surfaceContainerHigh`, shape medium — thay 2 chỗ: `ChapterComponents.kt:149`, `DiscoverChromeComponents.kt:98`), `StyledBadge` (primary bg, pill, 18dp, labelSmall — thay Badge ở `SearchScreen.kt:107`), `AppFilterChip` (wrapper FilterChip — selected = primaryContainer bg + onPrimaryContainer text; unselected = surface + onSurfaceVariant; shape medium 12dp; outline 1dp; dùng cho SearchFilterSheet + LanguageFilterRow), `ErrorMessageBox` (container + icon + text — dùng cho lỗi auth thay Text trơ), `LoadingIndicator` wrapper (size token trong Dimens: S `24dp` / M `36dp` / L `48dp`). `DetailMessage` (local ở MangaDetailScreen) hợp nhất vào `EmptyState`/`ErrorState`.
 - **Chuẩn preview chống vỡ layout** (áp dụng từ đây cho MỌI screen/component về sau): mỗi screen có preview ở light + dark + **chuỗi VI dài nhất** + **fontScale 1.3** + **width 320dp** + landscape. Tràn chữ/vỡ layout hiện ra ngay ở preview/screenshot test, không đợi lên máy.
 - Haptic feedback helper (`LocalHapticFeedback`): chuẩn hóa — confirm nhẹ khi bookmark/chọn tab/swipe carousel; KHÔNG haptic khi cuộn.
 - **Icon: Lucide** (`Lucide.X` ImageVector) — từ Phase 1B trở đi mọi icon mới dùng Lucide; icon Material cũ thay dần trong phase của từng màn; Phase 9 gỡ `material-icons-extended` khi grep hết usage.
@@ -156,7 +157,7 @@ Backlog hỏi user (đụng behavior, KHÔNG tự làm): pull-to-refresh cho Dis
 - **Fix hardcode `Text("All")` tại `ui/screens/MangaDetailScreen.kt:252`** (file màn hình chính — KHÔNG phải wrapper `/detail/`) → key mới `filter_all_languages` ở CẢ EN + VI.
 - Spec `ChapterDownloadIndicator` (`ChapterComponents.kt`): size từ Dimens; màu theo trạng thái — downloading = primary, complete = success, error = error; chuyển trạng thái crossfade 200ms.
 - Landscape: cover trái + info phải.
-- Lưu ý: `ui/screens/detail/MangaDetailScreen.kt` chỉ là wrapper 18 dòng — không đụng signature.
+- Lưu ý: `ui/screens/detail/MangaDetailScreen.kt` chỉ là wrapper ~20 dòng delegate — không đụng signature.
 
 ### Phase 5 — Reader (M)
 - `reader/ReaderBars.kt`, `reader/components/PageActionBottomSheet.kt`.
