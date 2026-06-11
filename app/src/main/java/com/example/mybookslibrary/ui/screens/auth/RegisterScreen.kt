@@ -168,8 +168,13 @@ fun RegisterScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
+            Text(
+                appString(R.string.auth_have_account_prompt),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
             TextButton(onClick = onNavigateToLogin) {
-                Text(appString(R.string.auth_have_account_login))
+                Text(appString(R.string.auth_have_account_action))
             }
         }
     }

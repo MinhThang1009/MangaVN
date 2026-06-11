@@ -27,6 +27,9 @@ data object Setting
 data object ReadingHistory
 
 @Serializable
+data object Profile
+
+@Serializable
 data class MangaDetail(
     val mangaId: String,
 )

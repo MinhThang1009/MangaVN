@@ -72,6 +72,14 @@ interface LibraryDao {
     )
     fun observeReadingHistory(): Flow<List<LibraryItemEntity>>
 
+    /** Đếm tổng số manga đã bookmark — cho Profile stats. */
+    @Query("SELECT COUNT(*) FROM library_items")
+    fun observeCount(): Flow<Int>
+
+    /** Đếm manga đã đọc (có progress) — cho Profile stats. */
+    @Query("SELECT COUNT(*) FROM library_items WHERE last_read_chapter_id IS NOT NULL")
+    fun observeReadCount(): Flow<Int>
+
     @Query("DELETE FROM library_items")
     suspend fun deleteAll()
 }

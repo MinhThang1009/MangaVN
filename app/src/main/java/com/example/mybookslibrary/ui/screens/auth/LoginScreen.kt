@@ -177,8 +177,16 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            TextButton(onClick = onNavigateToRegister) {
-                Text(appString(R.string.auth_no_account_register))
+            Text(
+                appString(R.string.auth_no_account_prompt),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            TextButton(onClick = {
+                viewModel.resetState()
+                onNavigateToRegister()
+            }) {
+                Text(appString(R.string.auth_no_account_action))
             }
         }
     }

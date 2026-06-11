@@ -45,6 +45,10 @@ abstract class ChapterDao {
     @Query("SELECT * FROM chapter_progress WHERE chapter_id = :chapterId LIMIT 1")
     abstract suspend fun getChapterProgressByChapter(chapterId: String): ChapterProgressEntity?
 
+    /** Đếm chapter đã đọc xong — cho Profile stats. */
+    @Query("SELECT COUNT(*) FROM chapter_progress WHERE status = 'COMPLETED'")
+    abstract fun observeCompletedChapterCount(): Flow<Int>
+
     @Query("SELECT chapter_id FROM chapter_progress WHERE is_downloaded = 1")
     abstract suspend fun getDownloadedChapterIds(): List<String>
 

@@ -101,7 +101,8 @@ class RegisterScreenTest {
         }
 
         // TextButton ở cuối Column — viewport nhỏ có thể chưa scroll tới → assertExists (đã compose)
-        composeRule.onNodeWithText("Already have an account? Login").assertExists()
+        composeRule.onNodeWithText("Do you already have an account?").assertExists()
+        composeRule.onNodeWithText("Login").assertExists()
     }
 
     @Test

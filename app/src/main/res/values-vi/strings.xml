@@ -188,11 +188,15 @@
     <string name="auth_password">Mật khẩu</string>
     <string name="auth_login_button">Đăng nhập</string>
     <string name="auth_google_signin">Đăng nhập bằng Google</string>
+    <string name="auth_no_account_prompt">Bạn chưa có tài khoản?</string>
+    <string name="auth_no_account_action">Đăng ký</string>
     <string name="auth_no_account_register">Chưa có tài khoản? Đăng ký</string>
     <string name="auth_register_title">Đăng ký</string>
     <string name="auth_create_account">Tạo tài khoản</string>
     <string name="auth_confirm_password">Xác nhận mật khẩu</string>
     <string name="auth_passwords_no_match">Mật khẩu không khớp</string>
+    <string name="auth_have_account_prompt">Bạn đã có tài khoản?</string>
+    <string name="auth_have_account_action">Đăng nhập</string>
     <string name="auth_have_account_login">Đã có tài khoản? Đăng nhập</string>
     <string name="auth_error_empty_fields">Tên đăng nhập và mật khẩu không được để trống</string>
     <string name="auth_error_login_failed">Đăng nhập thất bại</string>
@@ -242,4 +246,12 @@
     <string name="reading_history_today">Hôm nay</string>
     <string name="reading_history_yesterday">Hôm qua</string>
     <string name="reading_history_days_ago">%1$d ngày trước</string>
+
+    <!-- Profile -->
+    <string name="profile_title">Hồ sơ</string>
+    <string name="profile_stat_bookmarks">Đã đánh dấu</string>
+    <string name="profile_stat_manga_read">Truyện đã đọc</string>
+    <string name="profile_stat_chapters">Chương</string>
+    <string name="profile_reading_history">Lịch sử đọc</string>
+    <string name="profile_settings">Cài đặt</string>
 </resources>

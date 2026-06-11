@@ -188,11 +188,16 @@
     <string name="auth_password">Password</string>
     <string name="auth_login_button">Login</string>
     <string name="auth_google_signin">Sign in with Google</string>
+    <string name="auth_no_account_prompt">Don\'t you have an account yet?</string>
+    <string name="auth_no_account_action">Register</string>
     <string name="auth_no_account_register">Don\'t have an account? Register</string>
     <string name="auth_register_title">Register</string>
     <string name="auth_create_account">Create an Account</string>
     <string name="auth_confirm_password">Confirm Password</string>
     <string name="auth_passwords_no_match">Passwords do not match</string>
+    <string name="auth_have_account_prompt">Do you already have an account?</string>
+
+    <string name="auth_have_account_action">Login</string>
     <string name="auth_have_account_login">Already have an account? Login</string>
     <string name="auth_error_empty_fields">Username and password cannot be empty</string>
     <string name="auth_error_login_failed">Login failed</string>
@@ -242,4 +247,12 @@
     <string name="reading_history_today">Today</string>
     <string name="reading_history_yesterday">Yesterday</string>
     <string name="reading_history_days_ago">%1$d days ago</string>
+
+    <!-- Profile -->
+    <string name="profile_title">Profile</string>
+    <string name="profile_stat_bookmarks">Bookmarks</string>
+    <string name="profile_stat_manga_read">Manga read</string>
+    <string name="profile_stat_chapters">Chapters</string>
+    <string name="profile_reading_history">Reading History</string>
+    <string name="profile_settings">Settings</string>
 </resources>
