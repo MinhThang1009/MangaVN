@@ -60,6 +60,10 @@ abstract class ChapterDao {
     @Query("SELECT chapter_id FROM chapter_progress WHERE is_downloaded = 1")
     abstract suspend fun getDownloadedChapterIds(): List<String>
 
+    /** Observe tất cả chapter đã download — cho Download Manager. */
+    @Query("SELECT * FROM chapter_progress WHERE is_downloaded = 1 ORDER BY updated_at DESC")
+    abstract fun observeDownloadedChapters(): Flow<List<ChapterProgressEntity>>
+
     @Query("UPDATE chapter_progress SET is_downloaded = 0 WHERE is_downloaded = 1")
     abstract suspend fun clearDownloadedChapterFlags()
 

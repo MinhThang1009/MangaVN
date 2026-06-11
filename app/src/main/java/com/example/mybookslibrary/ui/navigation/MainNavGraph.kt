@@ -217,6 +217,7 @@ fun MainNavHost(
                     profileGraph(navController)
                     readingHistoryGraph(navController)
                     statisticsGraph(navController)
+                    downloadsGraph(navController)
                     readerGraph(navController)
                 }
             }

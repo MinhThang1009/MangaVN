@@ -290,4 +290,13 @@
     <string name="notification_channel_desc">Reminds you to continue reading</string>
     <string name="notification_reminder_title">Miss your manga? 📖</string>
     <string name="notification_reminder_body">You haven\'t read in a while. Continue where you left off!</string>
+
+    <!-- Downloads -->
+    <string name="downloads_title">Downloads</string>
+    <string name="downloads_empty_title">No downloads</string>
+    <string name="downloads_empty_subtitle">Downloaded chapters will appear here for offline reading</string>
+    <string name="downloads_delete">Delete</string>
+    <string name="downloads_delete_confirm">Delete this downloaded chapter?</string>
+    <string name="downloads_chapter">Chapter %1$s</string>
+    <string name="profile_downloads">Downloads</string>
 </resources>

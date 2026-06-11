@@ -289,4 +289,13 @@
     <string name="notification_channel_desc">Nhắc bạn tiếp tục đọc truyện</string>
     <string name="notification_reminder_title">Nhớ truyện không? 📖</string>
     <string name="notification_reminder_body">Bạn đã lâu chưa đọc. Tiếp tục nào!</string>
+
+    <!-- Downloads -->
+    <string name="downloads_title">Tải xuống</string>
+    <string name="downloads_empty_title">Chưa có tải xuống</string>
+    <string name="downloads_empty_subtitle">Chương đã tải sẽ hiện ở đây để đọc ngoại tuyến</string>
+    <string name="downloads_delete">Xóa</string>
+    <string name="downloads_delete_confirm">Xóa chương đã tải này?</string>
+    <string name="downloads_chapter">Chương %1$s</string>
+    <string name="profile_downloads">Tải xuống</string>
 </resources>

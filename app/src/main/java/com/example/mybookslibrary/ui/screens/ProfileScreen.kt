@@ -37,6 +37,7 @@ import com.composables.icons.lucide.ArrowLeft
 import com.composables.icons.lucide.ChartNoAxesColumn
 import com.composables.icons.lucide.ChevronRight
 import com.composables.icons.lucide.Clock
+import com.composables.icons.lucide.Download
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Settings
 import com.composables.icons.lucide.User
@@ -52,6 +53,7 @@ fun ProfileScreen(
     onBackClick: () -> Unit,
     onReadingHistoryClick: () -> Unit,
     onStatisticsClick: () -> Unit,
+    onDownloadsClick: () -> Unit,
     onSettingsClick: () -> Unit,
     modifier: Modifier = Modifier,
     vm: ProfileViewModel = hiltViewModel(),
@@ -105,6 +107,14 @@ fun ProfileScreen(
                     icon = Lucide.ChartNoAxesColumn,
                     label = appString(R.string.profile_statistics),
                     onClick = onStatisticsClick,
+                )
+            }
+            item { Spacer(Modifier.height(Dimens.SpacingMd)) }
+            item {
+                ProfileMenuItem(
+                    icon = Lucide.Download,
+                    label = appString(R.string.profile_downloads),
+                    onClick = onDownloadsClick,
                 )
             }
             item { Spacer(Modifier.height(Dimens.SpacingMd)) }
