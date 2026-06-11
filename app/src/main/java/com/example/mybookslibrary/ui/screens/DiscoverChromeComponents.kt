@@ -1,25 +1,9 @@
 package com.example.mybookslibrary.ui.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CloudOff
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -35,9 +19,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.composables.icons.lucide.BookOpen
+import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.Menu
+import com.composables.icons.lucide.Settings
+import com.composables.icons.lucide.User
 import com.example.mybookslibrary.R
+import com.example.mybookslibrary.ui.navigation.LucideSearchIcon
+import com.example.mybookslibrary.ui.screens.components.ErrorState
+import com.example.mybookslibrary.ui.screens.components.LoadingIndicator
+import com.example.mybookslibrary.ui.screens.components.LoadingSize
+import com.example.mybookslibrary.ui.screens.components.StyledDropdownMenu
 import com.example.mybookslibrary.ui.util.appString
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -50,9 +43,7 @@ internal fun EditorialTopBar(
     val menuExpanded = remember { mutableStateOf(false) }
 
     TopAppBar(
-        title = {
-            BrandTitle()
-        },
+        title = { BrandTitle() },
         navigationIcon = {
             DiscoverNavigationMenu(
                 expanded = menuExpanded.value,
@@ -68,10 +59,10 @@ internal fun EditorialTopBar(
             )
         },
         colors =
-        TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.background,
-            scrolledContainerColor = MaterialTheme.colorScheme.background,
-        ),
+            TopAppBarDefaults.topAppBarColors(
+                containerColor = MaterialTheme.colorScheme.background,
+                scrolledContainerColor = MaterialTheme.colorScheme.background,
+            ),
     )
 }
 
@@ -93,57 +84,48 @@ private fun DiscoverNavigationMenu(
 ) {
     Box {
         IconButton(onClick = { onExpandedChange(true) }) {
-            Icon(Icons.Filled.Menu, appString(R.string.cd_menu), tint = MaterialTheme.colorScheme.primary)
+            Icon(Lucide.Menu, appString(R.string.cd_menu), tint = MaterialTheme.colorScheme.primary)
         }
-        DropdownMenu(
+        StyledDropdownMenu(
             expanded = expanded,
             onDismissRequest = { onExpandedChange(false) },
         ) {
-            DiscoverMenuItem(
-                text = appString(R.string.nav_library),
-                icon = { Icon(Icons.Filled.Favorite, null, tint = MaterialTheme.colorScheme.primary) },
+            DropdownMenuItem(
+                text = { Text(appString(R.string.nav_library), style = MaterialTheme.typography.bodyLarge) },
                 onClick = {
                     onExpandedChange(false)
                     onLibraryClick()
                 },
+                leadingIcon = { Icon(Lucide.BookOpen, null, tint = MaterialTheme.colorScheme.primary) },
             )
-            DiscoverMenuItem(
-                text = appString(R.string.settings_title),
-                icon = { Icon(Icons.Filled.Person, null, tint = MaterialTheme.colorScheme.primary) },
+            DropdownMenuItem(
+                text = { Text(appString(R.string.settings_title), style = MaterialTheme.typography.bodyLarge) },
                 onClick = {
                     onExpandedChange(false)
                     onProfileClick()
                 },
+                leadingIcon = { Icon(Lucide.Settings, null, tint = MaterialTheme.colorScheme.primary) },
             )
         }
     }
 }
 
 @Composable
-private fun DiscoverMenuItem(text: String, icon: @Composable () -> Unit, onClick: () -> Unit,) {
-    DropdownMenuItem(
-        text = { Text(text, style = MaterialTheme.typography.bodyLarge) },
-        onClick = onClick,
-        leadingIcon = icon,
-    )
-}
-
-@Composable
-private fun DiscoverTopBarActions(onSearchClick: () -> Unit, onProfileClick: () -> Unit,) {
+private fun DiscoverTopBarActions(onSearchClick: () -> Unit, onProfileClick: () -> Unit) {
     IconButton(onClick = onSearchClick) {
-        Icon(Icons.Filled.Search, appString(R.string.cd_search), tint = MaterialTheme.colorScheme.primary)
+        Icon(LucideSearchIcon, appString(R.string.cd_search), tint = MaterialTheme.colorScheme.primary)
     }
     IconButton(onClick = onProfileClick) {
         Box(
             modifier =
-            Modifier
-                .size(32.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.primary),
+                Modifier
+                    .size(32.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primary),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
-                Icons.Filled.Person,
+                Lucide.User,
                 appString(R.string.cd_profile),
                 tint = MaterialTheme.colorScheme.onPrimary,
                 modifier = Modifier.size(18.dp),
@@ -155,56 +137,15 @@ private fun DiscoverTopBarActions(onSearchClick: () -> Unit, onProfileClick: () 
 @Composable
 internal fun DiscoverLoadingState(modifier: Modifier = Modifier) {
     Box(modifier, contentAlignment = Alignment.Center) {
-        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+        LoadingIndicator(size = LoadingSize.Large)
     }
 }
 
 @Composable
-internal fun DiscoverErrorState(modifier: Modifier = Modifier, onRetry: () -> Unit,) {
-    Box(
-        modifier = modifier.padding(horizontal = 32.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-        ) {
-            Icon(
-                imageVector = Icons.Filled.CloudOff,
-                contentDescription = null,
-                modifier = Modifier.size(64.dp),
-                tint = MaterialTheme.colorScheme.secondary,
-            )
-            Spacer(Modifier.height(16.dp))
-            Text(
-                text = appString(R.string.discover_error_title),
-                style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-            )
-            Spacer(Modifier.height(8.dp))
-            Text(
-                text = appString(R.string.discover_error_subtitle),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                textAlign = TextAlign.Center,
-            )
-            Spacer(Modifier.height(24.dp))
-            Button(
-                onClick = onRetry,
-                shape = RoundedCornerShape(16.dp),
-                colors =
-                ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary,
-                ),
-                modifier = Modifier.height(48.dp).padding(horizontal = 16.dp),
-            ) {
-                Text(
-                    text = appString(R.string.action_retry),
-                    style = MaterialTheme.typography.labelLarge,
-                )
-            }
-        }
-    }
+internal fun DiscoverErrorState(modifier: Modifier = Modifier, onRetry: () -> Unit) {
+    ErrorState(
+        message = appString(R.string.discover_error_title),
+        modifier = modifier,
+        onRetry = onRetry,
+    )
 }

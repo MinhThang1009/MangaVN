@@ -124,10 +124,17 @@ fun RegisterScreen(
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
-                enabled = uiState !is AuthState.Loading && password == confirmPassword && password.isNotEmpty() && username.isNotEmpty(),
+                enabled =
+                    uiState !is AuthState.Loading &&
+                        password == confirmPassword &&
+                        password.isNotEmpty() &&
+                        username.isNotEmpty(),
             ) {
                 if (uiState is AuthState.Loading) {
-                    CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = MaterialTheme.colorScheme.onPrimary,
+                    )
                 } else {
                     Text(stringResource(R.string.auth_register_title))
                 }
