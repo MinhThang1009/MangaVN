@@ -27,6 +27,12 @@ updates:
       # ra bản hỗ trợ metadata 2.4 — rồi để group kotlin-toolchain bump đồng bộ.
       - dependency-name: "org.jetbrains.kotlin*"
         update-types: ["version-update:semver-minor", "version-update:semver-major"]
+      # Coil 3.5.0 và OkHttp 5.4.0 compile bằng Kotlin 2.4 → Hilt fail đọc metadata
+      # (đã vỡ main 2026-06-11, revert PR #118). Bỏ ignore cùng lúc với Kotlin ở trên.
+      - dependency-name: "io.coil-kt.coil3*"
+        update-types: ["version-update:semver-minor", "version-update:semver-major"]
+      - dependency-name: "com.squareup.okhttp3*"
+        update-types: ["version-update:semver-minor", "version-update:semver-major"]
 
   - package-ecosystem: github-actions
     directory: "/"

@@ -6,8 +6,9 @@ import com.example.mybookslibrary.data.local.ChapterProgressEntity
 import com.example.mybookslibrary.data.local.ChapterStatus
 import com.example.mybookslibrary.data.local.DownloadQueueEntity
 import com.example.mybookslibrary.data.local.DownloadStatus
-import com.example.mybookslibrary.data.local.toMetadataEntity
+import com.example.mybookslibrary.data.local.UserPreferencesDataStore
 import com.example.mybookslibrary.data.local.dao.ChapterDao
+import com.example.mybookslibrary.data.local.toMetadataEntity
 import com.example.mybookslibrary.data.repository.MangaRepository
 import com.example.mybookslibrary.data.repository.OfflineDownloadRepository
 import com.example.mybookslibrary.domain.model.ChapterDownloadState
@@ -24,6 +25,12 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 
+data class ChapterListResult(
+    val chapters: List<ChapterWithProgressModel>,
+    val availableLanguages: List<String>,
+    val selectedLanguage: String,
+)
+
 class GetChapterListWithProgressUseCase
     @Inject
     constructor(
@@ -31,6 +38,7 @@ class GetChapterListWithProgressUseCase
         private val chapterDao: ChapterDao,
         private val offlineDownloadRepository: OfflineDownloadRepository,
         private val downloadedChapterCache: DownloadedChapterCache,
+        private val userPreferencesDataStore: UserPreferencesDataStore,
     ) {
         /**
          * Emits locally cached chapters immediately and silently refreshes them from MangaDex.
@@ -38,7 +46,7 @@ class GetChapterListWithProgressUseCase
          * Progress is keyed by chapter_id so each chapter keeps its own status and
          * last-read page independently when another chapter is opened.
          */
-        operator fun invoke(mangaId: String): Flow<List<ChapterWithProgressModel>> =
+        operator fun invoke(mangaId: String): Flow<ChapterListResult> =
             flow {
                 refreshDownloadedChapterCache()
                 coroutineScope {
@@ -49,13 +57,40 @@ class GetChapterListWithProgressUseCase
                             chapterDao.getChapterProgressByManga(mangaId),
                             offlineDownloadRepository.observeQueueByManga(mangaId),
                             downloadedChapterCache.downloadedChapterIds,
-                        ) { metadata, progressList, queueList, downloadedIds ->
-                            mapChapterSnapshot(
+                            userPreferencesDataStore.observePreferredChapterLanguage(),
+                        ) { metadata, progressList, queueList, downloadedIds, prefLang ->
+                            val rawChapters = mapChapterSnapshot(
                                 mangaId = mangaId,
                                 metadata = metadata,
                                 progressList = progressList,
                                 queueList = queueList,
                                 downloadedIds = downloadedIds,
+                            )
+
+                            val availableLanguages = rawChapters.mapNotNull {
+                                it.translatedLanguage
+                            }.distinct().sorted()
+
+                            val selectedLanguage = if (prefLang == "") {
+                                "" // All
+                            } else if (availableLanguages.contains(prefLang)) {
+                                prefLang
+                            } else if (availableLanguages.contains("en")) {
+                                "en"
+                            } else {
+                                availableLanguages.firstOrNull() ?: ""
+                            }
+
+                            val filteredChapters = if (selectedLanguage == "") {
+                                rawChapters
+                            } else {
+                                rawChapters.filter { it.translatedLanguage == selectedLanguage }
+                            }
+
+                            ChapterListResult(
+                                chapters = filteredChapters,
+                                availableLanguages = availableLanguages,
+                                selectedLanguage = selectedLanguage,
                             )
                         },
                     )
@@ -164,6 +199,7 @@ private fun ChapterMetadataEntity.toChapterWithProgress(
         status = progress?.status.toDomainStatus(),
         lastReadPage = progress?.last_read_page ?: 0,
         totalPages = totalPages,
+        translatedLanguage = translatedLanguage,
         downloadState = queue.toDownloadState(isDownloaded),
     )
 }

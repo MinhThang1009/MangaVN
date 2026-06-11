@@ -5,6 +5,8 @@ import com.example.mybookslibrary.data.download.OfflineDownloadManager
 import com.example.mybookslibrary.data.repository.LibraryRepository
 import com.example.mybookslibrary.data.repository.MangaRepository
 import com.example.mybookslibrary.domain.usecase.GetChapterListWithProgressUseCase
+import com.example.mybookslibrary.domain.usecase.ChapterListResult
+import com.example.mybookslibrary.data.local.UserPreferencesDataStore
 import com.example.mybookslibrary.test.MainDispatcherRule
 import io.mockk.Runs
 import io.mockk.coEvery
@@ -65,13 +67,32 @@ class MangaDetailViewModelTest {
             coVerify(exactly = 1) { manager.deleteDownload(MANGA_ID, CHAPTER_ID) }
         }
 
-    private fun createViewModel(manager: OfflineDownloadManager): MangaDetailViewModel {
+    @Test
+    fun selectLanguage_updatesDataStore() =
+        runTest(mainDispatcherRule.dispatcher.scheduler) {
+            val manager = mockManager()
+            val prefDataStore = mockUserPreferencesDataStore()
+            val viewModel = createViewModel(manager, prefDataStore)
+            advanceUntilIdle()
+
+            viewModel.selectLanguage("vi")
+            advanceUntilIdle()
+
+            coVerify(exactly = 1) { prefDataStore.setPreferredChapterLanguage("vi") }
+        }
+
+    private fun createViewModel(
+        manager: OfflineDownloadManager,
+        userPreferencesDataStore: UserPreferencesDataStore = mockUserPreferencesDataStore()
+    ): MangaDetailViewModel {
         val mangaRepository = mockk<MangaRepository>()
         val libraryRepository = mockk<LibraryRepository>()
         val getChapterListWithProgressUseCase = mockk<GetChapterListWithProgressUseCase>()
 
         coEvery { mangaRepository.getMangaDetail(MANGA_ID) } returns Result.failure(IllegalStateException("not needed"))
-        every { getChapterListWithProgressUseCase(MANGA_ID) } returns flowOf(emptyList())
+        every { getChapterListWithProgressUseCase(MANGA_ID) } returns
+            flowOf(ChapterListResult(emptyList(), emptyList(), ""))
+        every { userPreferencesDataStore.observePreferredChapterLanguage() } returns flowOf("")
         coEvery { libraryRepository.isInLibrary(MANGA_ID) } returns false
 
         return MangaDetailViewModel(
@@ -80,6 +101,7 @@ class MangaDetailViewModelTest {
             libraryRepository = libraryRepository,
             getChapterListWithProgressUseCase = getChapterListWithProgressUseCase,
             offlineDownloadManager = manager,
+            userPreferencesDataStore = userPreferencesDataStore,
             ioDispatcher = mainDispatcherRule.dispatcher,
         )
     }
@@ -90,6 +112,13 @@ class MangaDetailViewModelTest {
         coEvery { manager.cancelDownload(any()) } just Runs
         coEvery { manager.deleteDownload(any(), any()) } just Runs
         return manager
+    }
+
+    private fun mockUserPreferencesDataStore(): UserPreferencesDataStore {
+        val prefDataStore = mockk<UserPreferencesDataStore>()
+        every { prefDataStore.observePreferredChapterLanguage() } returns flowOf("")
+        coEvery { prefDataStore.setPreferredChapterLanguage(any()) } just Runs
+        return prefDataStore
     }
 
     private companion object {

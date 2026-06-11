@@ -29,5 +29,6 @@ data class ChapterWithProgressModel(
     val status: ChapterReadingStatus,
     val lastReadPage: Int,
     val totalPages: Int,
+    val translatedLanguage: String? = null,
     val downloadState: ChapterDownloadState = ChapterDownloadState(),
 )

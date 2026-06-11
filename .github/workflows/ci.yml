@@ -68,7 +68,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
-      - uses: gradle/actions/wrapper-validation@ed408507eac070d1f99cc633dbcf757c94c7933a # v4
+      - uses: gradle/actions/wrapper-validation@5e2ebd065dc2488b7a6ad670704656cbbe1e8f60 # v6.1.1
 
   static-analysis:
     needs: [changes, wrapper-validation]
@@ -304,7 +304,7 @@ jobs:
 
       - name: Publish test results
         if: always()
-        uses: dorny/test-reporter@df6247429542221bc30d46a036ee47af1102c451 # v2
+        uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3.0.0
         with:
           name: Unit Test Results
           path: app/build/test-results/testDebugUnitTest/*.xml
@@ -313,7 +313,7 @@ jobs:
 
       - name: Submit dependency graph
         if: github.event_name == 'push'
-        uses: gradle/actions/dependency-submission@ed408507eac070d1f99cc633dbcf757c94c7933a # v4
+        uses: gradle/actions/dependency-submission@5e2ebd065dc2488b7a6ad670704656cbbe1e8f60 # v6.1.1
         continue-on-error: true
 
   emulator-test:

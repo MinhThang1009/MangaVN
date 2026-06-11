@@ -8,6 +8,7 @@ import com.example.mybookslibrary.data.download.OfflineDownloadManager
 import com.example.mybookslibrary.data.repository.LibraryRepository
 import com.example.mybookslibrary.data.repository.MangaRepository
 import com.example.mybookslibrary.di.IoDispatcher
+import com.example.mybookslibrary.data.local.UserPreferencesDataStore
 import com.example.mybookslibrary.domain.model.ChapterWithProgressModel
 import com.example.mybookslibrary.domain.model.MangaModel
 import com.example.mybookslibrary.domain.usecase.GetChapterListWithProgressUseCase
@@ -27,6 +28,8 @@ data class MangaDetailUiState(
     val mangaDetail: MangaModel? = null,
     val detailError: String? = null,
     val chapters: List<ChapterWithProgressModel> = emptyList(),
+    val availableLanguages: List<String> = emptyList(),
+    val selectedLanguage: String = "",
     val isLoadingChapters: Boolean = false,
     val chaptersError: String? = null,
     val isInLibrary: Boolean = false,
@@ -44,6 +47,7 @@ class MangaDetailViewModel
         private val libraryRepository: LibraryRepository,
         private val getChapterListWithProgressUseCase: GetChapterListWithProgressUseCase,
         private val offlineDownloadManager: OfflineDownloadManager,
+        private val userPreferencesDataStore: UserPreferencesDataStore,
         @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     ) : ViewModel() {
         private val mangaId: String = savedStateHandle.toRoute<MangaDetail>().mangaId
@@ -88,17 +92,19 @@ class MangaDetailViewModel
             viewModelScope.launch(ioDispatcher) {
                 _uiState.update { it.copy(isLoadingChapters = true, chaptersError = null) }
                 try {
-                    getChapterListWithProgressUseCase(mangaId).collect { chapters ->
-                        val isFirstLoad = _uiState.value.chapters.isEmpty() && chapters.isNotEmpty()
+                    getChapterListWithProgressUseCase(mangaId).collect { result ->
+                        val isFirstLoad = _uiState.value.chapters.isEmpty() && result.chapters.isNotEmpty()
                         _uiState.update {
                             it.copy(
-                                chapters = chapters,
+                                chapters = result.chapters,
+                                availableLanguages = result.availableLanguages,
+                                selectedLanguage = result.selectedLanguage,
                                 isLoadingChapters = false,
                                 chaptersError = null,
                             )
                         }
                         if (isFirstLoad) {
-                            loadFirstChapterPages(chapters.first().chapterId)
+                            loadFirstChapterPages(result.chapters.first().chapterId)
                         }
                     }
                 } catch (e: Exception) {
@@ -136,6 +142,12 @@ class MangaDetailViewModel
             launchSafe {
                 val inLib = libraryRepository.isInLibrary(mangaId)
                 _uiState.update { it.copy(isInLibrary = inLib) }
+            }
+        }
+
+        fun selectLanguage(language: String) {
+            launchSafe {
+                userPreferencesDataStore.setPreferredChapterLanguage(language)
             }
         }
 
