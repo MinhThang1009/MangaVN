@@ -276,4 +276,16 @@
     <string name="rate_app_body">If you like our app, please take a moment to rate it. Thank you for your support!</string>
     <string name="rate_app_rate">Rate now</string>
     <string name="rate_app_later">Maybe later</string>
+
+    <!-- In-app feedback -->
+    <string name="feedback_login_success">Login successful!</string>
+    <string name="feedback_register_success">Registration successful!</string>
+    <string name="feedback_bookmark_added">Added to library</string>
+    <string name="feedback_bookmark_removed">Removed from library</string>
+
+    <!-- Notifications -->
+    <string name="notification_channel_name">Reading Reminders</string>
+    <string name="notification_channel_desc">Reminds you to continue reading</string>
+    <string name="notification_reminder_title">Miss your manga? 📖</string>
+    <string name="notification_reminder_body">You haven\'t read in a while. Continue where you left off!</string>
 </resources>

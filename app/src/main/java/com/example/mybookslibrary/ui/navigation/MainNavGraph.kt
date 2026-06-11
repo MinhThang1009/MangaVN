@@ -20,6 +20,8 @@ import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -60,6 +62,7 @@ val LocalSharedTransitionScope = compositionLocalOf<SharedTransitionScope?> { nu
 val LocalNavAnimatedVisibilityScope = compositionLocalOf<AnimatedVisibilityScope?> { null }
 val LocalBottomNavPadding = compositionLocalOf<Dp> { 0.dp }
 val LocalWindowWidthSizeClass = staticCompositionLocalOf { WindowWidthSizeClass.Compact }
+val LocalSnackbarHostState = staticCompositionLocalOf { SnackbarHostState() }
 
 sealed class BottomNavDestination(
     val destination: Any,
@@ -103,6 +106,8 @@ fun MainNavHost(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
     val coachMarkState = rememberCoachMarkState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val isReturningUser = remember { onboardingWelcomeDone }
     val showTour = loggedInUserId != null && !inAppTourDone
 
     var navBarVisible by remember { mutableStateOf(true) }
@@ -170,6 +175,7 @@ fun MainNavHost(
             CompositionLocalProvider(
                 LocalSharedTransitionScope provides this@SharedTransitionLayout,
                 LocalBottomNavPadding provides if (useRail) 0.dp else 80.dp,
+                LocalSnackbarHostState provides snackbarHostState,
             ) {
                 NavHost(
                     navController = navController,
@@ -201,7 +207,7 @@ fun MainNavHost(
                     },
                 ) {
                     onboardingGraph(navController, onWelcomeDone)
-                    authGraph(navController, isReturningUser = onboardingWelcomeDone)
+                    authGraph(navController, isReturningUser = isReturningUser)
                     mainTabsGraph(navController)
                     mangaDetailGraph(navController)
                     reviewGraph(navController)
@@ -237,6 +243,7 @@ fun MainNavHost(
                     )
                 }
             },
+            snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
             containerColor = MaterialTheme.colorScheme.background,
             contentWindowInsets = WindowInsets(0, 0, 0, 0),
         ) { innerPadding ->

@@ -41,6 +41,7 @@ import com.composables.icons.lucide.Eye
 import com.composables.icons.lucide.EyeOff
 import com.composables.icons.lucide.Lucide
 import com.example.mybookslibrary.R
+import com.example.mybookslibrary.ui.navigation.LocalSnackbarHostState
 import com.example.mybookslibrary.ui.screens.components.ErrorMessageBox
 import com.example.mybookslibrary.ui.screens.components.LoadingIndicator
 import com.example.mybookslibrary.ui.screens.components.LoadingSize
@@ -63,11 +64,14 @@ fun LoginScreen(
 
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
+    val snackbarHostState = LocalSnackbarHostState.current
+    val loginSuccessMsg = appString(R.string.feedback_login_success)
 
     LaunchedEffect(uiState) {
         if (uiState is AuthState.Success) {
             viewModel.resetState()
             onLoginSuccess()
+            snackbarHostState.showSnackbar(loginSuccessMsg)
         }
     }
 

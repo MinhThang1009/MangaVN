@@ -275,4 +275,16 @@
     <string name="rate_app_body">Nếu bạn thích ứng dụng, hãy dành chút thời gian đánh giá nhé. Cảm ơn bạn đã ủng hộ!</string>
     <string name="rate_app_rate">Đánh giá ngay</string>
     <string name="rate_app_later">Để sau</string>
+
+    <!-- In-app feedback -->
+    <string name="feedback_login_success">Đăng nhập thành công!</string>
+    <string name="feedback_register_success">Đăng ký thành công!</string>
+    <string name="feedback_bookmark_added">Đã thêm vào thư viện</string>
+    <string name="feedback_bookmark_removed">Đã xóa khỏi thư viện</string>
+
+    <!-- Notifications -->
+    <string name="notification_channel_name">Nhắc nhở đọc truyện</string>
+    <string name="notification_channel_desc">Nhắc bạn tiếp tục đọc truyện</string>
+    <string name="notification_reminder_title">Nhớ truyện không? 📖</string>
+    <string name="notification_reminder_body">Bạn đã lâu chưa đọc. Tiếp tục nào!</string>
 </resources>

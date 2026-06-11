@@ -26,6 +26,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,6 +40,7 @@ import com.example.mybookslibrary.R
 import com.example.mybookslibrary.data.local.LibraryItemEntity
 import com.example.mybookslibrary.data.local.LibraryStatus
 import com.example.mybookslibrary.ui.navigation.LocalBottomNavPadding
+import com.example.mybookslibrary.ui.navigation.LocalSnackbarHostState
 import com.example.mybookslibrary.ui.screens.components.AppButton
 import com.example.mybookslibrary.ui.screens.components.AppButtonStyle
 import com.example.mybookslibrary.ui.screens.components.EmptyState
@@ -47,6 +49,7 @@ import com.example.mybookslibrary.ui.screens.components.StatusChip
 import com.example.mybookslibrary.ui.theme.Dimens
 import com.example.mybookslibrary.ui.util.appString
 import com.example.mybookslibrary.ui.viewmodel.LibraryViewModel
+import kotlinx.coroutines.launch
 
 @Suppress("unused", "LongMethod")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -60,6 +63,9 @@ fun LibraryScreenContent(
     val isRefreshing by vm.isRefreshing.collectAsStateWithLifecycle()
     var pendingRemoval by remember { mutableStateOf<LibraryItemEntity?>(null) }
     val bottomNavPadding = LocalBottomNavPadding.current
+    val snackbarHostState = LocalSnackbarHostState.current
+    val scope = rememberCoroutineScope()
+    val bookmarkRemovedMsg = appString(R.string.feedback_bookmark_removed)
 
     Scaffold(
         modifier = modifier,
@@ -138,6 +144,9 @@ fun LibraryScreenContent(
                             onClick = {
                                 vm.removeBookmark(item.manga_id)
                                 pendingRemoval = null
+                                scope.launch {
+                                    snackbarHostState.showSnackbar(bookmarkRemovedMsg)
+                                }
                             },
                             style = AppButtonStyle.Text,
                         )

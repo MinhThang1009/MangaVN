@@ -43,6 +43,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         requestNotificationPermissionIfNeeded()
+        com.example.mybookslibrary.data.notification.ReadingReminderWorker.schedule(this)
         setContent {
             val windowSizeClass = calculateWindowSizeClass(this)
             // Parse ACTION_SEND intent (e.g. share from Chrome) to extract a manga ID.

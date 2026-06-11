@@ -39,6 +39,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.example.mybookslibrary.R
+import com.example.mybookslibrary.ui.navigation.LocalSnackbarHostState
 import com.example.mybookslibrary.ui.viewmodel.AuthState
 import com.example.mybookslibrary.ui.viewmodel.AuthViewModel
 
@@ -55,11 +56,14 @@ fun RegisterScreen(
     var passwordVisible by remember { mutableStateOf(false) }
 
     val uiState by viewModel.uiState.collectAsState()
+    val snackbarHostState = LocalSnackbarHostState.current
+    val registerSuccessMsg = appString(R.string.feedback_register_success)
 
     LaunchedEffect(uiState) {
         if (uiState is AuthState.Success) {
             viewModel.resetState()
             onRegisterSuccess()
+            snackbarHostState.showSnackbar(registerSuccessMsg)
         }
     }
 

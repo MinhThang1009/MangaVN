@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.runtime.rememberCoroutineScope
 import com.example.mybookslibrary.R
 import com.example.mybookslibrary.domain.model.ChapterReadingStatus
 import com.example.mybookslibrary.domain.model.ChapterWithProgressModel
@@ -32,8 +33,10 @@ import com.example.mybookslibrary.ui.screens.components.AppFilterChip
 import com.example.mybookslibrary.ui.screens.components.LoadingIndicator
 import com.example.mybookslibrary.ui.screens.components.LoadingSize
 import com.example.mybookslibrary.ui.theme.Dimens
+import com.example.mybookslibrary.ui.navigation.LocalSnackbarHostState
 import com.example.mybookslibrary.ui.util.appString
 import com.example.mybookslibrary.ui.viewmodel.MangaDetailViewModel
+import kotlinx.coroutines.launch
 import timber.log.Timber
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -62,6 +65,10 @@ fun MangaDetailScreen(
             }
         }
     var chaptersExpanded by remember { mutableStateOf(false) }
+    val snackbarHostState = LocalSnackbarHostState.current
+    val scope = rememberCoroutineScope()
+    val bookmarkAddedMsg = appString(R.string.feedback_bookmark_added)
+    val bookmarkRemovedMsg = appString(R.string.feedback_bookmark_removed)
 
     Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         LazyColumn(modifier = Modifier.fillMaxSize()) {
@@ -101,7 +108,13 @@ fun MangaDetailScreen(
                         onReadChapter(mangaId, firstChapter.chapterId, firstChapterTitle, startPageIndex)
                     },
                     onToggleLibrary = {
+                        val wasInLibrary = uiState.isInLibrary
                         viewModel.toggleLibrary(displayTitle, displayCoverArt)
+                        scope.launch {
+                            snackbarHostState.showSnackbar(
+                                if (wasInLibrary) bookmarkRemovedMsg else bookmarkAddedMsg,
+                            )
+                        }
                     },
                 )
             }
