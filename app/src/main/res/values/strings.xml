@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">MyBooksLibrary</string>
+    <string name="app_name">MangaVN</string>
 
     <!-- Navigation -->
     <string name="nav_discover">Discover</string>
