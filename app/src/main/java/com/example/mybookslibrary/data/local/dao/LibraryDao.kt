@@ -51,6 +51,17 @@ interface LibraryDao {
     @Query("SELECT * FROM library_items WHERE manga_id = :mangaId LIMIT 1")
     suspend fun getByMangaId(mangaId: String): LibraryItemEntity?
 
+    /** Truyện đang đọc dở (có chapter progress), mới nhất trước — cho "Tiếp tục đọc". */
+    @Query(
+        """
+        SELECT * FROM library_items
+        WHERE last_read_chapter_id IS NOT NULL
+        ORDER BY updated_at DESC
+        LIMIT 10
+        """,
+    )
+    fun observeRecentlyReading(): Flow<List<LibraryItemEntity>>
+
     @Query("DELETE FROM library_items")
     suspend fun deleteAll()
 }

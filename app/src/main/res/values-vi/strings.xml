@@ -9,6 +9,7 @@
 
     <!-- Discover -->
     <string name="brand_name">Kanso</string>
+    <string name="section_continue_reading">Tiếp tục đọc</string>
     <string name="section_spotlight">Nổi bật</string>
     <string name="section_popular">Phổ biến</string>
     <string name="section_new_releases">Mới cập nhật</string>

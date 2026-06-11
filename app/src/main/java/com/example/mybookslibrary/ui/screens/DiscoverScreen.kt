@@ -29,6 +29,7 @@ fun DiscoverScreenContent(
     vm: DiscoverViewModel = hiltViewModel(),
 ) {
     val uiState by vm.uiState.collectAsStateWithLifecycle()
+    val continueReading by vm.continueReading.collectAsStateWithLifecycle()
     val expandedPopular = remember { mutableStateOf(false) }
     val expandedNew = remember { mutableStateOf(false) }
     val expandedExplore = remember { mutableStateOf(false) }
@@ -75,6 +76,18 @@ fun DiscoverScreenContent(
                         .padding(innerPadding)
                         .consumeWindowInsets(innerPadding),
                     contentPadding = PaddingValues(bottom = bottomNavPadding + Dimens.SpacingLg),
+                    continueReading = continueReading,
+                    onContinueReadingClick = { item ->
+                        onMangaClick(
+                            MangaModel(
+                                id = item.manga_id,
+                                title = item.title,
+                                coverArt = item.cover_url,
+                                description = "",
+                                tags = emptyList(),
+                            ),
+                        )
+                    },
                     spotlight = items.firstOrNull(),
                     popularItems = popularItems,
                     newItems = newItems,

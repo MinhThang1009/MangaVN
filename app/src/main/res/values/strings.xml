@@ -9,6 +9,7 @@
 
     <!-- Discover Screen -->
     <string name="brand_name">Kanso</string>
+    <string name="section_continue_reading">Continue Reading</string>
     <string name="section_spotlight">In the Spotlight</string>
     <string name="section_popular">Popular Now</string>
     <string name="section_new_releases">New Releases</string>

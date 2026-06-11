@@ -31,6 +31,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import com.example.mybookslibrary.data.local.LibraryItemEntity
 import com.example.mybookslibrary.domain.model.MangaModel
 import com.example.mybookslibrary.ui.screens.components.MangaCoverCard
 import com.example.mybookslibrary.ui.screens.components.SectionHeader
@@ -42,6 +43,8 @@ import com.example.mybookslibrary.ui.util.appString
 internal fun DiscoverContentList(
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues,
+    continueReading: List<LibraryItemEntity> = emptyList(),
+    onContinueReadingClick: (LibraryItemEntity) -> Unit = {},
     spotlight: MangaModel?,
     popularItems: List<MangaModel>,
     newItems: List<MangaModel>,
@@ -58,6 +61,32 @@ internal fun DiscoverContentList(
         modifier = modifier,
         contentPadding = contentPadding,
     ) {
+        if (continueReading.isNotEmpty()) {
+            item {
+                SectionHeader(title = appString(com.example.mybookslibrary.R.string.section_continue_reading))
+            }
+            item {
+                LazyRow(
+                    contentPadding = PaddingValues(horizontal = Dimens.ScreenPaddingCompact),
+                    horizontalArrangement = Arrangement.spacedBy(Dimens.SpacingSm),
+                ) {
+                    items(continueReading, key = { it.manga_id }) { item ->
+                        MangaCardItem(
+                            manga =
+                                MangaModel(
+                                    id = item.manga_id,
+                                    title = item.title,
+                                    coverArt = item.cover_url,
+                                    description = "",
+                                    tags = emptyList(),
+                                ),
+                            onClick = { onContinueReadingClick(item) },
+                        )
+                    }
+                }
+            }
+            item { Spacer(Modifier.height(Dimens.SpacingLg)) }
+        }
         spotlight?.let { manga ->
             item {
                 SpotlightCard(
