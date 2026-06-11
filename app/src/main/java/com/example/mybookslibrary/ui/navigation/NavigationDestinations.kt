@@ -3,6 +3,9 @@ package com.example.mybookslibrary.ui.navigation
 import kotlinx.serialization.Serializable
 
 @Serializable
+data object Onboarding
+
+@Serializable
 data object Login
 
 @Serializable

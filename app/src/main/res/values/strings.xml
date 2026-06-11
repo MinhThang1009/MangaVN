@@ -188,4 +188,21 @@
     <string name="auth_error_username_exists">Username already exists</string>
     <string name="auth_error_invalid_credentials">Invalid username or password</string>
     <string name="auth_error_google_save_failed">Failed to save Google account</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_page1_title">Discover Thousands of Manga</string>
+    <string name="onboarding_page1_body">Browse MangaDex\'s vast library — search by genre, language, or theme</string>
+    <string name="onboarding_page2_title">Build Your Library</string>
+    <string name="onboarding_page2_body">Save favorites, download chapters, and read offline anytime</string>
+    <string name="onboarding_page3_title">Read Your Way</string>
+    <string name="onboarding_page3_body">Scroll vertically for webtoons, swipe for manga — light or dark, your choice</string>
+    <string name="onboarding_skip">Skip</string>
+    <string name="onboarding_get_started">Get Started</string>
+    <string name="onboarding_next">Next</string>
+    <string name="settings_review_guide">Review Guide</string>
+    <string name="settings_review_guide_subtitle">Replay the welcome tour and reader tips</string>
+    <string name="reader_hint_tap_sides">Tap left/right to flip pages, center to open menu</string>
+    <string name="reader_hint_mode_toggle">Switch reading mode here: scroll, left-to-right, or right-to-left</string>
+    <string name="reader_hint_got_it">Got it</string>
+    <string name="reader_hint_skip">Skip</string>
 </resources>

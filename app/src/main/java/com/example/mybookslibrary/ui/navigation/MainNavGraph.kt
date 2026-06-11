@@ -76,9 +76,15 @@ internal val bottomDestinations =
         BottomNavDestination.SettingTab,
     )
 
+@Suppress("CyclomaticComplexMethod", "ComplexCondition")
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun MainNavHost(loggedInUserId: String?, incomingMangaId: String? = null) {
+fun MainNavHost(
+    loggedInUserId: String?,
+    incomingMangaId: String? = null,
+    onboardingWelcomeDone: Boolean = true,
+    onWelcomeDone: () -> Unit = {},
+) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
@@ -87,7 +93,8 @@ fun MainNavHost(loggedInUserId: String?, incomingMangaId: String? = null) {
         if (loggedInUserId == null) {
             if (currentDestination != null &&
                 !currentDestination.hasRoute<Login>() &&
-                !currentDestination.hasRoute<Register>()
+                !currentDestination.hasRoute<Register>() &&
+                !currentDestination.hasRoute<Onboarding>()
             ) {
                 navController.navigate(Login) {
                     popUpTo(0) { inclusive = true }
@@ -110,6 +117,7 @@ fun MainNavHost(loggedInUserId: String?, incomingMangaId: String? = null) {
         currentDestination?.hierarchy?.none { dest ->
             dest.hasRoute<Login>() ||
                 dest.hasRoute<Register>() ||
+                dest.hasRoute<Onboarding>() ||
                 dest.hasRoute<Reader>() ||
                 dest.hasRoute<MangaDetail>() ||
                 dest.hasRoute<MangaReview>()
@@ -136,10 +144,10 @@ fun MainNavHost(loggedInUserId: String?, incomingMangaId: String? = null) {
                 NavHost(
                     navController = navController,
                     startDestination =
-                    if (loggedInUserId == null) {
-                        Login
-                    } else {
-                        Discover
+                    when {
+                        loggedInUserId == null && !onboardingWelcomeDone -> Onboarding
+                        loggedInUserId == null -> Login
+                        else -> Discover
                     },
                     modifier = modifier,
                     enterTransition = { fadeIn(animationSpec = tween(300, easing = FastOutSlowInEasing)) },
@@ -147,6 +155,7 @@ fun MainNavHost(loggedInUserId: String?, incomingMangaId: String? = null) {
                     popEnterTransition = { fadeIn(animationSpec = tween(300, easing = FastOutSlowInEasing)) },
                     popExitTransition = { fadeOut(animationSpec = tween(300, easing = FastOutSlowInEasing)) },
                 ) {
+                    onboardingGraph(navController, onWelcomeDone)
                     authGraph(navController)
                     mainTabsGraph(navController)
                     mangaDetailGraph(navController)

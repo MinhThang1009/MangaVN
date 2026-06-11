@@ -17,9 +17,23 @@ import androidx.navigation.toRoute
 import com.example.mybookslibrary.ui.screens.MangaReviewScreen
 import com.example.mybookslibrary.ui.screens.auth.LoginScreen
 import com.example.mybookslibrary.ui.screens.auth.RegisterScreen
+import com.example.mybookslibrary.ui.screens.onboarding.WelcomeCarouselScreen
 import com.example.mybookslibrary.ui.screens.detail.MangaDetailScreen
 import com.example.mybookslibrary.ui.screens.reader.ReaderScreen
 import com.example.mybookslibrary.util.shareManga
+
+internal fun NavGraphBuilder.onboardingGraph(navController: NavHostController, onWelcomeDone: () -> Unit) {
+    composable<Onboarding> {
+        WelcomeCarouselScreen(
+            onFinish = {
+                onWelcomeDone()
+                navController.navigate(Login) {
+                    popUpTo<Onboarding> { inclusive = true }
+                }
+            },
+        )
+    }
+}
 
 internal fun NavGraphBuilder.authGraph(navController: NavHostController) {
     composable<Login> {

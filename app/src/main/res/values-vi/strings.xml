@@ -188,4 +188,21 @@
     <string name="auth_error_username_exists">Tên đăng nhập đã tồn tại</string>
     <string name="auth_error_invalid_credentials">Tên đăng nhập hoặc mật khẩu không đúng</string>
     <string name="auth_error_google_save_failed">Không thể lưu tài khoản Google</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_page1_title">Khám phá hàng nghìn manga</string>
+    <string name="onboarding_page1_body">Tìm kiếm kho truyện MangaDex theo thể loại, ngôn ngữ hay chủ đề</string>
+    <string name="onboarding_page2_title">Xây dựng thư viện riêng</string>
+    <string name="onboarding_page2_body">Lưu truyện yêu thích, tải chapter đọc offline bất cứ lúc nào</string>
+    <string name="onboarding_page3_title">Đọc theo cách của bạn</string>
+    <string name="onboarding_page3_body">Cuộn dọc cho webtoon, lật ngang cho manga — sáng hoặc tối, tuỳ bạn</string>
+    <string name="onboarding_skip">Bỏ qua</string>
+    <string name="onboarding_get_started">Bắt đầu</string>
+    <string name="onboarding_next">Tiếp</string>
+    <string name="settings_review_guide">Xem lại hướng dẫn</string>
+    <string name="settings_review_guide_subtitle">Xem lại phần giới thiệu và mẹo đọc truyện</string>
+    <string name="reader_hint_tap_sides">Chạm trái/phải để lật trang, chạm giữa để mở menu</string>
+    <string name="reader_hint_mode_toggle">Đổi chế độ đọc tại đây: cuộn dọc, trái-sang-phải, hoặc phải-sang-trái</string>
+    <string name="reader_hint_got_it">Đã hiểu</string>
+    <string name="reader_hint_skip">Bỏ qua</string>
 </resources>

@@ -387,6 +387,18 @@ Cách kiểm tại MỖI gate: thiết bị thật (≥1 máy), EN+VI × light+d
 
 Báo cáo tiến độ ghi kèm **giả định đáng chú ý** đã tự quyết (spacing, duration, tên token, câu chữ tutorial...).
 
+## 10B. Backlog sau refactor (feature mới, ngoài scope UI/UX refactor)
+
+| # | Feature | Mô tả | Ưu tiên |
+|---|---|---|---|
+| B1 | User Profile page | Trang riêng: avatar, thống kê đọc, reading history, achievements | Cao |
+| B2 | Reading Statistics / Charts | Chart thống kê: số chapter đọc/tuần, thời gian đọc, genre distribution | Cao |
+| B3 | Sign-out confirmation dialog | Cảnh báo trước khi đăng xuất (hiện gọi thẳng, thiếu guard) | Trung bình |
+| B4 | Login/Register redesign layout | Brand area + illustration, layout cinematic thay form trơ | Trung bình |
+| B5 | Navbar flash on cold start | AuthLoadingScreen → NavHost mount → nav bar hiện rồi ẩn; fix: ẩn nav khi auth=Loading | Trung bình |
+| B6 | Download Manager page | Trang quản lý download: xem tiến độ, xóa batch, retry failed | Thấp |
+| B7 | Notification center | Trang thông báo: chapter mới, download xong | Thấp |
+
 ## 11. Nguồn nghiên cứu (Bước 2)
 
 - Trend thị giác 2025–2026: [Muzli](https://muz.li/blog/whats-changing-in-mobile-app-design-ui-patterns-that-matter-in-2026/), [Tubik](https://blog.tubikstudio.com/ui-design-trends-2026/), [Envato — calm interfaces](https://elements.envato.com/learn/ux-ui-design-trends)

@@ -21,7 +21,9 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import kotlinx.coroutines.launch
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.mybookslibrary.data.local.UserPreferencesDataStore
 import com.example.mybookslibrary.ui.navigation.LocalWindowWidthSizeClass
@@ -64,6 +66,10 @@ class MainActivity : ComponentActivity() {
                         .map { userId -> AuthSession.Ready(userId) }
                 }
             val authSession by authSessionFlow.collectAsStateWithLifecycle(initialValue = AuthSession.Loading)
+            val onboardingDone by preferencesDataStore
+                .observeOnboardingWelcomeDone()
+                .collectAsStateWithLifecycle(initialValue = true)
+            val onboardingScope = rememberCoroutineScope()
 
             val darkTheme =
                 when (themeMode) {
@@ -89,7 +95,17 @@ class MainActivity : ComponentActivity() {
                 MyBooksLibraryTheme(darkTheme = darkTheme) {
                     when (val session = authSession) {
                         AuthSession.Loading -> AuthLoadingScreen()
-                        is AuthSession.Ready -> MainNavHost(session.loggedInUserId, incomingMangaId)
+                        is AuthSession.Ready ->
+                        MainNavHost(
+                            loggedInUserId = session.loggedInUserId,
+                            incomingMangaId = incomingMangaId,
+                            onboardingWelcomeDone = onboardingDone,
+                            onWelcomeDone = {
+                                onboardingScope.launch {
+                                    preferencesDataStore.setOnboardingWelcomeDone(true)
+                                }
+                            },
+                        )
                     }
                 }
             }

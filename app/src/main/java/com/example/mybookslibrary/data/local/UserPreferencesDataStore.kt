@@ -30,6 +30,8 @@ class UserPreferencesDataStore(
         private val DOWNLOAD_ONLY_ON_WIFI = booleanPreferencesKey("download_only_on_wifi")
         private val LOGGED_IN_USER_ID = stringPreferencesKey("logged_in_user_id")
         private val PREFERRED_CHAPTER_LANGUAGE = stringPreferencesKey("preferred_chapter_language")
+        private val ONBOARDING_WELCOME_DONE = booleanPreferencesKey("onboarding_welcome_done")
+        private val READER_HINT_DONE = booleanPreferencesKey("reader_hint_done")
 
         private const val DEFAULT_QUALITY = "data"
         private const val DEFAULT_LANGUAGE = "en"
@@ -99,6 +101,22 @@ class UserPreferencesDataStore(
                 it[LOGGED_IN_USER_ID] = id
             }
         }
+    }
+
+    /** Onboarding: welcome carousel đã xem xong. */
+    fun observeOnboardingWelcomeDone(): Flow<Boolean> =
+        safeData.map { it[ONBOARDING_WELCOME_DONE] ?: false }
+
+    suspend fun setOnboardingWelcomeDone(done: Boolean) {
+        dataStore.edit { it[ONBOARDING_WELCOME_DONE] = done }
+    }
+
+    /** Onboarding: reader hint đã xem xong. */
+    fun observeReaderHintDone(): Flow<Boolean> =
+        safeData.map { it[READER_HINT_DONE] ?: false }
+
+    suspend fun setReaderHintDone(done: Boolean) {
+        dataStore.edit { it[READER_HINT_DONE] = done }
     }
 
     suspend fun clearAll() {
