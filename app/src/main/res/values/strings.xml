@@ -8,7 +8,7 @@
     <string name="nav_setting">Setting</string>
 
     <!-- Discover Screen -->
-    <string name="brand_name">Kanso</string>
+    <string name="brand_name">MangaVN</string>
     <string name="section_continue_reading">Continue Reading</string>
     <string name="section_spotlight">In the Spotlight</string>
     <string name="section_popular">Popular Now</string>
@@ -181,7 +181,9 @@
 
     <!-- Auth screens -->
     <string name="auth_login_title">Login</string>
-    <string name="auth_welcome_back">Welcome Back!</string>
+    <string name="auth_welcome_new">Welcome to MangaVN!</string>
+    <string name="auth_welcome_back">Welcome back!</string>
+    <string name="auth_welcome_subtitle">The Manga reader app in Vietnam</string>
     <string name="auth_username">Username</string>
     <string name="auth_password">Password</string>
     <string name="auth_login_button">Login</string>

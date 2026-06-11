@@ -201,7 +201,7 @@ fun MainNavHost(
                     },
                 ) {
                     onboardingGraph(navController, onWelcomeDone)
-                    authGraph(navController)
+                    authGraph(navController, isReturningUser = onboardingWelcomeDone)
                     mainTabsGraph(navController)
                     mangaDetailGraph(navController)
                     reviewGraph(navController)

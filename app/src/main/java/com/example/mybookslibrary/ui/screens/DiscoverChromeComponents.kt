@@ -2,7 +2,10 @@ package com.example.mybookslibrary.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -31,6 +34,7 @@ import com.example.mybookslibrary.ui.screens.components.ErrorState
 import com.example.mybookslibrary.ui.screens.components.LoadingIndicator
 import com.example.mybookslibrary.ui.screens.components.LoadingSize
 import com.example.mybookslibrary.ui.screens.components.StyledDropdownMenu
+import com.example.mybookslibrary.ui.theme.Dimens
 import com.example.mybookslibrary.ui.util.appString
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -68,11 +72,20 @@ internal fun EditorialTopBar(
 
 @Composable
 private fun BrandTitle() {
-    Text(
-        appString(R.string.brand_name),
-        style = MaterialTheme.typography.headlineLarge.copy(fontStyle = FontStyle.Italic),
-        color = MaterialTheme.colorScheme.primary,
-    )
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Icon(
+            Lucide.BookOpen,
+            contentDescription = null,
+            modifier = Modifier.size(24.dp),
+            tint = MaterialTheme.colorScheme.primary,
+        )
+        Spacer(Modifier.width(Dimens.SpacingSm))
+        Text(
+            appString(R.string.brand_name),
+            style = MaterialTheme.typography.headlineLarge.copy(fontStyle = FontStyle.Italic),
+            color = MaterialTheme.colorScheme.primary,
+        )
+    }
 }
 
 @Composable

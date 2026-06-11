@@ -42,7 +42,7 @@ class LoginScreenTest {
             LoginScreen(onLoginSuccess = {}, onNavigateToRegister = {}, viewModel = viewModel())
         }
 
-        composeRule.onNodeWithText("Welcome Back!").assertIsDisplayed()
+        composeRule.onNodeWithText("Welcome to MangaVN!").assertIsDisplayed()
         composeRule.onNodeWithText("Username").assertIsDisplayed()
         composeRule.onNodeWithText("Password").assertIsDisplayed()
     }

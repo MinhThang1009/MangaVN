@@ -59,7 +59,7 @@ class MainNavHostTest {
             MainNavHost(loggedInUserId = null)
         }
         composeRule.waitForIdle()
-        composeRule.onNodeWithText("Welcome Back!").assertIsDisplayed()
+        composeRule.onNodeWithText("Welcome back!").assertIsDisplayed()
     }
 
     @Test
@@ -69,7 +69,7 @@ class MainNavHostTest {
         }
         composeRule.waitForIdle()
         // Bottom nav không hiển thị trên Login screen
-        composeRule.onNodeWithText("Welcome Back!").assertIsDisplayed()
+        composeRule.onNodeWithText("Welcome back!").assertIsDisplayed()
     }
 
     @Test
@@ -79,7 +79,7 @@ class MainNavHostTest {
             MainNavHost(loggedInUserId = null)
         }
         composeRule.waitForIdle()
-        composeRule.onNodeWithText("Welcome Back!").assertIsDisplayed()
+        composeRule.onNodeWithText("Welcome back!").assertIsDisplayed()
     }
 
     @Test
@@ -92,7 +92,7 @@ class MainNavHostTest {
         // Login screen KHÔNG hiện (đã đăng nhập)
         val isLoginShown =
             runCatching {
-                composeRule.onNodeWithText("Welcome Back!").assertIsDisplayed()
+                composeRule.onNodeWithText("Welcome back!").assertIsDisplayed()
             }.isSuccess
         assert(!isLoginShown) { "Login screen không được hiển thị khi đã đăng nhập" }
         // Bottom nav phải hiển thị khi ở Discover
@@ -111,7 +111,7 @@ class MainNavHostTest {
         // Set null sau khi đã ở Discover — trigger recompose + LaunchedEffect navigate to Login
         userId = null
         composeRule.waitForIdle()
-        composeRule.onNodeWithText("Welcome Back!").assertIsDisplayed()
+        composeRule.onNodeWithText("Welcome back!").assertIsDisplayed()
     }
 
     @Test

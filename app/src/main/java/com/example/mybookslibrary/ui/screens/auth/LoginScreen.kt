@@ -36,6 +36,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.composables.icons.lucide.BookOpen
 import com.composables.icons.lucide.Eye
 import com.composables.icons.lucide.EyeOff
 import com.composables.icons.lucide.Lucide
@@ -47,11 +48,13 @@ import com.example.mybookslibrary.ui.theme.Dimens
 import com.example.mybookslibrary.ui.viewmodel.AuthState
 import com.example.mybookslibrary.ui.viewmodel.AuthViewModel
 
+@Suppress("LongMethod")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
     onLoginSuccess: () -> Unit,
     onNavigateToRegister: () -> Unit,
+    isReturningUser: Boolean = false,
     viewModel: AuthViewModel = hiltViewModel(),
 ) {
     var username by remember { mutableStateOf("") }
@@ -84,11 +87,28 @@ fun LoginScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
+            Icon(
+                Lucide.BookOpen,
+                contentDescription = null,
+                modifier = Modifier.size(56.dp),
+                tint = MaterialTheme.colorScheme.primary,
+            )
+            Spacer(Modifier.height(Dimens.SpacingLg))
             Text(
-                text = appString(R.string.auth_welcome_back),
-                style = MaterialTheme.typography.headlineMedium,
+                text = if (isReturningUser) {
+                    appString(R.string.auth_welcome_back)
+                } else {
+                    appString(R.string.auth_welcome_new)
+                },
+                style = MaterialTheme.typography.headlineLarge,
                 color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(bottom = 32.dp),
+            )
+            Spacer(Modifier.height(Dimens.SpacingSm))
+            Text(
+                text = appString(R.string.auth_welcome_subtitle),
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = Dimens.SpacingXxl),
             )
 
             OutlinedTextField(

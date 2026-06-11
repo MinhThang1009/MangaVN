@@ -8,7 +8,7 @@
     <string name="nav_setting">Cài đặt</string>
 
     <!-- Discover -->
-    <string name="brand_name">Kanso</string>
+    <string name="brand_name">MangaVN</string>
     <string name="section_continue_reading">Tiếp tục đọc</string>
     <string name="section_spotlight">Nổi bật</string>
     <string name="section_popular">Phổ biến</string>
@@ -181,7 +181,9 @@
 
     <!-- Màn hình đăng nhập / đăng ký -->
     <string name="auth_login_title">Đăng nhập</string>
+    <string name="auth_welcome_new">Chào mừng đến với MangaVN!</string>
     <string name="auth_welcome_back">Chào mừng trở lại!</string>
+    <string name="auth_welcome_subtitle">Ứng dụng đọc truyện tranh Manga tại Việt Nam</string>
     <string name="auth_username">Tên đăng nhập</string>
     <string name="auth_password">Mật khẩu</string>
     <string name="auth_login_button">Đăng nhập</string>

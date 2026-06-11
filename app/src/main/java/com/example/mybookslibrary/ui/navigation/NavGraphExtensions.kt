@@ -35,9 +35,10 @@ internal fun NavGraphBuilder.onboardingGraph(navController: NavHostController, o
     }
 }
 
-internal fun NavGraphBuilder.authGraph(navController: NavHostController) {
+internal fun NavGraphBuilder.authGraph(navController: NavHostController, isReturningUser: Boolean = false) {
     composable<Login> {
         LoginScreen(
+            isReturningUser = isReturningUser,
             onLoginSuccess = {
                 navController.navigate(Discover) {
                     popUpTo<Login> { inclusive = true }
