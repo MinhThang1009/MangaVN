@@ -4,8 +4,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.filterToOne
+import androidx.compose.ui.test.hasAnyAncestor
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -120,7 +124,9 @@ class MainNavHostTest {
         composeRule.onAllNodesWithContentDescription("Search")[1].performClick()
         composeRule.waitForIdle()
 
-        composeRule.onNodeWithText("Search").assertIsDisplayed()
+        composeRule.onAllNodesWithText("Search").filterToOne(
+            hasAnyAncestor(hasTestTag(MAIN_NAV_CONTENT_TAG)),
+        ).assertIsDisplayed()
     }
 
     @Test

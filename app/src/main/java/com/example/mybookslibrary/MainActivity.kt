@@ -14,6 +14,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -22,6 +24,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.mybookslibrary.data.local.UserPreferencesDataStore
+import com.example.mybookslibrary.ui.navigation.LocalWindowWidthSizeClass
 import com.example.mybookslibrary.ui.navigation.MainNavHost
 import com.example.mybookslibrary.ui.theme.MyBooksLibraryTheme
 import com.example.mybookslibrary.ui.util.LocalAppLocale
@@ -34,10 +37,12 @@ import javax.inject.Inject
 class MainActivity : ComponentActivity() {
     @Inject lateinit var preferencesDataStore: UserPreferencesDataStore
 
+    @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         requestNotificationPermissionIfNeeded()
         setContent {
+            val windowSizeClass = calculateWindowSizeClass(this)
             // Parse ACTION_SEND intent (e.g. share from Chrome) to extract a manga ID.
             val incomingMangaId = remember(intent) {
                 if (intent?.action == Intent.ACTION_SEND && intent.type == "text/plain") {
@@ -77,7 +82,10 @@ class MainActivity : ComponentActivity() {
             }
 
             // LocalAppLocale thay đổi → toàn bộ appString() recompose → chuyển ngôn ngữ mượt mà
-            CompositionLocalProvider(LocalAppLocale provides language) {
+            CompositionLocalProvider(
+                LocalAppLocale provides language,
+                LocalWindowWidthSizeClass provides windowSizeClass.widthSizeClass,
+            ) {
                 MyBooksLibraryTheme(darkTheme = darkTheme) {
                     when (val session = authSession) {
                         AuthSession.Loading -> AuthLoadingScreen()
