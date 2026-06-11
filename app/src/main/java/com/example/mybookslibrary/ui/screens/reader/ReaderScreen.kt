@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -44,6 +46,7 @@ fun ReaderScreen(
     val listState = rememberLazyListState()
     val hasRestoredInitialPage = remember { mutableStateOf(false) }
     val latestActivePageIndex = remember { mutableStateOf<Int?>(null) }
+    val snackbarHostState = remember { SnackbarHostState() }
     val pagerState =
         rememberPagerState(
             initialPage = state.lastReadPageIndex,
@@ -62,6 +65,7 @@ fun ReaderScreen(
         pagerState = pagerState,
         currentReadingMode = state.currentReadingMode,
         onEvent = onEvent,
+        snackbarHostState = snackbarHostState,
     )
 
     ReaderProgressEffects(
@@ -89,6 +93,7 @@ fun ReaderScreen(
             onBackClick = onBackClick,
             onEvent = onEvent,
         )
+        SnackbarHost(hostState = snackbarHostState)
         ReaderSpotlightOverlay(
             visible = !readerHintDone && state.pages.isNotEmpty(),
             onDismiss = {
