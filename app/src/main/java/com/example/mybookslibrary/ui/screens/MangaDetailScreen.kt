@@ -3,6 +3,7 @@ package com.example.mybookslibrary.ui.screens
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,8 +11,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,7 +24,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.composed
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -31,8 +33,6 @@ import com.example.mybookslibrary.domain.model.ChapterWithProgressModel
 import com.example.mybookslibrary.ui.util.appString
 import com.example.mybookslibrary.ui.viewmodel.MangaDetailViewModel
 import timber.log.Timber
-
-fun Modifier.sharedCoverBounds(mangaId: String): Modifier = composed { this@composed }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Suppress("LongMethod", "CyclomaticComplexMethod", "LongParameterList")
@@ -144,6 +144,16 @@ fun MangaDetailScreen(
                 )
             }
             if (chaptersExpanded) {
+                if (uiState.availableLanguages.isNotEmpty()) {
+                    item {
+                        LanguageFilterRow(
+                            availableLanguages = uiState.availableLanguages,
+                            selectedLanguage = uiState.selectedLanguage,
+                            onLanguageSelected = viewModel::selectLanguage,
+                            modifier = Modifier.padding(bottom = 8.dp).offset(y = DetailDimensions.ChaptersOffset)
+                        )
+                    }
+                }
                 when {
                     uiState.isLoadingChapters -> {
                         item {
@@ -221,4 +231,33 @@ fun MangaDetailScreen(
 private fun ChapterWithProgressModel.resumePageIndex(): Int {
     val rawPageIndex = if (status == ChapterReadingStatus.UNREAD) 0 else lastReadPage
     return if (totalPages > 0) rawPageIndex.coerceIn(0, totalPages - 1) else 0
+}
+
+@Composable
+fun LanguageFilterRow(
+    availableLanguages: List<String>,
+    selectedLanguage: String,
+    onLanguageSelected: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    if (availableLanguages.isEmpty()) return
+    LazyRow(
+        modifier = modifier.padding(horizontal = 24.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        item {
+            FilterChip(
+                selected = selectedLanguage == "",
+                onClick = { onLanguageSelected("") },
+                label = { Text("All") }
+            )
+        }
+        items(availableLanguages) { lang ->
+            FilterChip(
+                selected = selectedLanguage == lang,
+                onClick = { onLanguageSelected(lang) },
+                label = { Text(lang.uppercase()) }
+            )
+        }
+    }
 }

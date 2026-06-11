@@ -8,6 +8,7 @@ data class ChapterModel(
     val title: String?,
     val pages: Int,
     val isUnavailable: Boolean,
+    val translatedLanguage: String? = null,
 ) {
     val chapter: String?
         get() = chapterNumber

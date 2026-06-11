@@ -4,10 +4,12 @@ import androidx.lifecycle.SavedStateHandle
 import com.example.mybookslibrary.data.download.OfflineDownloadManager
 import com.example.mybookslibrary.data.repository.LibraryRepository
 import com.example.mybookslibrary.data.repository.MangaRepository
+import com.example.mybookslibrary.domain.usecase.ChapterListResult
 import com.example.mybookslibrary.domain.model.ChapterReadingStatus
 import com.example.mybookslibrary.domain.model.ChapterWithProgressModel
 import com.example.mybookslibrary.domain.model.MangaModel
 import com.example.mybookslibrary.domain.usecase.GetChapterListWithProgressUseCase
+import com.example.mybookslibrary.data.local.UserPreferencesDataStore
 import com.example.mybookslibrary.test.MainDispatcherRule
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -40,11 +42,13 @@ class MangaDetailViewModelCoverageTest {
     private val library = mockk<LibraryRepository>(relaxed = true)
     private val useCase = mockk<GetChapterListWithProgressUseCase>()
     private val downloadManager = mockk<OfflineDownloadManager>(relaxed = true)
+    private val userPreferencesDataStore = mockk<UserPreferencesDataStore>(relaxed = true)
 
     // Default an toàn cho init (loadMangaDetail + observeChapters + checkLibraryStatus).
     private fun stubInitDefaults(inLibrary: Boolean = false) {
         coEvery { manga.getMangaDetail(MANGA_ID) } returns Result.failure(IllegalStateException("x"))
-        every { useCase(MANGA_ID) } returns flowOf(emptyList())
+        every { useCase(MANGA_ID) } returns flowOf(ChapterListResult(emptyList(), emptyList(), ""))
+        every { userPreferencesDataStore.observePreferredChapterLanguage() } returns flowOf("")
         coEvery { library.isInLibrary(MANGA_ID) } returns inLibrary
     }
 
@@ -55,6 +59,7 @@ class MangaDetailViewModelCoverageTest {
             libraryRepository = library,
             getChapterListWithProgressUseCase = useCase,
             offlineDownloadManager = downloadManager,
+            userPreferencesDataStore = userPreferencesDataStore,
             ioDispatcher = mainDispatcherRule.dispatcher,
         )
 
@@ -75,7 +80,7 @@ class MangaDetailViewModelCoverageTest {
     fun observeChapters_firstLoad_taiTrangChapterDau() =
         runTest(mainDispatcherRule.dispatcher.scheduler) {
             stubInitDefaults()
-            every { useCase(MANGA_ID) } returns flowOf(listOf(chapter("c1")))
+            every { useCase(MANGA_ID) } returns flowOf(ChapterListResult(listOf(chapter("c1")), emptyList(), ""))
             coEvery { manga.getChapterPages("c1") } returns Result.success(List(8) { "p$it" })
 
             val vm = build()
@@ -90,7 +95,7 @@ class MangaDetailViewModelCoverageTest {
     fun loadFirstChapterPages_thatBai_datError() =
         runTest(mainDispatcherRule.dispatcher.scheduler) {
             stubInitDefaults()
-            every { useCase(MANGA_ID) } returns flowOf(listOf(chapter("c1")))
+            every { useCase(MANGA_ID) } returns flowOf(ChapterListResult(listOf(chapter("c1")), emptyList(), ""))
             coEvery { manga.getChapterPages("c1") } returns Result.failure(IllegalStateException("lỗi trang"))
 
             val vm = build()
@@ -235,6 +240,7 @@ class MangaDetailViewModelCoverageTest {
                     libraryRepository = library,
                     getChapterListWithProgressUseCase = useCase,
                     offlineDownloadManager = downloadManager,
+                    userPreferencesDataStore = userPreferencesDataStore,
                     ioDispatcher = mainDispatcherRule.dispatcher,
                 )
             advanceUntilIdle()
@@ -254,7 +260,12 @@ class MangaDetailViewModelCoverageTest {
         runTest(mainDispatcherRule.dispatcher.scheduler) {
             stubInitDefaults()
             // 2 lần emit non-empty: lần 1 isFirstLoad=true (tải trang), lần 2 isFirstLoad=false
-            every { useCase(MANGA_ID) } returns flowOf(listOf(chapter("c1")), listOf(chapter("c1"), chapter("c2")))
+            every { useCase(MANGA_ID) } returns
+                flowOf(ChapterListResult(
+                    listOf(chapter("c1")),
+                    emptyList(), ""),
+                    ChapterListResult(listOf(chapter("c1"), chapter("c2")), emptyList(), "")
+                )
             coEvery { manga.getChapterPages("c1") } returns Result.success(listOf("p0"))
 
             val vm = build()

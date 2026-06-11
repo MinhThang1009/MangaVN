@@ -195,6 +195,7 @@ fun ChapterDto.toDomainModel(fallbackMangaId: String): ChapterModel {
         title = attributes?.title,
         pages = attributes?.pages ?: 0,
         isUnavailable = attributes?.isUnavailable == true,
+        translatedLanguage = attributes?.translatedLanguage,
     )
 }
 
