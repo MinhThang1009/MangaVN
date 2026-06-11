@@ -346,6 +346,7 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material3.windowsizeclass)
     implementation(libs.compose.icons.lucide)
+    implementation(libs.compose.charts)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.telephoto.zoomable.image.coil3)
 

@@ -32,6 +32,9 @@ work = "2.11.2"
 # `icons-lucide-android` (XML drawable), KHÔNG dùng nhầm)
 composeIconsLucide = "1.1.0"
 
+# Charts (ComposeCharts — animated, gradient, multiplatform; verify 0.2.5 trên Maven Central 2026-06)
+composeCharts = "0.2.5"
+
 # Network & Imaging
 retrofit = "3.0.0"
 okhttp = "5.3.2"
@@ -79,6 +82,7 @@ androidx-compose-material-icons-extended = { module = "androidx.compose.material
 androidx-compose-material3-windowsizeclass = { module = "androidx.compose.material3:material3-window-size-class" }
 # Lucide icons dạng ImageVector (Lucide.X) — thay dần material-icons-extended
 compose-icons-lucide = { module = "com.composables:icons-lucide", version.ref = "composeIconsLucide" }
+compose-charts = { module = "io.github.ehsannarmani:compose-charts", version.ref = "composeCharts" }
 
 # DataStore & Room
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastore" }

@@ -30,6 +30,9 @@ data object ReadingHistory
 data object Profile
 
 @Serializable
+data object Statistics
+
+@Serializable
 data class MangaDetail(
     val mangaId: String,
 )

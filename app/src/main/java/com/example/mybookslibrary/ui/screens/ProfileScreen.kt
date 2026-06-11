@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.composables.icons.lucide.ArrowLeft
+import com.composables.icons.lucide.ChartNoAxesColumn
 import com.composables.icons.lucide.ChevronRight
 import com.composables.icons.lucide.Clock
 import com.composables.icons.lucide.Lucide
@@ -50,6 +51,7 @@ import com.example.mybookslibrary.ui.viewmodel.ProfileViewModel
 fun ProfileScreen(
     onBackClick: () -> Unit,
     onReadingHistoryClick: () -> Unit,
+    onStatisticsClick: () -> Unit,
     onSettingsClick: () -> Unit,
     modifier: Modifier = Modifier,
     vm: ProfileViewModel = hiltViewModel(),
@@ -95,6 +97,14 @@ fun ProfileScreen(
                     icon = Lucide.Clock,
                     label = appString(R.string.profile_reading_history),
                     onClick = onReadingHistoryClick,
+                )
+            }
+            item { Spacer(Modifier.height(Dimens.SpacingMd)) }
+            item {
+                ProfileMenuItem(
+                    icon = Lucide.ChartNoAxesColumn,
+                    label = appString(R.string.profile_statistics),
+                    onClick = onStatisticsClick,
                 )
             }
             item { Spacer(Modifier.height(Dimens.SpacingMd)) }

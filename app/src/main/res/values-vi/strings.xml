@@ -254,4 +254,19 @@
     <string name="profile_stat_chapters">Chương</string>
     <string name="profile_reading_history">Lịch sử đọc</string>
     <string name="profile_settings">Cài đặt</string>
+    <string name="profile_statistics">Thống kê đọc truyện</string>
+
+    <!-- Statistics -->
+    <string name="stats_title">Thống kê đọc truyện</string>
+    <string name="stats_total_chapters">Tổng số chương</string>
+    <string name="stats_completed_chapters">Đã hoàn thành</string>
+    <string name="stats_in_progress_chapters">Đang đọc</string>
+    <string name="stats_weekly_activity">Hoạt động trong tuần</string>
+    <string name="stats_monthly_trend">Xu hướng theo tháng</string>
+    <string name="stats_no_data">Bắt đầu đọc truyện để xem thống kê tại đây</string>
+    <string name="stats_library_breakdown">Phân loại thư viện</string>
+    <string name="stats_status_comparison">So sánh trạng thái</string>
+    <string name="stats_reading">Đang đọc</string>
+    <string name="stats_completed">Hoàn thành</string>
+    <string name="stats_favorite">Yêu thích</string>
 </resources>

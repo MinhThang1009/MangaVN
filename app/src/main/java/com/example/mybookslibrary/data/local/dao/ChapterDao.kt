@@ -49,6 +49,14 @@ abstract class ChapterDao {
     @Query("SELECT COUNT(*) FROM chapter_progress WHERE status = 'COMPLETED'")
     abstract fun observeCompletedChapterCount(): Flow<Int>
 
+    /** Tổng số chapter đã có progress — cho Statistics. */
+    @Query("SELECT COUNT(*) FROM chapter_progress")
+    abstract fun observeTotalProgressCount(): Flow<Int>
+
+    /** Danh sách chapter progress gần nhất — cho Statistics chart (30 ngày). */
+    @Query("SELECT * FROM chapter_progress ORDER BY updated_at DESC LIMIT 200")
+    abstract fun observeRecentProgress(): Flow<List<ChapterProgressEntity>>
+
     @Query("SELECT chapter_id FROM chapter_progress WHERE is_downloaded = 1")
     abstract suspend fun getDownloadedChapterIds(): List<String>
 
