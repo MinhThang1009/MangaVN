@@ -90,6 +90,12 @@ roborazzi {
         enable.set(true)
         packages.set(listOf("com.example.mybookslibrary"))
         includePrivatePreviews.set(true)
+        // Tester custom cài FakeImageLoader trước mỗi capture — không có nó, preview
+        // chứa AsyncImage render nondeterministic (đang-load vs failed) → golden flaky.
+        // useScanOptionParametersInTester: tester delegate về AndroidComposePreviewTester
+        // nên scan options (packages/includePrivatePreviews) vẫn được đọc từ DSL này.
+        testerQualifiedClassName.set("com.example.mybookslibrary.ui.util.FakeImageLoaderPreviewTester")
+        useScanOptionParametersInTester.set(true)
         // Khớp môi trường render với các *ScreenshotTest viết tay
         robolectricConfig.set(
             mapOf(
