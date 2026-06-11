@@ -27,6 +27,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -41,7 +42,9 @@ import com.composables.icons.lucide.Compass
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Settings
 import com.example.mybookslibrary.R
-import com.example.mybookslibrary.ui.screens.onboarding.InAppTourOverlay
+import com.example.mybookslibrary.ui.screens.onboarding.CoachMarkOverlay
+import com.example.mybookslibrary.ui.screens.onboarding.CoachMarkStep
+import com.example.mybookslibrary.ui.screens.onboarding.rememberCoachMarkState
 import kotlin.reflect.KClass
 
 @OptIn(ExperimentalSharedTransitionApi::class)
@@ -77,7 +80,7 @@ internal val bottomDestinations =
         BottomNavDestination.SettingTab,
     )
 
-@Suppress("CyclomaticComplexMethod", "ComplexCondition")
+@Suppress("CyclomaticComplexMethod", "ComplexCondition", "LongMethod")
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun MainNavHost(
@@ -91,6 +94,8 @@ fun MainNavHost(
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
+    val coachMarkState = rememberCoachMarkState()
+    val showTour = loggedInUserId != null && !inAppTourDone
 
     LaunchedEffect(loggedInUserId) {
         if (loggedInUserId == null) {
@@ -174,7 +179,10 @@ fun MainNavHost(
             FloatingPillNavBar(
                 currentDestination = currentDestination,
                 onNavigate = navBarCallback,
-                modifier = Modifier.testTag(FLOATING_PILL_NAV_TAG),
+                modifier =
+                    Modifier
+                        .testTag(FLOATING_PILL_NAV_TAG)
+                        .onGloballyPositioned { coachMarkState.registerTarget("nav_bar", it) },
             )
             NavContent(modifier = Modifier.weight(1f))
         }
@@ -185,7 +193,10 @@ fun MainNavHost(
                     FloatingPillNavBar(
                         currentDestination = currentDestination,
                         onNavigate = navBarCallback,
-                        modifier = Modifier.testTag(FLOATING_PILL_NAV_TAG),
+                        modifier =
+                    Modifier
+                        .testTag(FLOATING_PILL_NAV_TAG)
+                        .onGloballyPositioned { coachMarkState.registerTarget("nav_bar", it) },
                     )
                 }
             },
@@ -196,15 +207,26 @@ fun MainNavHost(
                 modifier =
                     Modifier
                         .consumeWindowInsets(innerPadding)
-                        .testTag(MAIN_NAV_CONTENT_TAG),
+                        .testTag(MAIN_NAV_CONTENT_TAG)
+                        .onGloballyPositioned { coachMarkState.registerTarget("content_area", it) },
             ) {
                 NavContent()
             }
         }
     }
 
-    InAppTourOverlay(
-        visible = loggedInUserId != null && !inAppTourDone,
+    CoachMarkOverlay(
+        visible = showTour,
+        state = coachMarkState,
+        steps =
+            listOf(
+                CoachMarkStep("content_area", R.string.tour_step1_title, R.string.tour_step1_body),
+                CoachMarkStep("nav_bar", R.string.tour_step2_title, R.string.tour_step2_body),
+                CoachMarkStep("content_area", R.string.tour_step3_title, R.string.tour_step3_body),
+                CoachMarkStep("nav_bar", R.string.tour_step4_title, R.string.tour_step4_body),
+                CoachMarkStep("nav_bar", R.string.tour_step5_title, R.string.tour_step5_body),
+                CoachMarkStep("nav_bar", R.string.tour_step6_title, R.string.tour_step6_body),
+            ),
         onDismiss = onTourDone,
     )
 }
