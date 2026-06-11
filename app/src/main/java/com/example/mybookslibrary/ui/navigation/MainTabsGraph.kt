@@ -34,6 +34,7 @@ private fun NavGraphBuilder.discoverTab(navController: NavHostController) {
                 onSearchClick = { navController.navigateToBottomTab(Search) },
                 onLibraryClick = { navController.navigateToBottomTab(Library) },
                 onProfileClick = { navController.navigateToBottomTab(Setting) },
+                onReadingHistoryClick = { navController.navigate(ReadingHistory) },
             )
         }
     }

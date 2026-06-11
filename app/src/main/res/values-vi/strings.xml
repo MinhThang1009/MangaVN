@@ -233,4 +233,13 @@
     <string name="tour_step3_body">Truyện đã lưu nằm ở đây. Nhấn nút đánh dấu trên truyện bất kỳ để thêm vào</string>
     <string name="tour_step4_title">Cài đặt</string>
     <string name="tour_step4_body">Đổi giao diện, ngôn ngữ, chất lượng ảnh và quản lý dữ liệu</string>
+
+    <!-- Reading History -->
+    <string name="reading_history_title">Lịch sử đọc</string>
+    <string name="reading_history_empty_title">Chưa có lịch sử đọc</string>
+    <string name="reading_history_empty_subtitle">Bắt đầu đọc truyện và nó sẽ xuất hiện ở đây</string>
+    <string name="reading_history_last_read">Đọc lần cuối %1$s</string>
+    <string name="reading_history_today">Hôm nay</string>
+    <string name="reading_history_yesterday">Hôm qua</string>
+    <string name="reading_history_days_ago">%1$d ngày trước</string>
 </resources>

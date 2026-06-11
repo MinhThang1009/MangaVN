@@ -62,6 +62,16 @@ interface LibraryDao {
     )
     fun observeRecentlyReading(): Flow<List<LibraryItemEntity>>
 
+    /** Toàn bộ lịch sử đọc, không giới hạn — cho trang Reading History. */
+    @Query(
+        """
+        SELECT * FROM library_items
+        WHERE last_read_chapter_id IS NOT NULL
+        ORDER BY updated_at DESC
+        """,
+    )
+    fun observeReadingHistory(): Flow<List<LibraryItemEntity>>
+
     @Query("DELETE FROM library_items")
     suspend fun deleteAll()
 }

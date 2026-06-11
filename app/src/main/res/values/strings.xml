@@ -233,4 +233,13 @@
     <string name="tour_step3_body">All your saved manga lives here. Tap the bookmark button on any manga to add it</string>
     <string name="tour_step4_title">Settings</string>
     <string name="tour_step4_body">Change theme, language, image quality, and manage your data</string>
+
+    <!-- Reading History -->
+    <string name="reading_history_title">Reading History</string>
+    <string name="reading_history_empty_title">No reading history</string>
+    <string name="reading_history_empty_subtitle">Start reading a manga and it will appear here</string>
+    <string name="reading_history_last_read">Last read %1$s</string>
+    <string name="reading_history_today">Today</string>
+    <string name="reading_history_yesterday">Yesterday</string>
+    <string name="reading_history_days_ago">%1$d days ago</string>
 </resources>

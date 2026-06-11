@@ -205,6 +205,7 @@ fun MainNavHost(
                     mainTabsGraph(navController)
                     mangaDetailGraph(navController)
                     reviewGraph(navController)
+                    readingHistoryGraph(navController)
                     readerGraph(navController)
                 }
             }

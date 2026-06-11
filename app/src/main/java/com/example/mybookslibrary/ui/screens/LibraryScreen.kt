@@ -21,6 +21,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -56,6 +57,7 @@ fun LibraryScreenContent(
     vm: LibraryViewModel = hiltViewModel(),
 ) {
     val items by vm.libraryItems.collectAsStateWithLifecycle(initialValue = emptyList())
+    val isRefreshing by vm.isRefreshing.collectAsStateWithLifecycle()
     var pendingRemoval by remember { mutableStateOf<LibraryItemEntity?>(null) }
     val bottomNavPadding = LocalBottomNavPadding.current
 
@@ -63,49 +65,51 @@ fun LibraryScreenContent(
         modifier = modifier,
         containerColor = MaterialTheme.colorScheme.background,
     ) { innerPadding ->
-        if (items.isEmpty()) {
-            EmptyState(
-                title = appString(R.string.library_empty_title),
-                subtitle = appString(R.string.library_empty_subtitle),
-                icon = Lucide.BookOpen,
-                modifier =
-                    Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding)
-                        .consumeWindowInsets(innerPadding),
-            )
-        } else {
-            LazyColumn(
-                modifier =
-                    Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding)
-                        .consumeWindowInsets(innerPadding),
-                contentPadding =
-                    PaddingValues(
-                        start = Dimens.ScreenPaddingCompact,
-                        end = Dimens.ScreenPaddingCompact,
-                        top = Dimens.SpacingLg,
-                        bottom = bottomNavPadding + Dimens.SpacingLg,
-                    ),
-                verticalArrangement = Arrangement.spacedBy(Dimens.SpacingMd),
-            ) {
-                item {
-                    Text(
-                        appString(R.string.library_title),
-                        style = MaterialTheme.typography.displayMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
-                    Spacer(Modifier.height(Dimens.SpacingSm))
-                }
-                items(items, key = { it.manga_id }) { item ->
-                    LibraryItemCard(
-                        title = item.title,
-                        coverUrl = item.cover_url,
-                        status = item.status,
-                        onClick = { onOpenDetail(item.manga_id) },
-                        onLongClick = { pendingRemoval = item },
-                    )
+        PullToRefreshBox(
+            isRefreshing = isRefreshing,
+            onRefresh = vm::refresh,
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .consumeWindowInsets(innerPadding),
+        ) {
+            if (items.isEmpty()) {
+                EmptyState(
+                    title = appString(R.string.library_empty_title),
+                    subtitle = appString(R.string.library_empty_subtitle),
+                    icon = Lucide.BookOpen,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding =
+                        PaddingValues(
+                            start = Dimens.ScreenPaddingCompact,
+                            end = Dimens.ScreenPaddingCompact,
+                            top = Dimens.SpacingLg,
+                            bottom = bottomNavPadding + Dimens.SpacingLg,
+                        ),
+                    verticalArrangement = Arrangement.spacedBy(Dimens.SpacingMd),
+                ) {
+                    item {
+                        Text(
+                            appString(R.string.library_title),
+                            style = MaterialTheme.typography.displayMedium,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                        Spacer(Modifier.height(Dimens.SpacingSm))
+                    }
+                    items(items, key = { it.manga_id }) { item ->
+                        LibraryItemCard(
+                            title = item.title,
+                            coverUrl = item.cover_url,
+                            status = item.status,
+                            onClick = { onOpenDetail(item.manga_id) },
+                            onLongClick = { pendingRemoval = item },
+                        )
+                    }
                 }
             }
         }

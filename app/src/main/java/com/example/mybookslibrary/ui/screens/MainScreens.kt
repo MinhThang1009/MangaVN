@@ -12,12 +12,14 @@ fun DiscoverScreen(
     onSearchClick: () -> Unit = {},
     onLibraryClick: () -> Unit = {},
     onProfileClick: () -> Unit = {},
+    onReadingHistoryClick: () -> Unit = {},
 ) {
     DiscoverScreenContent(
         onMangaClick = onMangaClick,
         onSearchClick = onSearchClick,
         onLibraryClick = onLibraryClick,
         onProfileClick = onProfileClick,
+        onReadingHistoryClick = onReadingHistoryClick,
     )
 }
 

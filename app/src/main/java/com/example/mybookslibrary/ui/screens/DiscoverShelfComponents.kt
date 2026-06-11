@@ -45,6 +45,7 @@ internal fun DiscoverContentList(
     contentPadding: PaddingValues,
     continueReading: List<LibraryItemEntity> = emptyList(),
     onContinueReadingClick: (LibraryItemEntity) -> Unit = {},
+    onReadingHistoryClick: () -> Unit = {},
     spotlight: MangaModel?,
     popularItems: List<MangaModel>,
     newItems: List<MangaModel>,
@@ -63,7 +64,10 @@ internal fun DiscoverContentList(
     ) {
         if (continueReading.isNotEmpty()) {
             item {
-                SectionHeader(title = appString(com.example.mybookslibrary.R.string.section_continue_reading))
+                SectionHeader(
+                    title = appString(com.example.mybookslibrary.R.string.section_continue_reading),
+                    onToggle = onReadingHistoryClick,
+                )
             }
             item {
                 LazyRow(

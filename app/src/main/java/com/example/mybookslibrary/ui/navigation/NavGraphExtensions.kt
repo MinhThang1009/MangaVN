@@ -15,6 +15,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navDeepLink
 import androidx.navigation.toRoute
 import com.example.mybookslibrary.ui.screens.MangaReviewScreen
+import com.example.mybookslibrary.ui.screens.ReadingHistoryScreen
 import com.example.mybookslibrary.ui.screens.auth.LoginScreen
 import com.example.mybookslibrary.ui.screens.auth.RegisterScreen
 import com.example.mybookslibrary.ui.screens.onboarding.WelcomeCarouselScreen
@@ -95,6 +96,15 @@ internal fun NavGraphBuilder.mangaDetailGraph(navController: NavHostController) 
 internal fun NavGraphBuilder.reviewGraph(navController: NavHostController) {
     composable<MangaReview> {
         MangaReviewScreen(onBackClick = { navController.popBackStack() })
+    }
+}
+
+internal fun NavGraphBuilder.readingHistoryGraph(navController: NavHostController) {
+    composable<ReadingHistory> {
+        ReadingHistoryScreen(
+            onBackClick = { navController.popBackStack() },
+            onMangaClick = { mangaId -> navController.navigate(MangaDetail(mangaId)) },
+        )
     }
 }
 

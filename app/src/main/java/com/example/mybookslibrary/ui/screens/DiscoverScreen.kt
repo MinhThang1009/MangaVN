@@ -27,6 +27,7 @@ fun DiscoverScreenContent(
     onSearchClick: () -> Unit = {},
     onLibraryClick: () -> Unit = {},
     onProfileClick: () -> Unit = {},
+    onReadingHistoryClick: () -> Unit = {},
     modifier: Modifier = Modifier,
     vm: DiscoverViewModel = hiltViewModel(),
 ) {
@@ -87,6 +88,7 @@ fun DiscoverScreenContent(
                             ),
                         )
                     },
+                    onReadingHistoryClick = onReadingHistoryClick,
                     spotlight = items.firstOrNull(),
                     popularItems = popularItems,
                     newItems = newItems,

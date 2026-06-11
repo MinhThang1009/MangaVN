@@ -21,7 +21,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.font.FontStyle
+
 import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.BookOpen
 import com.composables.icons.lucide.Lucide
@@ -82,7 +82,7 @@ private fun BrandTitle() {
         Spacer(Modifier.width(Dimens.SpacingSm))
         Text(
             appString(R.string.brand_name),
-            style = MaterialTheme.typography.headlineLarge.copy(fontStyle = FontStyle.Italic),
+            style = MaterialTheme.typography.headlineLarge,
             color = MaterialTheme.colorScheme.primary,
         )
     }
