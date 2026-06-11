@@ -1,9 +1,7 @@
 package com.example.mybookslibrary.ui.screens
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -13,11 +11,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -25,7 +21,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -33,21 +28,22 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil3.compose.AsyncImage
+import com.composables.icons.lucide.BookOpen
+import com.composables.icons.lucide.Lucide
 import com.example.mybookslibrary.R
 import com.example.mybookslibrary.data.local.LibraryItemEntity
 import com.example.mybookslibrary.data.local.LibraryStatus
 import com.example.mybookslibrary.ui.navigation.LocalBottomNavPadding
-import com.example.mybookslibrary.ui.theme.CinemaDarkBackground
-import com.example.mybookslibrary.ui.theme.CinemaDarkSuccess
-import com.example.mybookslibrary.ui.theme.CinemaDarkWarning
-import com.example.mybookslibrary.ui.theme.CinemaSuccess
-import com.example.mybookslibrary.ui.theme.CinemaWarning
+import com.example.mybookslibrary.ui.screens.components.AppButton
+import com.example.mybookslibrary.ui.screens.components.AppButtonStyle
+import com.example.mybookslibrary.ui.screens.components.EmptyState
+import com.example.mybookslibrary.ui.screens.components.MangaCoverCard
+import com.example.mybookslibrary.ui.screens.components.StatusChip
+import com.example.mybookslibrary.ui.theme.Dimens
 import com.example.mybookslibrary.ui.util.appString
 import com.example.mybookslibrary.ui.viewmodel.LibraryViewModel
 
@@ -68,51 +64,39 @@ fun LibraryScreenContent(
         containerColor = MaterialTheme.colorScheme.background,
     ) { innerPadding ->
         if (items.isEmpty()) {
-            Box(
+            EmptyState(
+                title = appString(R.string.library_empty_title),
+                subtitle = appString(R.string.library_empty_subtitle),
+                icon = Lucide.BookOpen,
                 modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .consumeWindowInsets(innerPadding),
-                contentAlignment = Alignment.Center,
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        appString(R.string.library_empty_title),
-                        style = MaterialTheme.typography.headlineMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Spacer(Modifier.height(8.dp))
-                    Text(
-                        appString(R.string.library_empty_subtitle),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                    )
-                }
-            }
+                    Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding)
+                        .consumeWindowInsets(innerPadding),
+            )
         } else {
             LazyColumn(
                 modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .consumeWindowInsets(innerPadding),
+                    Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding)
+                        .consumeWindowInsets(innerPadding),
                 contentPadding =
                     PaddingValues(
-                        start = 24.dp,
-                        end = 24.dp,
-                        top = 16.dp,
-                        bottom = bottomNavPadding + 16.dp,
+                        start = Dimens.ScreenPaddingCompact,
+                        end = Dimens.ScreenPaddingCompact,
+                        top = Dimens.SpacingLg,
+                        bottom = bottomNavPadding + Dimens.SpacingLg,
                     ),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(Dimens.SpacingMd),
             ) {
                 item {
                     Text(
                         appString(R.string.library_title),
                         style = MaterialTheme.typography.displayMedium,
-                        color = MaterialTheme.colorScheme.primary,
+                        color = MaterialTheme.colorScheme.onSurface,
                     )
-                    Spacer(Modifier.height(8.dp))
+                    Spacer(Modifier.height(Dimens.SpacingSm))
                 }
                 items(items, key = { it.manga_id }) { item ->
                     LibraryItemCard(
@@ -129,28 +113,35 @@ fun LibraryScreenContent(
         if (pendingRemoval != null) {
             ModalBottomSheet(onDismissRequest = { pendingRemoval = null }) {
                 val item = pendingRemoval ?: return@ModalBottomSheet
-                Column(modifier = Modifier.fillMaxWidth().padding(24.dp)) {
+                Column(
+                    modifier = Modifier.fillMaxWidth()
+                        .padding(Dimens.ScreenPaddingCompact),
+                ) {
                     Text(
                         text = appString(R.string.library_remove_bookmark),
                         style = MaterialTheme.typography.titleLarge,
                     )
-                    Spacer(Modifier.height(8.dp))
+                    Spacer(Modifier.height(Dimens.SpacingSm))
                     Text(
                         text = appString(R.string.library_remove_bookmark_confirm, item.title),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                    Spacer(Modifier.height(24.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        TextButton(
+                    Spacer(Modifier.height(Dimens.SpacingXl))
+                    Row(horizontalArrangement = Arrangement.spacedBy(Dimens.SpacingMd)) {
+                        AppButton(
+                            text = appString(R.string.library_remove_bookmark),
                             onClick = {
                                 vm.removeBookmark(item.manga_id)
                                 pendingRemoval = null
                             },
-                        ) { Text(appString(R.string.library_remove_bookmark)) }
-                        TextButton(onClick = { pendingRemoval = null }) {
-                            Text(appString(R.string.action_cancel))
-                        }
+                            style = AppButtonStyle.Text,
+                        )
+                        AppButton(
+                            text = appString(R.string.action_cancel),
+                            onClick = { pendingRemoval = null },
+                            style = AppButtonStyle.Text,
+                        )
                     }
                 }
             }
@@ -168,60 +159,31 @@ private fun LibraryItemCard(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth().combinedClickable(onClick = onClick, onLongClick = onLongClick),
-        shape = RoundedCornerShape(16.dp),
+        shape = MaterialTheme.shapes.large,
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
     ) {
-        Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            Card(
-                Modifier.size(60.dp, 90.dp),
-                shape = RoundedCornerShape(8.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-            ) {
-                AsyncImage(
-                    model = coverUrl,
-                    contentDescription = title,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize(),
-                )
-            }
-            Spacer(Modifier.width(16.dp))
+        Row(
+            Modifier.fillMaxWidth().padding(Dimens.SpacingMd),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            MangaCoverCard(
+                coverUrl = coverUrl,
+                contentDescription = title,
+                width = 60.dp,
+            )
+            Spacer(Modifier.width(Dimens.SpacingLg))
             Column(Modifier.weight(1f)) {
                 Text(
                     title,
-                    style = MaterialTheme.typography.titleLarge,
+                    style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
-                Spacer(Modifier.height(6.dp))
+                Spacer(Modifier.height(Dimens.SpacingSm))
                 StatusChip(status)
             }
         }
-    }
-}
-
-@Composable
-private fun StatusChip(status: LibraryStatus) {
-    val isDark = MaterialTheme.colorScheme.background == CinemaDarkBackground
-    val label =
-        when (status) {
-            LibraryStatus.READING -> appString(R.string.status_reading)
-            LibraryStatus.COMPLETED -> appString(R.string.status_completed)
-            LibraryStatus.FAVORITE -> appString(R.string.status_favorite)
-        }
-    val color =
-        when (status) {
-            LibraryStatus.READING -> MaterialTheme.colorScheme.tertiary
-            LibraryStatus.COMPLETED -> if (isDark) CinemaDarkSuccess else CinemaSuccess
-            LibraryStatus.FAVORITE -> if (isDark) CinemaDarkWarning else CinemaWarning
-        }
-    Box(
-        modifier =
-        Modifier
-            .background(color.copy(alpha = 0.1f), RoundedCornerShape(24.dp))
-            .padding(horizontal = 10.dp, vertical = 4.dp),
-    ) {
-        Text(label, style = MaterialTheme.typography.labelMedium, color = color)
     }
 }
