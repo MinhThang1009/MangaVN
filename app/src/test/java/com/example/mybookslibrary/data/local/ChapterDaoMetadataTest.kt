@@ -85,6 +85,7 @@ class ChapterDaoMetadataTest {
         title = null,
         pages = 10,
         isUnavailable = false,
+        translatedLanguage = null,
         feedOrder = feedOrder,
         updatedAt = 1_000L,
     )

@@ -4,6 +4,7 @@ import com.example.mybookslibrary.data.download.DownloadedChapterCache
 import com.example.mybookslibrary.data.local.ChapterMetadataEntity
 import com.example.mybookslibrary.data.local.DownloadQueueEntity
 import com.example.mybookslibrary.data.local.DownloadStatus
+import com.example.mybookslibrary.data.local.UserPreferencesDataStore
 import com.example.mybookslibrary.data.local.dao.ChapterDao
 import com.example.mybookslibrary.data.repository.MangaRepository
 import com.example.mybookslibrary.data.repository.OfflineDownloadRepository
@@ -28,12 +29,14 @@ class GetChapterListWithProgressUseCaseCoverageTest {
     private val chapterDao = mockk<ChapterDao>()
     private val offlineDownloadRepository = mockk<OfflineDownloadRepository>()
     private val downloadedChapterCache = mockk<DownloadedChapterCache>()
+    private val userPreferencesDataStore = mockk<UserPreferencesDataStore>()
     private val useCase =
         GetChapterListWithProgressUseCase(
             mangaRepository,
             chapterDao,
             offlineDownloadRepository,
             downloadedChapterCache,
+            userPreferencesDataStore,
         )
 
     private fun stubFeed(pages: Int = 12) {
@@ -62,11 +65,13 @@ class GetChapterListWithProgressUseCaseCoverageTest {
                         title = null,
                         pages = pages,
                         isUnavailable = false,
+                        translatedLanguage = null,
                         feedOrder = 0,
                         updatedAt = 1_000L,
                     ),
                 ),
             )
+        every { userPreferencesDataStore.observePreferredChapterLanguage() } returns flowOf("")
         every { chapterDao.getChapterProgressByManga(MANGA_ID) } returns flowOf(emptyList())
         every { downloadedChapterCache.downloadedChapterIds } returns MutableStateFlow(emptySet())
         coEvery { downloadedChapterCache.scanDownloadedChapters() } returns Unit
@@ -98,7 +103,7 @@ class GetChapterListWithProgressUseCaseCoverageTest {
             stubFeed()
             stubQueue(DownloadStatus.PENDING, progress = 30)
 
-            val state = useCase(MANGA_ID).first().single().downloadState
+            val state = useCase(MANGA_ID).first().chapters.single().downloadState
             assertEquals(ChapterDownloadStatus.PENDING, state.status)
             assertEquals(30, state.progressPercent)
         }
@@ -109,7 +114,7 @@ class GetChapterListWithProgressUseCaseCoverageTest {
             stubFeed()
             stubQueue(DownloadStatus.DOWNLOADING, progress = 55)
 
-            val state = useCase(MANGA_ID).first().single().downloadState
+            val state = useCase(MANGA_ID).first().chapters.single().downloadState
             assertEquals(ChapterDownloadStatus.DOWNLOADING, state.status)
             assertEquals(55, state.progressPercent)
         }
@@ -120,7 +125,7 @@ class GetChapterListWithProgressUseCaseCoverageTest {
             stubFeed()
             stubQueue(DownloadStatus.ERROR, progress = 40, error = "disk full")
 
-            val state = useCase(MANGA_ID).first().single().downloadState
+            val state = useCase(MANGA_ID).first().chapters.single().downloadState
             assertEquals(ChapterDownloadStatus.ERROR, state.status)
             assertEquals("disk full", state.errorMessage)
         }
@@ -131,7 +136,7 @@ class GetChapterListWithProgressUseCaseCoverageTest {
             stubFeed(pages = 0)
             every { offlineDownloadRepository.observeQueueByManga(MANGA_ID) } returns flowOf(emptyList())
 
-            assertEquals(0, useCase(MANGA_ID).first().single().totalPages)
+            assertEquals(0, useCase(MANGA_ID).first().chapters.single().totalPages)
         }
 
     private companion object {

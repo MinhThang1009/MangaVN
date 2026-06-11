@@ -12,6 +12,7 @@ import com.example.mybookslibrary.data.local.dao.DownloadQueueDao
 import com.example.mybookslibrary.data.local.dao.LibraryDao
 import com.example.mybookslibrary.data.local.dao.UserDao
 
+@Suppress("UnusedPrivateProperty")
 private const val PREVIOUS_DATABASE_VERSION = 4
 private const val CURRENT_DATABASE_VERSION = 5
 
@@ -65,6 +66,7 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        @Suppress("MagicNumber")
         val migration3To4 =
             object : Migration(3, 4) {
                 override fun migrate(db: SupportSQLiteDatabase) {
@@ -91,6 +93,7 @@ abstract class AppDatabase : RoomDatabase() {
                 }
             }
 
+        @Suppress("MagicNumber")
         val migration4To5 =
             object : Migration(4, 5) {
                 override fun migrate(db: SupportSQLiteDatabase) {

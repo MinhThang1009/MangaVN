@@ -1,4 +1,4 @@
-﻿package com.example.mybookslibrary.ui.screens
+package com.example.mybookslibrary.ui.screens
 
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsDisplayed
@@ -12,12 +12,14 @@ import androidx.lifecycle.SavedStateHandle
 import com.example.mybookslibrary.data.download.OfflineDownloadManager
 import com.example.mybookslibrary.data.repository.LibraryRepository
 import com.example.mybookslibrary.data.repository.MangaRepository
+import com.example.mybookslibrary.domain.usecase.ChapterListResult
 import com.example.mybookslibrary.domain.model.ChapterReadingStatus
 import com.example.mybookslibrary.domain.model.ChapterWithProgressModel
 import com.example.mybookslibrary.domain.model.MangaModel
 import com.example.mybookslibrary.domain.usecase.GetChapterListWithProgressUseCase
 import com.example.mybookslibrary.ui.util.FakeImageLoader
 import com.example.mybookslibrary.ui.viewmodel.MangaDetailViewModel
+import com.example.mybookslibrary.data.local.UserPreferencesDataStore
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -51,6 +53,7 @@ class MangaDetailScreenTest {
     private val libraryRepo = mockk<LibraryRepository>(relaxed = true)
     private val useCase = mockk<GetChapterListWithProgressUseCase>()
     private val downloadManager = mockk<OfflineDownloadManager>(relaxed = true)
+    private val userPreferencesDataStore = mockk<UserPreferencesDataStore>(relaxed = true)
 
     private fun viewModel(
         title: String = "Naruto",
@@ -64,7 +67,7 @@ class MangaDetailScreenTest {
             coEvery { mangaRepo.getMangaDetail(any()) } returns
                 Result.success(MangaModel("m1", title, "Desc", null, emptyList()))
         }
-        every { useCase(any()) } returns flowOf(chapters)
+        every { useCase(any()) } returns flowOf(ChapterListResult(chapters, emptyList(), ""))
         coEvery { libraryRepo.isInLibrary(any()) } returns inLibrary
         coEvery { mangaRepo.getChapterPages(any()) } returns Result.success(emptyList())
         return MangaDetailViewModel(
@@ -73,6 +76,7 @@ class MangaDetailScreenTest {
             libraryRepository = libraryRepo,
             getChapterListWithProgressUseCase = useCase,
             offlineDownloadManager = downloadManager,
+            userPreferencesDataStore = userPreferencesDataStore,
             ioDispatcher = UnconfinedTestDispatcher(),
         )
     }

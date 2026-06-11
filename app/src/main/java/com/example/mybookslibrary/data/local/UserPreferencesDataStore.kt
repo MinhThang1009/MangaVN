@@ -76,9 +76,12 @@ class UserPreferencesDataStore(
         dataStore.edit { it[THEME_MODE] = mode }
     }
 
-    fun observeDownloadOnlyOnWifi(): Flow<Boolean> = safeData.map { it[DOWNLOAD_ONLY_ON_WIFI] ?: DEFAULT_DOWNLOAD_ONLY_ON_WIFI }
+    fun observeDownloadOnlyOnWifi(): Flow<Boolean> = safeData.map {
+        it[DOWNLOAD_ONLY_ON_WIFI] ?: DEFAULT_DOWNLOAD_ONLY_ON_WIFI
+    }
 
-    suspend fun getDownloadOnlyOnWifi(): Boolean = safeData.first()[DOWNLOAD_ONLY_ON_WIFI] ?: DEFAULT_DOWNLOAD_ONLY_ON_WIFI
+    suspend fun getDownloadOnlyOnWifi(): Boolean = safeData.first()[DOWNLOAD_ONLY_ON_WIFI]
+        ?: DEFAULT_DOWNLOAD_ONLY_ON_WIFI
 
     suspend fun setDownloadOnlyOnWifi(enabled: Boolean) {
         dataStore.edit { it[DOWNLOAD_ONLY_ON_WIFI] = enabled }

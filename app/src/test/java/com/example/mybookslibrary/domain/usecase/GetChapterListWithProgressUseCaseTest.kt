@@ -7,6 +7,7 @@ import com.example.mybookslibrary.data.local.ChapterStatus
 import com.example.mybookslibrary.data.local.DownloadQueueEntity
 import com.example.mybookslibrary.data.local.DownloadStatus
 import com.example.mybookslibrary.data.local.dao.ChapterDao
+import com.example.mybookslibrary.data.local.UserPreferencesDataStore
 import com.example.mybookslibrary.data.repository.MangaRepository
 import com.example.mybookslibrary.data.repository.OfflineDownloadRepository
 import com.example.mybookslibrary.domain.model.ChapterDownloadStatus
@@ -33,12 +34,14 @@ class GetChapterListWithProgressUseCaseTest {
     private val chapterDao = mockk<ChapterDao>()
     private val offlineDownloadRepository = mockk<OfflineDownloadRepository>()
     private val downloadedChapterCache = mockk<DownloadedChapterCache>()
+    private val userPreferencesDataStore = mockk<UserPreferencesDataStore>()
     private val useCase =
         GetChapterListWithProgressUseCase(
             mangaRepository,
             chapterDao,
             offlineDownloadRepository,
             downloadedChapterCache,
+            userPreferencesDataStore,
         )
 
     private fun stubCommon(
@@ -50,6 +53,7 @@ class GetChapterListWithProgressUseCaseTest {
         every { chapterDao.getChapterProgressByManga(MANGA_ID) } returns flowOf(progress)
         every { offlineDownloadRepository.observeQueueByManga(MANGA_ID) } returns flowOf(emptyList())
         every { downloadedChapterCache.downloadedChapterIds } returns downloadedIds
+        every { userPreferencesDataStore.observePreferredChapterLanguage() } returns flowOf("")
         coEvery { downloadedChapterCache.scanDownloadedChapters() } returns Unit
         coEvery { chapterDao.syncChapterMetadata(any(), any(), any()) } returns Unit
     }
@@ -74,7 +78,7 @@ class GetChapterListWithProgressUseCaseTest {
                     ),
                 )
 
-            val result = useCase(MANGA_ID).first()
+            val result = useCase(MANGA_ID).first().chapters
 
             assertEquals(3, result.size)
 
@@ -106,7 +110,7 @@ class GetChapterListWithProgressUseCaseTest {
                 progress = listOf(progress("chapter-1", ChapterStatus.READING, lastReadPage = 3, totalPages = 15)),
             )
 
-            val result = useCase(MANGA_ID).first()
+            val result = useCase(MANGA_ID).first().chapters
 
             assertEquals(15, result.single().totalPages)
         }
@@ -123,7 +127,7 @@ class GetChapterListWithProgressUseCaseTest {
                 downloadedIds = MutableStateFlow(setOf("chapter-1")),
             )
 
-            val result = useCase(MANGA_ID).first()
+            val result = useCase(MANGA_ID).first().chapters
 
             assertEquals(ChapterDownloadStatus.DOWNLOADED, result.single().downloadState.status)
             assertEquals(100, result.single().downloadState.progressPercent)
@@ -151,8 +155,8 @@ class GetChapterListWithProgressUseCaseTest {
             downloadedIds.value = setOf("chapter-1")
 
             val result = emissions.await()
-            assertEquals(ChapterDownloadStatus.NOT_DOWNLOADED, result[0].single().downloadState.status)
-            assertEquals(ChapterDownloadStatus.DOWNLOADED, result[1].single().downloadState.status)
+            assertEquals(ChapterDownloadStatus.NOT_DOWNLOADED, result[0].chapters.single().downloadState.status)
+            assertEquals(ChapterDownloadStatus.DOWNLOADED, result[1].chapters.single().downloadState.status)
         }
 
     @Test
@@ -174,7 +178,7 @@ class GetChapterListWithProgressUseCaseTest {
                         ),
                     ),
                 )
-            val result = useCase(MANGA_ID).first()
+            val result = useCase(MANGA_ID).first().chapters
 
             assertEquals(ChapterDownloadStatus.NOT_DOWNLOADED, result.single().downloadState.status)
             assertEquals(0, result.single().downloadState.progressPercent)
@@ -186,7 +190,7 @@ class GetChapterListWithProgressUseCaseTest {
             coEvery { mangaRepository.getMangaFeed(MANGA_ID) } returns Result.failure(IOException("offline"))
             stubCommon(metadata = listOf(metadata("chapter-1", 12)))
 
-            val result = useCase(MANGA_ID).first()
+            val result = useCase(MANGA_ID).first().chapters
 
             assertEquals("chapter-1", result.single().chapterId)
         }
@@ -201,7 +205,7 @@ class GetChapterListWithProgressUseCaseTest {
                 downloadedIds = MutableStateFlow(setOf("chapter-1")),
             )
 
-            val result = useCase(MANGA_ID).first().single()
+            val result = useCase(MANGA_ID).first().chapters.single()
 
             assertEquals("chapter-1", result.chapterId)
             assertEquals(ChapterDownloadStatus.DOWNLOADED, result.downloadState.status)
@@ -220,15 +224,67 @@ class GetChapterListWithProgressUseCaseTest {
             every { chapterDao.getChapterProgressByManga(MANGA_ID) } returns flowOf(emptyList())
             every { offlineDownloadRepository.observeQueueByManga(MANGA_ID) } returns flowOf(emptyList())
             every { downloadedChapterCache.downloadedChapterIds } returns downloadedIds
+            every { userPreferencesDataStore.observePreferredChapterLanguage() } returns flowOf("")
 
-            val result = useCase(MANGA_ID).first().single()
+            val result = useCase(MANGA_ID).first().chapters.single()
 
             assertEquals(ChapterDownloadStatus.NOT_DOWNLOADED, result.downloadState.status)
         }
 
+    @Test
+    fun fallbackToEnglishIfPreferredLanguageNotFound() = runTest {
+        coEvery { mangaRepository.getMangaFeed(MANGA_ID) } returns Result.success(listOf(
+            chapter("c1", 10, "vi"),
+            chapter("c2", 10, "en")
+        ))
+        stubCommon(
+            metadata = listOf(metadata("c1", 10, "vi"), metadata("c2", 10, "en"))
+        )
+        every { userPreferencesDataStore.observePreferredChapterLanguage() } returns flowOf("es")
+
+        val result = useCase(MANGA_ID).first()
+        assertEquals(listOf("en", "vi"), result.availableLanguages)
+        assertEquals(1, result.chapters.size)
+        assertEquals("c2", result.chapters[0].chapterId)
+    }
+
+    @Test
+    fun fallbackToFirstAvailableLanguageIfEnglishNotFound() = runTest {
+        coEvery { mangaRepository.getMangaFeed(MANGA_ID) } returns Result.success(listOf(
+            chapter("c1", 10, "vi"),
+            chapter("c2", 10, "fr")
+        ))
+        stubCommon(
+            metadata = listOf(metadata("c1", 10, "vi"), metadata("c2", 10, "fr"))
+        )
+        every { userPreferencesDataStore.observePreferredChapterLanguage() } returns flowOf("es")
+
+        val result = useCase(MANGA_ID).first()
+        assertEquals(listOf("fr", "vi"), result.availableLanguages)
+        assertEquals(1, result.chapters.size)
+        assertEquals("c2", result.chapters[0].chapterId)
+    }
+
+    @Test
+    fun noLanguageFilterSelected_returnsAllChapters() = runTest {
+        coEvery { mangaRepository.getMangaFeed(MANGA_ID) } returns Result.success(listOf(
+            chapter("c1", 10, "vi"),
+            chapter("c2", 10, "en")
+        ))
+        stubCommon(
+            metadata = listOf(metadata("c1", 10, "vi"), metadata("c2", 10, "en"))
+        )
+        every { userPreferencesDataStore.observePreferredChapterLanguage() } returns flowOf("")
+
+        val result = useCase(MANGA_ID).first()
+        assertEquals(listOf("en", "vi"), result.availableLanguages)
+        assertEquals(2, result.chapters.size)
+    }
+
     private fun chapter(
         id: String,
         pages: Int,
+        translatedLanguage: String? = null,
     ): ChapterModel =
         ChapterModel(
             id = id,
@@ -238,11 +294,13 @@ class GetChapterListWithProgressUseCaseTest {
             title = null,
             pages = pages,
             isUnavailable = false,
+            translatedLanguage = translatedLanguage,
         )
 
     private fun metadata(
         id: String,
         pages: Int,
+        translatedLanguage: String? = null,
     ): ChapterMetadataEntity =
         ChapterMetadataEntity(
             chapterId = id,
@@ -252,6 +310,7 @@ class GetChapterListWithProgressUseCaseTest {
             title = null,
             pages = pages,
             isUnavailable = false,
+            translatedLanguage = translatedLanguage,
             feedOrder = id.removePrefix("chapter-").toIntOrNull() ?: 0,
             updatedAt = 1_000L,
         )

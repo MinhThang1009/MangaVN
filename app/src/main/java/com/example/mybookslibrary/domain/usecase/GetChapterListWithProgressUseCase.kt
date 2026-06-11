@@ -6,11 +6,11 @@ import com.example.mybookslibrary.data.local.ChapterProgressEntity
 import com.example.mybookslibrary.data.local.ChapterStatus
 import com.example.mybookslibrary.data.local.DownloadQueueEntity
 import com.example.mybookslibrary.data.local.DownloadStatus
-import com.example.mybookslibrary.data.local.toMetadataEntity
+import com.example.mybookslibrary.data.local.UserPreferencesDataStore
 import com.example.mybookslibrary.data.local.dao.ChapterDao
+import com.example.mybookslibrary.data.local.toMetadataEntity
 import com.example.mybookslibrary.data.repository.MangaRepository
 import com.example.mybookslibrary.data.repository.OfflineDownloadRepository
-import com.example.mybookslibrary.data.local.UserPreferencesDataStore
 import com.example.mybookslibrary.domain.model.ChapterDownloadState
 import com.example.mybookslibrary.domain.model.ChapterDownloadStatus
 import com.example.mybookslibrary.domain.model.ChapterReadingStatus
@@ -66,9 +66,11 @@ class GetChapterListWithProgressUseCase
                                 queueList = queueList,
                                 downloadedIds = downloadedIds,
                             )
-                            
-                            val availableLanguages = rawChapters.mapNotNull { it.translatedLanguage }.distinct().sorted()
-                            
+
+                            val availableLanguages = rawChapters.mapNotNull {
+                                it.translatedLanguage
+                            }.distinct().sorted()
+
                             val selectedLanguage = if (prefLang == "") {
                                 "" // All
                             } else if (availableLanguages.contains(prefLang)) {
@@ -78,13 +80,13 @@ class GetChapterListWithProgressUseCase
                             } else {
                                 availableLanguages.firstOrNull() ?: ""
                             }
-                            
+
                             val filteredChapters = if (selectedLanguage == "") {
                                 rawChapters
                             } else {
                                 rawChapters.filter { it.translatedLanguage == selectedLanguage }
                             }
-                            
+
                             ChapterListResult(
                                 chapters = filteredChapters,
                                 availableLanguages = availableLanguages,
