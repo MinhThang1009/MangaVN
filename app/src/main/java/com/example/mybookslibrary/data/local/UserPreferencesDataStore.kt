@@ -32,6 +32,7 @@ class UserPreferencesDataStore(
         private val PREFERRED_CHAPTER_LANGUAGE = stringPreferencesKey("preferred_chapter_language")
         private val ONBOARDING_WELCOME_DONE = booleanPreferencesKey("onboarding_welcome_done")
         private val READER_HINT_DONE = booleanPreferencesKey("reader_hint_done")
+        private val IN_APP_TOUR_DONE = booleanPreferencesKey("in_app_tour_done")
 
         private const val DEFAULT_QUALITY = "data"
         private const val DEFAULT_LANGUAGE = "en"
@@ -117,6 +118,14 @@ class UserPreferencesDataStore(
 
     suspend fun setReaderHintDone(done: Boolean) {
         dataStore.edit { it[READER_HINT_DONE] = done }
+    }
+
+    /** In-app guided tour (coach marks) đã hoàn thành. */
+    fun observeInAppTourDone(): Flow<Boolean> =
+        safeData.map { it[IN_APP_TOUR_DONE] ?: false }
+
+    suspend fun setInAppTourDone(done: Boolean) {
+        dataStore.edit { it[IN_APP_TOUR_DONE] = done }
     }
 
     suspend fun clearAll() {

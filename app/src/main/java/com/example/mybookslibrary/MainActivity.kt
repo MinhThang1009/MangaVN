@@ -69,6 +69,9 @@ class MainActivity : ComponentActivity() {
             val onboardingDone by preferencesDataStore
                 .observeOnboardingWelcomeDone()
                 .collectAsStateWithLifecycle(initialValue = true)
+            val tourDone by preferencesDataStore
+                .observeInAppTourDone()
+                .collectAsStateWithLifecycle(initialValue = true)
             val onboardingScope = rememberCoroutineScope()
 
             val darkTheme =
@@ -103,6 +106,12 @@ class MainActivity : ComponentActivity() {
                             onWelcomeDone = {
                                 onboardingScope.launch {
                                     preferencesDataStore.setOnboardingWelcomeDone(true)
+                                }
+                            },
+                            inAppTourDone = tourDone,
+                            onTourDone = {
+                                onboardingScope.launch {
+                                    preferencesDataStore.setInAppTourDone(true)
                                 }
                             },
                         )

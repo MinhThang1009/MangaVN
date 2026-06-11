@@ -41,6 +41,7 @@ import com.composables.icons.lucide.Compass
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Settings
 import com.example.mybookslibrary.R
+import com.example.mybookslibrary.ui.screens.onboarding.InAppTourOverlay
 import kotlin.reflect.KClass
 
 @OptIn(ExperimentalSharedTransitionApi::class)
@@ -84,6 +85,8 @@ fun MainNavHost(
     incomingMangaId: String? = null,
     onboardingWelcomeDone: Boolean = true,
     onWelcomeDone: () -> Unit = {},
+    inAppTourDone: Boolean = true,
+    onTourDone: () -> Unit = {},
 ) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -199,6 +202,11 @@ fun MainNavHost(
             }
         }
     }
+
+    InAppTourOverlay(
+        visible = loggedInUserId != null && !inAppTourDone,
+        onDismiss = onTourDone,
+    )
 }
 
 internal const val MAIN_NAV_CONTENT_TAG = "main-nav-content"

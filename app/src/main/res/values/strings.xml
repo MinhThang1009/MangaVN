@@ -205,4 +205,23 @@
     <string name="reader_hint_mode_toggle">Switch reading mode here: scroll, left-to-right, or right-to-left</string>
     <string name="reader_hint_got_it">Got it</string>
     <string name="reader_hint_skip">Skip</string>
+
+    <!-- In-app guided tour -->
+    <string name="tour_step_counter">%1$d / %2$d</string>
+    <string name="tour_next">Next</string>
+    <string name="tour_back">Back</string>
+    <string name="tour_skip">Skip all</string>
+    <string name="tour_done">Done</string>
+    <string name="tour_step1_title">Discover manga</string>
+    <string name="tour_step1_body">This is your home screen — browse trending, new releases, and explore by genre</string>
+    <string name="tour_step2_title">Search anything</string>
+    <string name="tour_step2_body">Tap Search in the navigation bar to find manga by title, genre, or language</string>
+    <string name="tour_step3_title">Tap to read</string>
+    <string name="tour_step3_body">Tap any cover to see details, chapters, and start reading right away</string>
+    <string name="tour_step4_title">Save to library</string>
+    <string name="tour_step4_body">Hit the bookmark button on any manga to add it to your personal library</string>
+    <string name="tour_step5_title">Your library</string>
+    <string name="tour_step5_body">All your saved manga lives here — track what you\'re reading, finished, or love</string>
+    <string name="tour_step6_title">Customize settings</string>
+    <string name="tour_step6_body">Change theme, language, image quality, and manage your data from Settings</string>
 </resources>
