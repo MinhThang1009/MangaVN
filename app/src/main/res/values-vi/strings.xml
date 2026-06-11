@@ -26,6 +26,8 @@
     <string name="cd_search">Tìm kiếm</string>
     <string name="cd_profile">Hồ sơ</string>
     <string name="cd_back">Quay lại</string>
+    <string name="cd_show_password">Hiện mật khẩu</string>
+    <string name="cd_hide_password">Ẩn mật khẩu</string>
 
     <!-- Search -->
     <string name="search_title">Tìm kiếm</string>

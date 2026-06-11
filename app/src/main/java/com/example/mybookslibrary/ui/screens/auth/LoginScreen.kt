@@ -87,7 +87,7 @@ fun LoginScreen(
                 Modifier
                     .fillMaxSize()
                     .padding(innerPadding)
-                    .padding(24.dp),
+                    .padding(Dimens.ScreenPaddingMedium),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
@@ -125,7 +125,7 @@ fun LoginScreen(
                 singleLine = true,
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(Dimens.SpacingLg))
 
             OutlinedTextField(
                 value = password,
@@ -136,7 +136,11 @@ fun LoginScreen(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 trailingIcon = {
                     val image = if (passwordVisible) Lucide.Eye else Lucide.EyeOff
-                    val desc = if (passwordVisible) "Hide password" else "Show password"
+                    val desc = if (passwordVisible) {
+                        appString(R.string.cd_hide_password)
+                    } else {
+                        appString(R.string.cd_show_password)
+                    }
                     IconButton(onClick = { passwordVisible = !passwordVisible }) {
                         Icon(imageVector = image, contentDescription = desc)
                     }
@@ -145,7 +149,7 @@ fun LoginScreen(
                 singleLine = true,
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(Dimens.SpacingXl))
 
             if (uiState is AuthState.Error) {
                 ErrorMessageBox(
@@ -169,7 +173,7 @@ fun LoginScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(Dimens.SpacingLg))
 
             OutlinedButton(
                 onClick = { viewModel.googleSignIn(context) },
@@ -179,7 +183,7 @@ fun LoginScreen(
                 Text(appString(R.string.auth_google_signin))
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(Dimens.SpacingXxl))
 
             Text(
                 appString(R.string.auth_no_account_prompt),

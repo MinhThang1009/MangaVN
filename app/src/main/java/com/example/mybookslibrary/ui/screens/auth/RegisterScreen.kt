@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -27,22 +26,29 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import com.composables.icons.lucide.Eye
-import com.composables.icons.lucide.EyeOff
-import com.composables.icons.lucide.Lucide
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.example.mybookslibrary.ui.util.appString
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.composables.icons.lucide.BookOpen
+import com.composables.icons.lucide.Eye
+import com.composables.icons.lucide.EyeOff
+import com.composables.icons.lucide.Lucide
 import com.example.mybookslibrary.R
 import com.example.mybookslibrary.ui.navigation.LocalSnackbarHostState
+import com.example.mybookslibrary.ui.screens.components.ErrorMessageBox
+import com.example.mybookslibrary.ui.screens.components.LoadingIndicator
+import com.example.mybookslibrary.ui.screens.components.LoadingSize
+import com.example.mybookslibrary.ui.theme.Dimens
+import com.example.mybookslibrary.ui.util.appString
 import com.example.mybookslibrary.ui.viewmodel.AuthState
 import com.example.mybookslibrary.ui.viewmodel.AuthViewModel
 
+@Suppress("LongMethod")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterScreen(
@@ -79,16 +85,24 @@ fun RegisterScreen(
                 Modifier
                     .fillMaxSize()
                     .padding(innerPadding)
-                    .padding(24.dp),
+                    .padding(Dimens.ScreenPaddingMedium),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
+            Icon(
+                Lucide.BookOpen,
+                contentDescription = null,
+                modifier = Modifier.size(56.dp),
+                tint = MaterialTheme.colorScheme.primary,
+            )
+            Spacer(Modifier.height(Dimens.SpacingLg))
             Text(
                 text = appString(R.string.auth_create_account),
-                style = MaterialTheme.typography.headlineMedium,
+                style = MaterialTheme.typography.headlineLarge,
                 color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(bottom = 32.dp),
+                textAlign = TextAlign.Center,
             )
+            Spacer(Modifier.height(Dimens.SpacingXxl))
 
             OutlinedTextField(
                 value = username,
@@ -98,7 +112,7 @@ fun RegisterScreen(
                 singleLine = true,
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(Dimens.SpacingLg))
 
             OutlinedTextField(
                 value = password,
@@ -109,7 +123,11 @@ fun RegisterScreen(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 trailingIcon = {
                     val image = if (passwordVisible) Lucide.Eye else Lucide.EyeOff
-                    val desc = if (passwordVisible) "Hide password" else "Show password"
+                    val desc = if (passwordVisible) {
+                        appString(R.string.cd_hide_password)
+                    } else {
+                        appString(R.string.cd_show_password)
+                    }
                     IconButton(onClick = { passwordVisible = !passwordVisible }) {
                         Icon(imageVector = image, contentDescription = desc)
                     }
@@ -118,7 +136,7 @@ fun RegisterScreen(
                 singleLine = true,
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(Dimens.SpacingLg))
 
             OutlinedTextField(
                 value = confirmPassword,
@@ -131,19 +149,17 @@ fun RegisterScreen(
                 singleLine = true,
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(Dimens.SpacingXl))
 
             if (uiState is AuthState.Error) {
-                Text(
-                    text = (uiState as AuthState.Error).message.asString(),
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(bottom = 16.dp),
+                ErrorMessageBox(
+                    message = (uiState as AuthState.Error).message.asString(),
+                    modifier = Modifier.padding(bottom = Dimens.SpacingLg),
                 )
             } else if (password != confirmPassword && confirmPassword.isNotEmpty()) {
-                Text(
-                    text = appString(R.string.auth_passwords_no_match),
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(bottom = 16.dp),
+                ErrorMessageBox(
+                    message = appString(R.string.auth_passwords_no_match),
+                    modifier = Modifier.padding(bottom = Dimens.SpacingLg),
                 )
             }
 
@@ -161,8 +177,8 @@ fun RegisterScreen(
                         username.isNotEmpty(),
             ) {
                 if (uiState is AuthState.Loading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(24.dp),
+                    LoadingIndicator(
+                        size = LoadingSize.Small,
                         color = MaterialTheme.colorScheme.onPrimary,
                     )
                 } else {
@@ -170,7 +186,7 @@ fun RegisterScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(Dimens.SpacingXxl))
 
             Text(
                 appString(R.string.auth_have_account_prompt),
