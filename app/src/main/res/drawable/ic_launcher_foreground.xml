@@ -4,49 +4,57 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-  <!-- Rounded book shape — phần thân sách -->
+  <!-- Nền vermilion phủ TOÀN BỘ 108×108 — adaptive icon tự cắt theo mask -->
   <path
-      android:pathData="M28,26C28,22.69 30.69,20 34,20H74C77.31,20 80,22.69 80,26V82C80,85.31 77.31,88 74,88H34C30.69,88 28,85.31 28,82V26Z"
+      android:pathData="M0,0H108V108H0Z"
       android:fillColor="#FF5A3C"/>
 
-  <!-- Gáy sách bên trái -->
+  <!-- Sách — căn giữa safe zone, đủ lớn tràn viền -->
+  <!-- Thân sách -->
   <path
-      android:pathData="M28,26C28,22.69 30.69,20 34,20H38V88H34C30.69,88 28,85.31 28,82V26Z"
-      android:fillColor="#D4402A"/>
+      android:pathData="M26,22C26,19.24 28.24,17 31,17H77C79.76,17 82,19.24 82,22V86C82,88.76 79.76,91 77,91H31C28.24,91 26,88.76 26,86V22Z"
+      android:fillColor="#FFFFFF"/>
 
-  <!-- Trang sách giữa — trắng -->
+  <!-- Gáy sách -->
   <path
-      android:pathData="M42,28H72C73.1,28 74,28.9 74,30V78C74,79.1 73.1,80 72,80H42V28Z"
-      android:fillColor="#FFFFFF"
-      android:fillAlpha="0.95"/>
+      android:pathData="M26,22C26,19.24 28.24,17 31,17H35V91H31C28.24,91 26,88.76 26,86V22Z"
+      android:fillColor="#F0E8E6"/>
 
-  <!-- Dòng text giả trên trang -->
+  <!-- Dòng title (vermilion trên trang trắng) -->
   <path
-      android:pathData="M48,38H68"
+      android:pathData="M42,34H72"
       android:strokeColor="#FF5A3C"
-      android:strokeWidth="2.5"
+      android:strokeWidth="3.5"
       android:strokeLineCap="round"/>
-  <path
-      android:pathData="M48,45H64"
-      android:strokeColor="#0E0F13"
-      android:strokeWidth="1.8"
-      android:strokeLineCap="round"
-      android:strokeAlpha="0.25"/>
-  <path
-      android:pathData="M48,51H66"
-      android:strokeColor="#0E0F13"
-      android:strokeWidth="1.8"
-      android:strokeLineCap="round"
-      android:strokeAlpha="0.25"/>
-  <path
-      android:pathData="M48,57H60"
-      android:strokeColor="#0E0F13"
-      android:strokeWidth="1.8"
-      android:strokeLineCap="round"
-      android:strokeAlpha="0.25"/>
 
-  <!-- Bookmark ribbon — gold tertiary -->
+  <!-- Dòng text giả -->
   <path
-      android:pathData="M62,20V40L66,36.5L70,40V20Z"
+      android:pathData="M42,43H68"
+      android:strokeColor="#1A1C22"
+      android:strokeWidth="2"
+      android:strokeLineCap="round"
+      android:strokeAlpha="0.15"/>
+  <path
+      android:pathData="M42,50H70"
+      android:strokeColor="#1A1C22"
+      android:strokeWidth="2"
+      android:strokeLineCap="round"
+      android:strokeAlpha="0.15"/>
+  <path
+      android:pathData="M42,57H64"
+      android:strokeColor="#1A1C22"
+      android:strokeWidth="2"
+      android:strokeLineCap="round"
+      android:strokeAlpha="0.15"/>
+  <path
+      android:pathData="M42,64H66"
+      android:strokeColor="#1A1C22"
+      android:strokeWidth="2"
+      android:strokeLineCap="round"
+      android:strokeAlpha="0.15"/>
+
+  <!-- Bookmark ribbon gold -->
+  <path
+      android:pathData="M63,17V44L68,39.5L73,44V17Z"
       android:fillColor="#FFC24B"/>
 </vector>
