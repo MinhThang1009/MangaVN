@@ -38,6 +38,15 @@ jobs:
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
+      # Gate Room migration (issue #94): chặn bump DB version thiếu Migration/register/schema.
+      # Pre-commit hook local có gate tương tự nhưng bypass được (--no-verify, clone chưa
+      # install hook) — CI mới là lớp chặn thật. Chạy trước Gradle để fail nhanh (~1 giây).
+      - name: Gate Room migration
+        if: github.event_name == 'pull_request'
+        run: |
+          git fetch origin "$GITHUB_BASE_REF" --depth=1
+          sh scripts/check-room-migration.sh "origin/$GITHUB_BASE_REF" "HEAD"
+
       - name: Set up JDK 21
         uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5
         with:
