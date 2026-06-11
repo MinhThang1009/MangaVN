@@ -4,8 +4,10 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -51,30 +53,27 @@ fun DiscoverScreenContent(
         },
         containerColor = MaterialTheme.colorScheme.background,
     ) { innerPadding ->
-        when {
-            uiState.isLoading ->
-                DiscoverLoadingState(
-                    Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding)
-                        .consumeWindowInsets(innerPadding),
-                )
-            uiState.error != null ->
-                DiscoverErrorState(
-                    modifier =
-                    Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding)
-                        .consumeWindowInsets(innerPadding),
-                    onRetry = vm::loadDiscover,
-                )
-            else ->
-                DiscoverContentList(
-                    modifier =
-                    Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding)
-                        .consumeWindowInsets(innerPadding),
+        @OptIn(ExperimentalMaterial3Api::class)
+        PullToRefreshBox(
+            isRefreshing = uiState.isLoading && uiState.items.isNotEmpty(),
+            onRefresh = { vm.loadDiscover() },
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .consumeWindowInsets(innerPadding),
+        ) {
+            when {
+                uiState.isLoading && uiState.items.isEmpty() ->
+                    DiscoverLoadingState(Modifier.fillMaxSize())
+                uiState.error != null && uiState.items.isEmpty() ->
+                    DiscoverErrorState(
+                        modifier = Modifier.fillMaxSize(),
+                        onRetry = vm::loadDiscover,
+                    )
+                else ->
+                    DiscoverContentList(
+                    modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(bottom = bottomNavPadding + Dimens.SpacingLg),
                     continueReading = continueReading,
                     onContinueReadingClick = { item ->
@@ -100,6 +99,7 @@ fun DiscoverScreenContent(
                     onToggleExplore = { expandedExplore.value = !expandedExplore.value },
                     onMangaClick = onMangaClick,
                 )
+            }
         }
     }
 }
