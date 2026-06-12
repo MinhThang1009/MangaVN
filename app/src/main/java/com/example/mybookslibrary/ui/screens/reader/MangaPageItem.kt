@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import coil3.request.ImageRequest
 import com.example.mybookslibrary.R
+import com.example.mybookslibrary.ui.theme.Alphas
 import com.example.mybookslibrary.ui.theme.MyBooksLibraryTheme
 import com.example.mybookslibrary.ui.util.appString
 import me.saket.telephoto.zoomable.ZoomSpec
@@ -184,7 +185,7 @@ private fun MangaPageRetryOverlay(onRetry: () -> Unit) {
         modifier =
             Modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = ERROR_OVERLAY_ALPHA))
+                .background(Color.Black.copy(alpha = Alphas.EmphasisHigh))
                 .clickable(onClick = onRetry),
         contentAlignment = Alignment.Center,
     ) {
@@ -192,14 +193,14 @@ private fun MangaPageRetryOverlay(onRetry: () -> Unit) {
             Icon(
                 imageVector = Lucide.ImageOff,
                 contentDescription = null,
-                tint = Color.White.copy(alpha = ERROR_ICON_ALPHA),
+                tint = Color.White.copy(alpha = Alphas.EmphasisHigh),
                 modifier = Modifier.size(48.dp),
             )
             Spacer(Modifier.height(12.dp))
             Text(
                 text = appString(R.string.reader_loading_failed),
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color.White.copy(alpha = ERROR_TEXT_ALPHA),
+                color = Color.White.copy(alpha = Alphas.EmphasisMedium),
             )
             Spacer(Modifier.height(4.dp))
             Button(onClick = onRetry) {
@@ -215,9 +216,6 @@ private fun MangaPageRetryOverlay(onRetry: () -> Unit) {
 
 private fun displayPage(index: Int): Int = index + 1
 
-private const val ERROR_OVERLAY_ALPHA = 0.7f
-private const val ERROR_ICON_ALPHA = 0.7f
-private const val ERROR_TEXT_ALPHA = 0.6f
 private const val FILE_URI_PREFIX = "file:"
 private const val PREVIEW_PAGE_URL = "https://example.com/preview-page.jpg"
 

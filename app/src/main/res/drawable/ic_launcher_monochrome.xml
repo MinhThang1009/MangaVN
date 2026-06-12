@@ -7,22 +7,22 @@
   <!-- Sách mở silhouette -->
   <path
       android:pathData="M22,32L50,28V80L22,84Z"
-      android:fillColor="#000000"/>
+      android:fillColor="@color/black"/>
   <path
       android:pathData="M58,28L86,32V84L58,80Z"
-      android:fillColor="#000000"/>
+      android:fillColor="@color/black"/>
   <!-- Gáy -->
   <path
       android:pathData="M50,28C52,29 56,29 58,28L58,80C56,81 52,81 50,80Z"
-      android:fillColor="#000000"
+      android:fillColor="@color/black"
       android:fillAlpha="0.5"/>
   <!-- Page curl -->
   <path
       android:pathData="M58,28L78,24C80,23.5 82,25 81,27L62,78C61,80 58,80 58,78Z"
-      android:fillColor="#000000"
+      android:fillColor="@color/black"
       android:fillAlpha="0.3"/>
   <!-- Sparkle -->
   <path
       android:pathData="M76,22L77.5,26L81.5,27.5L77.5,29L76,33L74.5,29L70.5,27.5L74.5,26Z"
-      android:fillColor="#000000"/>
+      android:fillColor="@color/black"/>
 </vector>

@@ -34,11 +34,16 @@ fun AppButton(
     style: AppButtonStyle = AppButtonStyle.Primary,
     enabled: Boolean = true,
 ) {
+    val haptic = com.example.mybookslibrary.ui.util.rememberAppHaptic()
+    val hapticClick = {
+        haptic.confirm()
+        onClick()
+    }
     val contentPadding = PaddingValues(horizontal = Dimens.SpacingLg, vertical = Dimens.SpacingSm)
     when (style) {
         AppButtonStyle.Primary ->
             Button(
-                onClick = onClick,
+                onClick = hapticClick,
                 modifier = modifier,
                 enabled = enabled,
                 shape = MaterialTheme.shapes.medium,
@@ -48,7 +53,7 @@ fun AppButton(
             }
         AppButtonStyle.Secondary ->
             OutlinedButton(
-                onClick = onClick,
+                onClick = hapticClick,
                 modifier = modifier,
                 enabled = enabled,
                 shape = MaterialTheme.shapes.medium,
@@ -62,7 +67,7 @@ fun AppButton(
             }
         AppButtonStyle.Text ->
             TextButton(
-                onClick = onClick,
+                onClick = hapticClick,
                 modifier = modifier,
                 enabled = enabled,
                 contentPadding = contentPadding,

@@ -21,6 +21,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.TriangleAlert
+import com.example.mybookslibrary.ui.theme.Alphas
 import com.example.mybookslibrary.ui.theme.Dimens
 import com.example.mybookslibrary.ui.theme.MyBooksLibraryTheme
 
@@ -45,7 +46,7 @@ fun ErrorState(
             Lucide.TriangleAlert,
             contentDescription = null,
             modifier = Modifier.size(48.dp),
-            tint = MaterialTheme.colorScheme.error.copy(alpha = 0.7f),
+            tint = MaterialTheme.colorScheme.error.copy(alpha = Alphas.EmphasisHigh),
         )
         Spacer(Modifier.height(Dimens.SpacingLg))
         Text(

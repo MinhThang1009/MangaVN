@@ -46,6 +46,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.mybookslibrary.R
 import com.example.mybookslibrary.domain.model.ReadingMode
+import com.example.mybookslibrary.ui.theme.Alphas
 import com.example.mybookslibrary.ui.theme.Dimens
 import com.example.mybookslibrary.ui.theme.MyBooksLibraryTheme
 import com.example.mybookslibrary.ui.util.appString
@@ -76,7 +77,7 @@ internal fun readerBarColors(
             container = colorScheme.background,
             content = colorScheme.onBackground,
             secondaryContent = colorScheme.onSurfaceVariant,
-            controlContainer = colorScheme.onBackground.copy(alpha = 0.08f),
+            controlContainer = colorScheme.onBackground.copy(alpha = Alphas.ContainerFaint),
         )
     }
 
@@ -84,7 +85,7 @@ internal fun readerBarColors(
         container = colorScheme.surface.copy(alpha = DARK_READER_BAR_CONTAINER_ALPHA),
         content = colorScheme.onSurface,
         secondaryContent = colorScheme.onSurfaceVariant,
-        controlContainer = colorScheme.onSurface.copy(alpha = 0.12f),
+        controlContainer = colorScheme.onSurface.copy(alpha = Alphas.ContainerSelected),
     )
 }
 

@@ -35,6 +35,7 @@ import com.example.mybookslibrary.data.local.LibraryItemEntity
 import com.example.mybookslibrary.domain.model.MangaModel
 import com.example.mybookslibrary.ui.screens.components.MangaCoverCard
 import com.example.mybookslibrary.ui.screens.components.SectionHeader
+import com.example.mybookslibrary.ui.theme.Alphas
 import com.example.mybookslibrary.ui.theme.Dimens
 import com.example.mybookslibrary.ui.util.adaptiveGridColumns
 import com.example.mybookslibrary.ui.util.appString
@@ -173,7 +174,7 @@ private fun SpotlightCard(manga: MangaModel, onClick: () -> Unit, modifier: Modi
                     .fillMaxSize()
                     .background(
                         Brush.verticalGradient(
-                            listOf(Color.Transparent, Color.Black.copy(alpha = 0.82f)),
+                            listOf(Color.Transparent, Color.Black.copy(alpha = Alphas.Scrim)),
                             startY = 300f,
                         ),
                     ),

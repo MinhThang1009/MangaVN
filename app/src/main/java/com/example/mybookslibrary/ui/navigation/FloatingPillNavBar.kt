@@ -46,8 +46,10 @@ import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
 import com.example.mybookslibrary.ui.screens.onboarding.CoachMarkState
+import com.example.mybookslibrary.ui.theme.Alphas
 import com.example.mybookslibrary.ui.theme.Dimens
 import com.example.mybookslibrary.ui.util.appString
+import com.example.mybookslibrary.ui.util.rememberAppHaptic
 
 @Composable
 internal fun FloatingPillNavBar(
@@ -178,8 +180,9 @@ private fun PillNavItem(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val haptic = rememberAppHaptic()
     val bgColor by animateColorAsState(
-        if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f) else Color.Transparent,
+        if (selected) MaterialTheme.colorScheme.primary.copy(alpha = Alphas.ContainerSelected) else Color.Transparent,
         label = "pillBg",
     )
     val tintColor by animateColorAsState(
@@ -201,7 +204,10 @@ private fun PillNavItem(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
                     role = Role.Tab,
-                    onClick = onClick,
+                    onClick = {
+                        haptic.confirm()
+                        onClick()
+                    },
                 )
                 .padding(horizontal = horizontalPad, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -230,8 +236,9 @@ private fun RailNavItem(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val haptic = rememberAppHaptic()
     val bgColor by animateColorAsState(
-        if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f) else Color.Transparent,
+        if (selected) MaterialTheme.colorScheme.primary.copy(alpha = Alphas.ContainerSelected) else Color.Transparent,
         label = "railBg",
     )
     val tintColor by animateColorAsState(
@@ -248,7 +255,10 @@ private fun RailNavItem(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
                     role = Role.Tab,
-                    onClick = onClick,
+                    onClick = {
+                        haptic.confirm()
+                        onClick()
+                    },
                 )
                 .padding(horizontal = 16.dp, vertical = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally,

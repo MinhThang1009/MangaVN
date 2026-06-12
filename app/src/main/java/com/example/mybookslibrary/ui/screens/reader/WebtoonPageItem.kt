@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import com.example.mybookslibrary.R
+import com.example.mybookslibrary.ui.theme.Alphas
 import com.example.mybookslibrary.ui.theme.MyBooksLibraryTheme
 import com.example.mybookslibrary.ui.util.appString
 import timber.log.Timber
@@ -141,7 +142,7 @@ fun WebtoonPageItem(
                 modifier =
                     Modifier
                         .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.7f))
+                        .background(Color.Black.copy(alpha = Alphas.EmphasisHigh))
                         .combinedClickable(
                             onClick = retryPageLoad,
                             onLongClick = {
@@ -155,14 +156,14 @@ fun WebtoonPageItem(
                     Icon(
                         imageVector = Lucide.ImageOff,
                         contentDescription = null,
-                        tint = Color.White.copy(alpha = 0.7f),
+                        tint = Color.White.copy(alpha = Alphas.EmphasisHigh),
                         modifier = Modifier.size(48.dp),
                     )
                     Spacer(Modifier.height(12.dp))
                     Text(
                         text = appString(R.string.reader_loading_failed),
                         style = MaterialTheme.typography.bodyMedium,
-                        color = Color.White.copy(alpha = 0.6f),
+                        color = Color.White.copy(alpha = Alphas.EmphasisMedium),
                     )
                     Spacer(Modifier.height(4.dp))
                     Button(onClick = retryPageLoad) {

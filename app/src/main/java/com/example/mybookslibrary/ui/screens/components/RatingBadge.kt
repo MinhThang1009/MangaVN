@@ -18,6 +18,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Star
+import com.example.mybookslibrary.ui.theme.Alphas
 import com.example.mybookslibrary.ui.theme.Dimens
 import com.example.mybookslibrary.ui.theme.MyBooksLibraryTheme
 
@@ -33,7 +34,7 @@ fun RatingBadge(
         modifier =
             modifier
                 .background(
-                    MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.85f),
+                    MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = Alphas.EmphasisVeryHigh),
                     MaterialTheme.shapes.small,
                 )
                 .padding(horizontal = Dimens.SpacingSm, vertical = Dimens.SpacingXs),

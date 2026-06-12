@@ -39,6 +39,7 @@ import com.example.mybookslibrary.R
 import com.example.mybookslibrary.domain.model.ChapterWithProgressModel
 import com.example.mybookslibrary.ui.screens.components.AppButton
 import com.example.mybookslibrary.ui.screens.components.AppButtonStyle
+import com.example.mybookslibrary.ui.theme.Alphas
 import com.example.mybookslibrary.ui.theme.CoverShape
 import com.example.mybookslibrary.ui.theme.Dimens
 import com.example.mybookslibrary.ui.util.appString
@@ -61,7 +62,7 @@ internal fun MangaDetailBackdrop(mangaId: String, coverUrl: String?) {
                         Brush.verticalGradient(
                             colors =
                                 listOf(
-                                    MaterialTheme.colorScheme.background.copy(alpha = 0.3f),
+                                    MaterialTheme.colorScheme.background.copy(alpha = Alphas.EmphasisFaint),
                                     MaterialTheme.colorScheme.background,
                                 ),
                             startY = 120f,
@@ -105,7 +106,7 @@ internal fun MangaDetailHeader(mangaId: String, title: String, coverUrl: String?
                             modifier =
                                 Modifier
                                     .background(
-                                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
+                                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = Alphas.EmphasisMedium),
                                         MaterialTheme.shapes.extraLarge,
                                     )
                                     .padding(
@@ -182,7 +183,7 @@ internal fun DetailBackButton(onBackClick: () -> Unit, modifier: Modifier = Modi
                 Modifier
                     .size(40.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.7f)),
+                    .background(MaterialTheme.colorScheme.surface.copy(alpha = Alphas.EmphasisHigh)),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
@@ -206,7 +207,7 @@ internal fun DetailShareButton(onShareClick: () -> Unit, modifier: Modifier = Mo
                 Modifier
                     .size(40.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.7f)),
+                    .background(MaterialTheme.colorScheme.surface.copy(alpha = Alphas.EmphasisHigh)),
             contentAlignment = Alignment.Center,
         ) {
             Icon(

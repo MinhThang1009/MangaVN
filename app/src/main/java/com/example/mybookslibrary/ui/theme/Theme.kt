@@ -6,6 +6,9 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.graphics.Color
 
 // Scheme "Cinema" (refactor-ui-ux.md §3.1 + §7): dark là gốc — tách lớp bằng
 // 4 bậc surface container, TẮT surfaceTint (= surface, tránh ám tím M3);
@@ -89,13 +92,35 @@ private val CinemaLightScheme =
         surfaceContainerLowest = CinemaLightSurface,
     )
 
+/**
+ * Màu semantic ngoài chuẩn M3 (success/warning) — theme tự chọn biến thể light/dark,
+ * screens KHÔNG tự branch (trước đây StatusChip so sánh background để đoán dark mode).
+ */
+@Immutable
+data class StatusColors(
+    val success: Color,
+    val warning: Color,
+)
+
+private val LightStatusColors = StatusColors(success = CinemaSuccess, warning = CinemaWarning)
+private val DarkStatusColors = StatusColors(success = CinemaDarkSuccess, warning = CinemaDarkWarning)
+
+val LocalStatusColors = staticCompositionLocalOf { LightStatusColors }
+
+/** Truy cập StatusColors theo theme hiện hành — dùng như MaterialTheme.colorScheme */
+val MaterialTheme.statusColors: StatusColors
+    @Composable get() = LocalStatusColors.current
+
 @Composable
 fun MyBooksLibraryTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit,
 ) {
     val colorScheme = if (darkTheme) CinemaDarkScheme else CinemaLightScheme
-    CompositionLocalProvider(LocalReducedMotion provides rememberReducedMotion()) {
+    CompositionLocalProvider(
+        LocalReducedMotion provides rememberReducedMotion(),
+        LocalStatusColors provides if (darkTheme) DarkStatusColors else LightStatusColors,
+    ) {
         // MotionScheme.expressive() còn INTERNAL trong material3 1.4.0 (BOM 2026.05.01,
         // compiler xác nhận 2026-06-11) — dùng motion mặc định M3, KHÔNG tự chế curve.
         // Quyết bump material3 1.5+ (expressive public) tại GATE 1 — xem refactor-ui-ux.md §6.

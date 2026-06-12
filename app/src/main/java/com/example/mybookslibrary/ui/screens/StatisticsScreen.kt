@@ -44,6 +44,7 @@ import com.composables.icons.lucide.ArrowLeft
 import com.composables.icons.lucide.Lucide
 import com.example.mybookslibrary.R
 import com.example.mybookslibrary.ui.screens.components.SectionHeader
+import com.example.mybookslibrary.ui.theme.Alphas
 import com.example.mybookslibrary.ui.theme.Dimens
 import com.example.mybookslibrary.ui.util.appString
 import com.example.mybookslibrary.ui.util.isLandscape
@@ -165,7 +166,7 @@ private fun SummaryCard(value: String, label: String, modifier: Modifier = Modif
 @Composable
 private fun WeeklyColumnChart(activity: List<Int>) {
     val primary = MaterialTheme.colorScheme.primary
-    val primaryLight = primary.copy(alpha = 0.3f)
+    val primaryLight = primary.copy(alpha = Alphas.EmphasisFaint)
     val labels = remember { weekDayLabels() }
 
     val barsData = remember(activity) {

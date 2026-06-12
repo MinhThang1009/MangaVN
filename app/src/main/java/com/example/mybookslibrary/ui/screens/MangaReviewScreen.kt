@@ -35,6 +35,7 @@ import com.composables.icons.lucide.ArrowLeft
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Star
 import com.example.mybookslibrary.R
+import com.example.mybookslibrary.ui.theme.Alphas
 import com.example.mybookslibrary.ui.theme.Dimens
 import com.example.mybookslibrary.ui.util.appString
 
@@ -180,7 +181,8 @@ fun MangaReviewScreen(onBackClick: () -> Unit) {
                                             if (index < 3) {
                                                 MaterialTheme.colorScheme.tertiary
                                             } else {
-                                                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
+                                                MaterialTheme.colorScheme.onSurfaceVariant
+                                                    .copy(alpha = Alphas.EmphasisFaint)
                                             },
                                         modifier = Modifier.size(14.dp),
                                     )

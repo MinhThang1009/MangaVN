@@ -15,13 +15,10 @@ import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.mybookslibrary.R
 import com.example.mybookslibrary.data.local.LibraryStatus
-import com.example.mybookslibrary.ui.theme.CinemaDarkBackground
-import com.example.mybookslibrary.ui.theme.CinemaDarkSuccess
-import com.example.mybookslibrary.ui.theme.CinemaDarkWarning
-import com.example.mybookslibrary.ui.theme.CinemaSuccess
-import com.example.mybookslibrary.ui.theme.CinemaWarning
+import com.example.mybookslibrary.ui.theme.Alphas
 import com.example.mybookslibrary.ui.theme.Dimens
 import com.example.mybookslibrary.ui.theme.MyBooksLibraryTheme
+import com.example.mybookslibrary.ui.theme.statusColors
 import com.example.mybookslibrary.ui.util.appString
 
 /**
@@ -33,7 +30,6 @@ fun StatusChip(
     status: LibraryStatus,
     modifier: Modifier = Modifier,
 ) {
-    val isDark = MaterialTheme.colorScheme.background == CinemaDarkBackground
     val label =
         when (status) {
             LibraryStatus.READING -> appString(R.string.status_reading)
@@ -43,13 +39,13 @@ fun StatusChip(
     val color =
         when (status) {
             LibraryStatus.READING -> MaterialTheme.colorScheme.tertiary
-            LibraryStatus.COMPLETED -> if (isDark) CinemaDarkSuccess else CinemaSuccess
-            LibraryStatus.FAVORITE -> if (isDark) CinemaDarkWarning else CinemaWarning
+            LibraryStatus.COMPLETED -> MaterialTheme.statusColors.success
+            LibraryStatus.FAVORITE -> MaterialTheme.statusColors.warning
         }
     Box(
         modifier =
             modifier
-                .background(color.copy(alpha = 0.1f), CircleShape)
+                .background(color.copy(alpha = Alphas.ContainerTint), CircleShape)
                 .padding(horizontal = Dimens.SpacingSm + Dimens.SpacingXs, vertical = Dimens.SpacingXs),
     ) {
         Text(label, style = MaterialTheme.typography.labelMedium, color = color)

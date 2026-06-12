@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import com.example.mybookslibrary.R
 import com.example.mybookslibrary.ui.screens.components.AppButton
 import com.example.mybookslibrary.ui.screens.components.AppButtonStyle
+import com.example.mybookslibrary.ui.theme.Alphas
 import com.example.mybookslibrary.ui.theme.Dimens
 import com.example.mybookslibrary.ui.util.appString
 
@@ -153,7 +154,7 @@ fun CoachMarkOverlay(
                     Text(
                         appString(s.bodyRes),
                         style = MaterialTheme.typography.bodyMedium,
-                        color = Color.White.copy(alpha = 0.85f),
+                        color = Color.White.copy(alpha = Alphas.EmphasisVeryHigh),
                         textAlign = TextAlign.Center,
                     )
                 }
@@ -163,7 +164,7 @@ fun CoachMarkOverlay(
             Text(
                 appString(R.string.tour_step_counter, currentStep + 1, steps.size),
                 style = MaterialTheme.typography.labelSmall,
-                color = Color.White.copy(alpha = 0.5f),
+                color = Color.White.copy(alpha = Alphas.EmphasisMuted),
             )
             Spacer(Modifier.height(Dimens.SpacingMd))
             Row(
