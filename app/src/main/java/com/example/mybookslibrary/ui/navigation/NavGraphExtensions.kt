@@ -168,7 +168,16 @@ internal fun NavGraphBuilder.readerGraph(navController: NavHostController) {
             ) + fadeOut(animationSpec = navTween())
         },
     ) {
-        ReaderScreen(onBackClick = { navController.popBackStack() })
+        ReaderScreen(
+            onBackClick = { navController.popBackStack() },
+            onNavigateToChapter = { mangaId, chapterId, chapterTitle ->
+                navController.navigate(
+                    Reader(mangaId, chapterId, chapterTitle, startPageIndex = 0),
+                ) {
+                    popUpTo<Reader> { inclusive = true }
+                }
+            },
+        )
     }
 }
 

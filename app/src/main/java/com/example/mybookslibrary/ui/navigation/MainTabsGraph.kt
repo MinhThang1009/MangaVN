@@ -32,9 +32,9 @@ private fun NavGraphBuilder.discoverTab(navController: NavHostController) {
             DiscoverScreen(
                 onMangaClick = { manga -> navController.navigateToDetail(manga) },
                 onSearchClick = { navController.navigateToBottomTab(Search) },
-                onLibraryClick = { navController.navigateToBottomTab(Library) },
                 onProfileClick = { navController.navigateToBottomTab(Profile) },
                 onReadingHistoryClick = { navController.navigate(ReadingHistory) },
+                onDownloadsClick = { navController.navigate(Downloads) },
                 onSettingsClick = { navController.navigate(Setting) },
             )
         }

@@ -47,7 +47,7 @@ class AppDatabaseMigrationTest {
                 query("SELECT * FROM chapter_progress LIMIT 1").close()
                 query("SELECT * FROM download_queue LIMIT 1").close()
                 query("SELECT * FROM chapter_metadata LIMIT 1").close()
-                // Cột mới từ migration 5→6
+                // Cột mới từ migration 1→2
                 query("SELECT is_favorite FROM library_items LIMIT 1").close()
             }
         } finally {
@@ -56,12 +56,12 @@ class AppDatabaseMigrationTest {
     }
 
     /**
-     * Test path migration 5→6 thật trên schema v5 tạo tay (không qua MigrationTestHelper
-     * vì Room 2.8.4 bug — xem KDoc test trên): tạo bảng library_items v5, insert row,
-     * chạy migration5To6, verify cột is_favorite tồn tại với DEFAULT 0 và data cũ còn nguyên.
+     * Test path migration 1→2 thật trên schema v1 tạo tay (không qua MigrationTestHelper
+     * vì Room 2.8.4 bug — xem KDoc test trên): tạo bảng library_items v1, insert row,
+     * chạy migration1To2, verify cột is_favorite tồn tại với DEFAULT 0 và data cũ còn nguyên.
      */
     @Test
-    fun migrate5To6_themCotIsFavorite_giuNguyenDataCu() {
+    fun migrate1To2_themCotIsFavorite_giuNguyenDataCu() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         context.deleteDatabase(TEST_DB)
         val config =
@@ -69,9 +69,9 @@ class AppDatabaseMigrationTest {
                 .builder(context)
                 .name(TEST_DB)
                 .callback(
-                    object : SupportSQLiteOpenHelper.Callback(version = 5) {
+                    object : SupportSQLiteOpenHelper.Callback(version = 1) {
                         override fun onCreate(db: SupportSQLiteDatabase) {
-                            // Schema library_items ở v5 (trước khi có is_favorite) — khớp 5.json
+                            // Schema library_items ở v1 (trước khi có is_favorite)
                             db.execSQL(
                                 """
                                 CREATE TABLE IF NOT EXISTS `library_items` (
@@ -82,6 +82,7 @@ class AppDatabaseMigrationTest {
                                     `last_read_chapter_id` TEXT,
                                     `last_read_page_index` INTEGER NOT NULL,
                                     `updated_at` INTEGER NOT NULL,
+                                    `sync_status` TEXT NOT NULL DEFAULT 'SYNCED',
                                     PRIMARY KEY(`manga_id`)
                                 )
                                 """.trimIndent(),
@@ -104,10 +105,10 @@ class AppDatabaseMigrationTest {
         FrameworkSQLiteOpenHelperFactory().create(config).use { helper ->
             val db = helper.writableDatabase
 
-            AppDatabase.migration5To6.migrate(db)
+            AppDatabase.migration1To2.migrate(db)
 
             db.query("SELECT is_favorite, title FROM library_items WHERE manga_id = 'm1'").use { cursor ->
-                assertTrue("Data bị mất sau migration 5→6", cursor.moveToFirst())
+                assertTrue("Data bị mất sau migration 1→2", cursor.moveToFirst())
                 assertEquals(0, cursor.getInt(0)) // DEFAULT 0 cho row có sẵn
                 assertEquals("Naruto", cursor.getString(1))
             }

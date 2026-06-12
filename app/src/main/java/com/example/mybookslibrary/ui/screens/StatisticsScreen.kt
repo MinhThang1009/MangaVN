@@ -53,6 +53,7 @@ import com.example.mybookslibrary.data.local.dao.TopMangaCount
 import com.example.mybookslibrary.ui.screens.components.EmptyState
 import com.example.mybookslibrary.ui.screens.components.SectionHeader
 import com.example.mybookslibrary.ui.theme.Dimens
+import com.example.mybookslibrary.ui.theme.statusColors
 import com.example.mybookslibrary.ui.util.appString
 import com.example.mybookslibrary.ui.util.isLandscape
 import com.example.mybookslibrary.ui.viewmodel.StatisticsViewModel
@@ -66,13 +67,16 @@ import ir.ehsannarmani.compose_charts.models.DotProperties
 import ir.ehsannarmani.compose_charts.models.DrawStyle
 import ir.ehsannarmani.compose_charts.models.GridProperties
 import ir.ehsannarmani.compose_charts.models.HorizontalIndicatorProperties
+import ir.ehsannarmani.compose_charts.models.IndicatorCount
 import ir.ehsannarmani.compose_charts.models.LabelHelperProperties
 import ir.ehsannarmani.compose_charts.models.LabelProperties
 import ir.ehsannarmani.compose_charts.models.Line
 import ir.ehsannarmani.compose_charts.models.VerticalIndicatorProperties
 import ir.ehsannarmani.compose_charts.models.Pie
-import java.util.Calendar
+import java.time.LocalDate
+import java.time.format.TextStyle
 import java.util.Locale
+import kotlin.math.roundToInt
 
 @Suppress("LongMethod")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -116,12 +120,16 @@ fun StatisticsScreen(
                     inProgress = state.inProgressChapters,
                 )
             }
-            val hasActivity = state.weeklyActivity.any { it > 0 }
+            val hasWeeklyData = state.weeklyActivity.any { it > 0 }
+            val hasMonthlyData = state.monthlyTrend.any { it > 0 }
+            val hasActivity = hasWeeklyData || hasMonthlyData
             val hasLibrary = state.readingCount + state.completedCount + state.favoriteCount > 0
 
-            if (hasActivity) {
+            if (hasWeeklyData) {
                 item { SectionHeader(title = appString(R.string.stats_weekly_activity)) }
                 item { WeeklyColumnChart(activity = state.weeklyActivity) }
+            }
+            if (hasMonthlyData) {
                 item { SectionHeader(title = appString(R.string.stats_monthly_trend)) }
                 item { MonthlyLineChart(trend = state.monthlyTrend) }
             }
@@ -187,7 +195,18 @@ private fun SummaryCard(value: String, label: String, modifier: Modifier = Modif
             modifier = Modifier.fillMaxWidth().padding(Dimens.SpacingLg),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Text(value, style = MaterialTheme.typography.headlineLarge, color = MaterialTheme.colorScheme.primary)
+            // Số ≥5 chữ số tràn card 1/3 màn hình ở headlineLarge → hạ cỡ chữ
+            val valueStyle = if (value.length > SUMMARY_VALUE_MAX_DIGITS) {
+                MaterialTheme.typography.headlineSmall
+            } else {
+                MaterialTheme.typography.headlineLarge
+            }
+            Text(
+                value,
+                style = valueStyle,
+                color = MaterialTheme.colorScheme.primary,
+                maxLines = 1,
+            )
             Spacer(Modifier.height(Dimens.SpacingXs))
             Text(
                 label,
@@ -202,7 +221,8 @@ private fun SummaryCard(value: String, label: String, modifier: Modifier = Modif
 @Composable
 private fun WeeklyColumnChart(activity: List<Int>) {
     val primary = MaterialTheme.colorScheme.primary
-    val labels = remember { weekDayLabels() }
+    val today = LocalDate.now()
+    val labels = remember(today) { weekDayLabels() }
     val seriesLabel = appString(R.string.stats_chapters_read)
 
     val barsData = remember(activity, seriesLabel) {
@@ -233,7 +253,7 @@ private fun WeeklyColumnChart(activity: List<Int>) {
             gridProperties = themedGridProperties(),
             labelProperties = themedLabelProperties(),
             labelHelperProperties = themedLabelHelperProperties(),
-            indicatorProperties = themedIndicatorProperties(),
+            indicatorProperties = themedIndicatorProperties(maxValue = activity.max()),
             animationSpec = spring(
                 dampingRatio = Spring.DampingRatioMediumBouncy,
                 stiffness = Spring.StiffnessLow,
@@ -288,7 +308,7 @@ private fun MonthlyLineChart(trend: List<Int>) {
                 labels = weekLabels,
             ),
             labelHelperProperties = themedLabelHelperProperties(),
-            indicatorProperties = themedIndicatorProperties(),
+            indicatorProperties = themedIndicatorProperties(maxValue = trend.max()),
         )
     }
 }
@@ -296,9 +316,11 @@ private fun MonthlyLineChart(trend: List<Int>) {
 @Composable
 private fun LibraryPieChart(reading: Int, completed: Int, favorite: Int) {
     val total = reading + completed + favorite
-    val primaryColor = MaterialTheme.colorScheme.primary
-    val secondaryColor = MaterialTheme.colorScheme.secondary
-    val tertiaryColor = MaterialTheme.colorScheme.tertiary
+    // Dùng cùng bảng màu với StatusChip để nhất quán toàn app:
+    // Đang đọc = tertiary, Hoàn thành = success, Yêu thích = favorite (đỏ)
+    val readingColor = MaterialTheme.colorScheme.tertiary
+    val completedColor = MaterialTheme.statusColors.success
+    val favoriteColor = MaterialTheme.statusColors.favorite
     val rl = appString(R.string.stats_reading)
     val cl = appString(R.string.stats_completed)
     val fl = appString(R.string.stats_favorite)
@@ -307,17 +329,17 @@ private fun LibraryPieChart(reading: Int, completed: Int, favorite: Int) {
         mutableStateOf(
             listOfNotNull(
                 if (reading > 0) {
-                    Pie(label = rl, data = reading.toDouble(), color = primaryColor, selectedColor = primaryColor)
+                    Pie(label = rl, data = reading.toDouble(), color = readingColor, selectedColor = readingColor)
                 } else {
                     null
                 },
                 if (completed > 0) {
-                    Pie(label = cl, data = completed.toDouble(), color = secondaryColor, selectedColor = secondaryColor)
+                    Pie(label = cl, data = completed.toDouble(), color = completedColor, selectedColor = completedColor)
                 } else {
                     null
                 },
                 if (favorite > 0) {
-                    Pie(label = fl, data = favorite.toDouble(), color = tertiaryColor, selectedColor = tertiaryColor)
+                    Pie(label = fl, data = favorite.toDouble(), color = favoriteColor, selectedColor = favoriteColor)
                 } else {
                     null
                 },
@@ -329,8 +351,9 @@ private fun LibraryPieChart(reading: Int, completed: Int, favorite: Int) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             if (total > 0) {
                 Box(contentAlignment = Alignment.Center) {
+                    val pieSize = if (isLandscape()) 140.dp else 180.dp
                     PieChart(
-                        modifier = Modifier.size(180.dp),
+                        modifier = Modifier.size(pieSize),
                         data = pieData,
                         onPieClick = { clicked ->
                             // Tap slice → popup label + số lượng giữa chart (tap lại để ẩn)
@@ -338,7 +361,8 @@ private fun LibraryPieChart(reading: Int, completed: Int, favorite: Int) {
                                 it.copy(selected = it.label == clicked.label && !it.selected)
                             }
                         },
-                        selectedScale = 1f,
+                        // Phóng nhẹ slice đang chọn để user nhận biết ngoài popup giữa chart
+                        selectedScale = 1.08f,
                         labelHelperProperties = LabelHelperProperties(enabled = false),
                         scaleAnimEnterSpec = spring(
                             dampingRatio = Spring.DampingRatioMediumBouncy,
@@ -362,9 +386,9 @@ private fun LibraryPieChart(reading: Int, completed: Int, favorite: Int) {
             }
             BreakdownLegend(
                 items = listOf(
-                    LegendItem(primaryColor, appString(R.string.stats_reading), reading),
-                    LegendItem(secondaryColor, appString(R.string.stats_completed), completed),
-                    LegendItem(tertiaryColor, appString(R.string.stats_favorite), favorite),
+                    LegendItem(readingColor, appString(R.string.stats_reading), reading),
+                    LegendItem(completedColor, appString(R.string.stats_completed), completed),
+                    LegendItem(favoriteColor, appString(R.string.stats_favorite), favorite),
                 ),
             )
         }
@@ -375,21 +399,26 @@ private fun LibraryPieChart(reading: Int, completed: Int, favorite: Int) {
 private fun TopMangaRowChart(items: List<TopMangaCount>) {
     val primaryColor = MaterialTheme.colorScheme.primary
 
-    val rowData = remember(items) {
-        items.map { manga ->
+    val rowData = remember(items, primaryColor) {
+        items.mapIndexed { index, manga ->
             Bars(
                 label = manga.title.ellipsize(MAX_TITLE_CHARS),
                 values = listOf(
                     Bars.Data(
                         value = manga.chapterCount.toDouble(),
-                        color = SolidColor(primaryColor),
+                        // Phân cấp theo rank: top 1 đậm nhất, giảm dần độ đậm
+                        color = SolidColor(
+                            primaryColor.copy(
+                                alpha = 1f - index * RANK_ALPHA_STEP,
+                            ),
+                        ),
                     ),
                 ),
             )
         }
     }
 
-    // Cao theo số truyện (56dp/hàng) + 48dp cho trục X để bar/label không bị bóp
+    // Cao theo số truyện + trục X — hàng gọn để bar không cách xa nhau
     val rowChartHeight = (items.size * ROW_HEIGHT_DP + AXIS_HEIGHT_DP).dp
     ChartCard {
         RowChart(
@@ -403,7 +432,9 @@ private fun TopMangaRowChart(items: List<TopMangaCount>) {
             gridProperties = themedGridProperties(),
             labelProperties = themedLabelProperties(),
             labelHelperProperties = LabelHelperProperties(enabled = false),
-            indicatorProperties = themedVerticalIndicatorProperties(),
+            indicatorProperties = themedVerticalIndicatorProperties(
+                maxValue = items.maxOf { it.chapterCount },
+            ),
             animationSpec = spring(
                 dampingRatio = Spring.DampingRatioMediumBouncy,
                 stiffness = Spring.StiffnessLow,
@@ -412,8 +443,32 @@ private fun TopMangaRowChart(items: List<TopMangaCount>) {
     }
 }
 
-private fun String.ellipsize(maxChars: Int): String =
-    if (length <= maxChars) this else take(maxChars - 1) + "…"
+/**
+ * Cắt title theo độ rộng ước lượng thay vì số ký tự thuần:
+ * ký tự CJK (kanji/kana/hangul) rộng ~gấp đôi latin nên tính 2 đơn vị.
+ * Tránh title tiếng Nhật/Trung bị clip trong label area của RowChart.
+ */
+private fun String.ellipsize(maxWidthUnits: Int): String {
+    var width = 0
+    forEachIndexed { index, char ->
+        width += if (char.isCjk()) 2 else 1
+        if (width > maxWidthUnits) {
+            return take(index).trimEnd() + "…"
+        }
+    }
+    return this
+}
+
+private fun Char.isCjk(): Boolean {
+    val block = Character.UnicodeBlock.of(this) ?: return false
+    return block == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS ||
+        block == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS_EXTENSION_A ||
+        block == Character.UnicodeBlock.CJK_SYMBOLS_AND_PUNCTUATION ||
+        block == Character.UnicodeBlock.HIRAGANA ||
+        block == Character.UnicodeBlock.KATAKANA ||
+        block == Character.UnicodeBlock.HANGUL_SYLLABLES ||
+        block == Character.UnicodeBlock.HALFWIDTH_AND_FULLWIDTH_FORMS
+}
 
 @Composable
 private fun ChartCard(content: @Composable () -> Unit) {
@@ -453,14 +508,10 @@ private fun BreakdownLegend(items: List<LegendItem>) {
 }
 
 private fun weekDayLabels(): List<String> {
-    val cal = Calendar.getInstance()
-    val today = cal.get(Calendar.DAY_OF_WEEK)
+    val today = LocalDate.now()
     return (0 until DAYS_IN_WEEK).map { offset ->
-        cal.set(
-            Calendar.DAY_OF_WEEK,
-            ((today - DAYS_IN_WEEK + 1 + offset + Calendar.SATURDAY) % DAYS_IN_WEEK) + 1,
-        )
-        cal.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.SHORT, Locale.getDefault()) ?: ""
+        val day = today.minusDays((DAYS_IN_WEEK - 1 - offset).toLong())
+        day.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
     }
 }
 
@@ -489,23 +540,46 @@ private fun themedLabelHelperProperties(): LabelHelperProperties {
     return LabelHelperProperties(enabled = true, textStyle = style)
 }
 
+/**
+ * Số tick sao cho mọi tick là số nguyên: max nhỏ (<4) thì mỗi bậc 1 tick,
+ * tránh tick lẻ (0.25, 0.5…) bị toInt() cắt thành nhiều số 0 trùng nhau.
+ */
+private fun integerIndicatorCount(maxValue: Int): IndicatorCount =
+    IndicatorCount.CountBased(count = minOf(maxValue, DEFAULT_INDICATOR_STEPS) + 1)
+
 @Composable
-private fun themedIndicatorProperties(): HorizontalIndicatorProperties {
+private fun themedIndicatorProperties(maxValue: Int): HorizontalIndicatorProperties {
     val style = MaterialTheme.typography.labelSmall.copy(
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
-    return HorizontalIndicatorProperties(enabled = true, textStyle = style)
+    // Số chương luôn nguyên — không hiện tick thập phân
+    return HorizontalIndicatorProperties(
+        enabled = true,
+        textStyle = style,
+        count = integerIndicatorCount(maxValue),
+        contentBuilder = { value -> value.roundToInt().toString() },
+    )
 }
 
 @Composable
-private fun themedVerticalIndicatorProperties(): VerticalIndicatorProperties {
+private fun themedVerticalIndicatorProperties(maxValue: Int): VerticalIndicatorProperties {
     val style = MaterialTheme.typography.labelSmall.copy(
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
-    return VerticalIndicatorProperties(enabled = true, textStyle = style)
+    return VerticalIndicatorProperties(
+        enabled = true,
+        textStyle = style,
+        count = integerIndicatorCount(maxValue),
+        contentBuilder = { value -> value.roundToInt().toString() },
+    )
 }
 
 private const val DAYS_IN_WEEK = 7
-private const val MAX_TITLE_CHARS = 12
-private const val ROW_HEIGHT_DP = 56
+private const val MAX_TITLE_CHARS = 20
+private const val SUMMARY_VALUE_MAX_DIGITS = 4
+private const val DEFAULT_INDICATOR_STEPS = 4
+private const val ROW_HEIGHT_DP = 36
 private const val AXIS_HEIGHT_DP = 48
+
+/** Mỗi bậc rank giảm 15% độ đậm — top 1 đậm nhất (alpha 1.0 → 0.4 cho hạng 5). */
+private const val RANK_ALPHA_STEP = 0.15f

@@ -10,9 +10,11 @@ data class FirestoreLibraryItem(
     val title: String = "",
     val coverUrl: String? = null,
     val status: String = "READING",
+    val isFavorite: Boolean = false,
     val addedAt: Long = 0,
     val lastReadAt: Long? = null,
     val lastChapterId: String? = null,
+    val lastReadPageIndex: Int = 0,
     val updatedAt: Long = 0,
     @ServerTimestamp
     val serverUpdatedAt: Date? = null

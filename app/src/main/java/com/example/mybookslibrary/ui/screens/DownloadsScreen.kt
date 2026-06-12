@@ -83,7 +83,7 @@ fun DownloadsScreen(
                 items(chapters, key = { it.chapter_id }) { chapter ->
                     DownloadedChapterCard(
                         chapter = chapter,
-                        onDelete = { vm.deleteDownload(chapter.chapter_id) },
+                        onDelete = { vm.deleteDownload(chapter.manga_id, chapter.chapter_id) },
                     )
                 }
             }
