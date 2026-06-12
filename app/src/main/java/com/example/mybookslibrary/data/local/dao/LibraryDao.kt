@@ -41,19 +41,34 @@ interface LibraryDao {
     ): Int
 
     /**
-     * Bật/tắt yêu thích cho một manga. Không dùng upsert REPLACE (tránh cascade-delete
-     * chapter_progress) và không bump updated_at (yêu thích không phải hành vi đọc).
+     * Bật/tắt yêu thích cho một manga. Bump updated_at + sync_status để Firestore sync bắt được.
      *
      * @return số row được update — 0 nghĩa là manga chưa có trong thư viện.
      */
-    @Query("UPDATE library_items SET is_favorite = :isFavorite WHERE manga_id = :mangaId")
+    @Query(
+        """
+        UPDATE library_items
+        SET is_favorite = :isFavorite,
+            sync_status = 'PENDING_UPDATE',
+            updated_at = :updatedAt
+        WHERE manga_id = :mangaId
+        """,
+    )
     suspend fun updateFavorite(
         mangaId: String,
         isFavorite: Boolean,
+        updatedAt: Long,
     ): Int
 
     /** Cập nhật trạng thái đọc (READING/COMPLETED) — dùng cho auto-set khi đọc hết truyện. */
-    @Query("UPDATE library_items SET status = :status WHERE manga_id = :mangaId")
+    @Query(
+        """
+        UPDATE library_items
+        SET status = :status,
+            sync_status = 'PENDING_UPDATE'
+        WHERE manga_id = :mangaId
+        """,
+    )
     suspend fun updateStatus(
         mangaId: String,
         status: LibraryStatus,
@@ -114,8 +129,14 @@ interface LibraryDao {
     @Query("SELECT * FROM library_items WHERE sync_status IN ('PENDING_UPDATE', 'PENDING_DELETE')")
     suspend fun getPendingSyncItems(): List<LibraryItemEntity>
 
-    @Query("UPDATE library_items SET sync_status = 'SYNCED' WHERE manga_id = :mangaId")
-    suspend fun markSynced(mangaId: String)
+    @Query(
+        """
+        UPDATE library_items
+        SET sync_status = 'SYNCED'
+        WHERE manga_id = :mangaId AND updated_at = :updatedAt
+        """,
+    )
+    suspend fun markSynced(mangaId: String, updatedAt: Long)
 
     @Query("DELETE FROM library_items")
     suspend fun deleteAll()

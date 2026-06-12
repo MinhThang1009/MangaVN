@@ -12,8 +12,8 @@ import com.example.mybookslibrary.data.local.dao.DownloadQueueDao
 import com.example.mybookslibrary.data.local.dao.LibraryDao
 
 @Suppress("UnusedPrivateProperty")
-private const val PREVIOUS_DATABASE_VERSION = 6
-private const val CURRENT_DATABASE_VERSION = 2
+private const val PREVIOUS_DATABASE_VERSION = 2
+private const val CURRENT_DATABASE_VERSION = 3
 
 @Database(
     entities = [
@@ -52,7 +52,7 @@ abstract class AppDatabase : RoomDatabase() {
                             AppDatabase::class.java,
                             "mybooks_library.db",
                         )
-                        .addMigrations(migration5To1, migration1To2, migration6To2)
+                        .addMigrations(migration5To1, migration1To2, migration6To2, migration2To3)
                         .fallbackToDestructiveMigration()
                         .fallbackToDestructiveMigrationOnDowngrade()
                         .build()
@@ -88,6 +88,19 @@ abstract class AppDatabase : RoomDatabase() {
                 override fun migrate(db: SupportSQLiteDatabase) {
                     db.execSQL(
                         "ALTER TABLE `library_items` ADD COLUMN `is_favorite` INTEGER NOT NULL DEFAULT 0"
+                    )
+                }
+            }
+
+        @Suppress("MagicNumber")
+        val migration2To3 =
+            object : Migration(2, 3) {
+                override fun migrate(db: SupportSQLiteDatabase) {
+                    db.execSQL(
+                        "ALTER TABLE `library_items` ADD COLUMN `added_at` INTEGER NOT NULL DEFAULT 0"
+                    )
+                    db.execSQL(
+                        "UPDATE `library_items` SET `added_at` = `updated_at` WHERE `added_at` = 0"
                     )
                 }
             }
