@@ -233,7 +233,7 @@ private fun LibraryItemCard(
                         Icon(
                             Lucide.Heart,
                             contentDescription = appString(R.string.status_favorite),
-                            tint = MaterialTheme.statusColors.warning,
+                            tint = MaterialTheme.statusColors.favorite,
                             modifier = Modifier.size(Dimens.IconSm),
                         )
                     }

@@ -1,8 +1,13 @@
 package com.example.mybookslibrary.data.local
 
 import androidx.room.Room
+import androidx.sqlite.db.SupportSQLiteDatabase
+import androidx.sqlite.db.SupportSQLiteOpenHelper
+import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -49,6 +54,66 @@ class AppDatabaseMigrationTest {
         } finally {
             db.close()
         }
+    }
+
+    /**
+     * Test path migration 5→6 thật trên schema v5 tạo tay (không qua MigrationTestHelper
+     * vì Room 2.8.4 bug — xem KDoc test trên): tạo bảng library_items v5, insert row,
+     * chạy migration5To6, verify cột is_favorite tồn tại với DEFAULT 0 và data cũ còn nguyên.
+     */
+    @Test
+    fun migrate5To6_themCotIsFavorite_giuNguyenDataCu() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        context.deleteDatabase(TEST_DB)
+        val config =
+            SupportSQLiteOpenHelper.Configuration
+                .builder(context)
+                .name(TEST_DB)
+                .callback(
+                    object : SupportSQLiteOpenHelper.Callback(version = 5) {
+                        override fun onCreate(db: SupportSQLiteDatabase) {
+                            // Schema library_items ở v5 (trước khi có is_favorite) — khớp 5.json
+                            db.execSQL(
+                                """
+                                CREATE TABLE IF NOT EXISTS `library_items` (
+                                    `manga_id` TEXT NOT NULL,
+                                    `title` TEXT NOT NULL,
+                                    `cover_url` TEXT NOT NULL,
+                                    `status` TEXT NOT NULL,
+                                    `last_read_chapter_id` TEXT,
+                                    `last_read_page_index` INTEGER NOT NULL,
+                                    `updated_at` INTEGER NOT NULL,
+                                    PRIMARY KEY(`manga_id`)
+                                )
+                                """.trimIndent(),
+                            )
+                            db.execSQL(
+                                "INSERT INTO library_items " +
+                                    "(manga_id, title, cover_url, status, last_read_page_index, updated_at) " +
+                                    "VALUES ('m1', 'Naruto', '', 'READING', 0, 1)",
+                            )
+                        }
+
+                        override fun onUpgrade(
+                            db: SupportSQLiteDatabase,
+                            oldVersion: Int,
+                            newVersion: Int,
+                        ) = Unit
+                    },
+                ).build()
+
+        FrameworkSQLiteOpenHelperFactory().create(config).use { helper ->
+            val db = helper.writableDatabase
+
+            AppDatabase.migration5To6.migrate(db)
+
+            db.query("SELECT is_favorite, title FROM library_items WHERE manga_id = 'm1'").use { cursor ->
+                assertTrue("Data bị mất sau migration 5→6", cursor.moveToFirst())
+                assertEquals(0, cursor.getInt(0)) // DEFAULT 0 cho row có sẵn
+                assertEquals("Naruto", cursor.getString(1))
+            }
+        }
+        context.deleteDatabase(TEST_DB)
     }
 
     // Template cho migration v3 → v4.

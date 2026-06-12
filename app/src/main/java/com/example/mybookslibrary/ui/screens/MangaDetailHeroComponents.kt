@@ -251,7 +251,7 @@ internal fun DetailFavoriteButton(
                 // Cùng màu semantic với StatusChip FAVORITE
                 tint =
                     if (isFavorite) {
-                        MaterialTheme.statusColors.warning
+                        MaterialTheme.statusColors.favorite
                     } else {
                         MaterialTheme.colorScheme.onSurface
                     },

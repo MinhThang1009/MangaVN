@@ -40,7 +40,7 @@ fun StatusChip(
         when (status) {
             LibraryStatus.READING -> MaterialTheme.colorScheme.tertiary
             LibraryStatus.COMPLETED -> MaterialTheme.statusColors.success
-            LibraryStatus.FAVORITE -> MaterialTheme.statusColors.warning
+            LibraryStatus.FAVORITE -> MaterialTheme.statusColors.favorite
         }
     Box(
         modifier =

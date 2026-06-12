@@ -100,10 +100,13 @@ private val CinemaLightScheme =
 data class StatusColors(
     val success: Color,
     val warning: Color,
+    val favorite: Color,
 )
 
-private val LightStatusColors = StatusColors(success = CinemaSuccess, warning = CinemaWarning)
-private val DarkStatusColors = StatusColors(success = CinemaDarkSuccess, warning = CinemaDarkWarning)
+private val LightStatusColors =
+    StatusColors(success = CinemaSuccess, warning = CinemaWarning, favorite = CinemaFavorite)
+private val DarkStatusColors =
+    StatusColors(success = CinemaDarkSuccess, warning = CinemaDarkWarning, favorite = CinemaDarkFavorite)
 
 val LocalStatusColors = staticCompositionLocalOf { LightStatusColors }
 
