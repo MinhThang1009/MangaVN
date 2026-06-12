@@ -168,6 +168,7 @@ fun EditProfileScreen(
                     value = displayName,
                     onValueChange = { displayName = it },
                     label = { Text(appString(R.string.profile_display_name)) },
+                    placeholder = { Text(appString(R.string.profile_display_name_placeholder)) },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                 )

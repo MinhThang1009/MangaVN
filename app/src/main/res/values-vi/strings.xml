@@ -186,8 +186,11 @@
     <string name="auth_welcome_new">Chào mừng đến với MangaVN!</string>
     <string name="auth_welcome_back">Chào mừng trở lại!</string>
     <string name="auth_welcome_subtitle">Ứng dụng đọc truyện tranh Manga tại Việt Nam</string>
-    <string name="auth_username">Tên đăng nhập</string>
-    <string name="auth_password">Mật khẩu</string>
+    <string name="auth_username">Tên đăng nhập *</string>
+    <string name="auth_username_placeholder">Nhập tên đăng nhập</string>
+    <string name="auth_password">Mật khẩu *</string>
+    <string name="auth_password_placeholder">Nhập mật khẩu</string>
+    <string name="auth_confirm_password_placeholder">Nhập lại mật khẩu</string>
     <string name="auth_login_button">Đăng nhập</string>
     <string name="auth_google_signin">Đăng nhập bằng Google</string>
     <string name="auth_no_account_prompt">Bạn chưa có tài khoản?</string>
@@ -301,6 +304,7 @@
     <string name="profile_edit">Chỉnh sửa hồ sơ</string>
     <string name="profile_edit_title">Chỉnh sửa hồ sơ</string>
     <string name="profile_display_name">Tên hiển thị</string>
+    <string name="profile_display_name_placeholder">Nhập tên hiển thị</string>
     <string name="profile_change_avatar">Đổi ảnh đại diện</string>
     <string name="profile_save">Lưu</string>
     <string name="profile_saved">Đã lưu hồ sơ!</string>

@@ -42,8 +42,8 @@ class RegisterScreenTest {
         }
 
         composeRule.onNodeWithText("Create an Account").assertIsDisplayed()
-        composeRule.onNodeWithText("Username").assertIsDisplayed()
-        composeRule.onNodeWithText("Password").assertIsDisplayed()
+        composeRule.onNodeWithText("Username *").assertIsDisplayed()
+        composeRule.onNodeWithText("Password *").assertIsDisplayed()
         composeRule.onNodeWithText("Confirm Password").assertIsDisplayed()
     }
 
@@ -63,8 +63,8 @@ class RegisterScreenTest {
             RegisterScreen(onRegisterSuccess = {}, onNavigateToLogin = {}, viewModel = viewModel())
         }
 
-        composeRule.onNodeWithText("Username").performTextInput("user1")
-        composeRule.onNodeWithText("Password").performTextInput("pass123")
+        composeRule.onNodeWithText("Username *").performTextInput("user1")
+        composeRule.onNodeWithText("Password *").performTextInput("pass123")
         composeRule.onNodeWithText("Confirm Password").performTextInput("different")
 
         composeRule.onNodeWithText("Passwords do not match").assertIsDisplayed()
@@ -76,8 +76,8 @@ class RegisterScreenTest {
             RegisterScreen(onRegisterSuccess = {}, onNavigateToLogin = {}, viewModel = viewModel())
         }
 
-        composeRule.onNodeWithText("Username").performTextInput("user1")
-        composeRule.onNodeWithText("Password").performTextInput("pass123")
+        composeRule.onNodeWithText("Username *").performTextInput("user1")
+        composeRule.onNodeWithText("Password *").performTextInput("pass123")
         composeRule.onNodeWithText("Confirm Password").performTextInput("pass123")
 
         composeRule.onNode(hasText("Register") and hasClickAction()).assertIsEnabled()
@@ -114,8 +114,8 @@ class RegisterScreenTest {
         composeRule.setContent {
             RegisterScreen(onRegisterSuccess = {}, onNavigateToLogin = {}, viewModel = vm)
         }
-        composeRule.onNodeWithText("Username").performTextInput("existing")
-        composeRule.onNodeWithText("Password").performTextInput("pass1")
+        composeRule.onNodeWithText("Username *").performTextInput("existing")
+        composeRule.onNodeWithText("Password *").performTextInput("pass1")
         composeRule.onNodeWithText("Confirm Password").performTextInput("pass1")
         composeRule.onNode(hasText("Register") and hasClickAction()).performClick()
         composeRule.waitForIdle()

@@ -116,6 +116,8 @@ fun RegisterScreen(
                 value = username,
                 onValueChange = { username = it },
                 label = { Text(appString(R.string.auth_username)) },
+                placeholder = { Text(appString(R.string.auth_username_placeholder)) },
+                isError = uiState is AuthState.Error && username.isBlank(),
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
             )
@@ -126,6 +128,8 @@ fun RegisterScreen(
                 value = password,
                 onValueChange = { password = it },
                 label = { Text(appString(R.string.auth_password)) },
+                placeholder = { Text(appString(R.string.auth_password_placeholder)) },
+                isError = uiState is AuthState.Error && password.isBlank(),
                 visualTransformation =
                     if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
@@ -150,6 +154,8 @@ fun RegisterScreen(
                 value = confirmPassword,
                 onValueChange = { confirmPassword = it },
                 label = { Text(appString(R.string.auth_confirm_password)) },
+                placeholder = { Text(appString(R.string.auth_confirm_password_placeholder)) },
+                isError = password != confirmPassword && confirmPassword.isNotEmpty(),
                 visualTransformation =
                     if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),

@@ -43,8 +43,8 @@ class LoginScreenTest {
         }
 
         composeRule.onNodeWithText("Welcome to MangaVN!").assertIsDisplayed()
-        composeRule.onNodeWithText("Username").assertIsDisplayed()
-        composeRule.onNodeWithText("Password").assertIsDisplayed()
+        composeRule.onNodeWithText("Username *").assertIsDisplayed()
+        composeRule.onNodeWithText("Password *").assertIsDisplayed()
     }
 
     @Test
@@ -100,8 +100,8 @@ class LoginScreenTest {
         composeRule.setContent {
             LoginScreen(onLoginSuccess = {}, onNavigateToRegister = {}, viewModel = vm)
         }
-        composeRule.onNodeWithText("Username").performTextInput("user")
-        composeRule.onNodeWithText("Password").performTextInput("pass")
+        composeRule.onNodeWithText("Username *").performTextInput("user")
+        composeRule.onNodeWithText("Password *").performTextInput("pass")
         composeRule.onNode(hasText("Login") and hasClickAction()).performClick()
         composeRule.waitForIdle()
         // Trong loading state: nút bị disabled (hasClickAction trả về nút không click được)
