@@ -10,6 +10,7 @@ import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.example.mybookslibrary.domain.model.AuthStatus
+import com.example.mybookslibrary.domain.model.ReadingMode
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
@@ -27,6 +28,7 @@ class UserPreferencesDataStore(
 ) {
     companion object {
         private val READER_QUALITY = stringPreferencesKey("reader_quality")
+        private val READER_READING_MODE = stringPreferencesKey("reader_reading_mode")
         private val LANGUAGE = stringPreferencesKey("language")
         private val THEME_MODE = stringPreferencesKey("theme_mode")
         private val DOWNLOAD_ONLY_ON_WIFI = booleanPreferencesKey("download_only_on_wifi")
@@ -89,6 +91,17 @@ class UserPreferencesDataStore(
 
     suspend fun setReaderQuality(quality: String) {
         dataStore.edit { it[READER_QUALITY] = quality }
+    }
+
+    // ─── Chế độ đọc reader ─────────────────────────────────────────
+
+    suspend fun getReaderReadingMode(): ReadingMode =
+        safeData.first()[READER_READING_MODE]
+            ?.let { storedMode -> ReadingMode.entries.firstOrNull { it.name == storedMode } }
+            ?: ReadingMode.LTR
+
+    suspend fun setReaderReadingMode(mode: ReadingMode) {
+        dataStore.edit { it[READER_READING_MODE] = mode.name }
     }
 
     // ─── Ngôn ngữ ──────────────────────────────────────────────────

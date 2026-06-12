@@ -5,6 +5,7 @@ package com.example.mybookslibrary.data.local
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.emptyPreferences
+import com.example.mybookslibrary.domain.model.ReadingMode
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -49,6 +50,17 @@ class UserPreferencesDataStoreTest {
             store.setReaderQuality("data-saver")
 
             assertEquals("data-saver", store.getReaderQuality())
+        }
+
+    @Test
+    fun readerReadingMode_macDinhSetVaDocLai() =
+        runTest {
+            val store = store()
+            assertEquals(ReadingMode.LTR, store.getReaderReadingMode())
+
+            store.setReaderReadingMode(ReadingMode.VERTICAL)
+
+            assertEquals(ReadingMode.VERTICAL, store.getReaderReadingMode())
         }
 
     @Test

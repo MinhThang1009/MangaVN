@@ -1,6 +1,7 @@
 package com.example.mybookslibrary.ui.viewmodel
 
 import androidx.lifecycle.SavedStateHandle
+import com.example.mybookslibrary.data.local.UserPreferencesDataStore
 import com.example.mybookslibrary.domain.model.ReadingMode
 import com.example.mybookslibrary.domain.usecase.LoadReaderPagesUseCase
 import com.example.mybookslibrary.domain.usecase.SyncReadingProgressUseCase
@@ -35,12 +36,14 @@ class ReaderViewModelCoverageTest {
 
     private val loadReaderPagesUseCase = mockk<LoadReaderPagesUseCase>()
     private val syncReadingProgressUseCase = mockk<SyncReadingProgressUseCase>(relaxed = true)
+    private val userPreferencesDataStore = mockk<UserPreferencesDataStore>(relaxed = true)
 
     private fun build(
         chapterId: String = CHAPTER_ID,
         startPageIndex: Int = 0,
         chapterTitle: String = "Chapter 1",
     ): ReaderViewModel {
+        coEvery { userPreferencesDataStore.getReaderReadingMode() } returns ReadingMode.LTR
         val args =
             mutableMapOf<String, Any?>(
                 "mangaId" to MANGA_ID,
@@ -55,6 +58,7 @@ class ReaderViewModelCoverageTest {
             syncReadingProgressUseCase = syncReadingProgressUseCase,
             tapZoneEvaluator = TapZoneEvaluator(),
             pageFileBuilder = ReaderPageFileBuilder(),
+            userPreferencesDataStore = userPreferencesDataStore,
             ioDispatcher = mainDispatcherRule.dispatcher,
         )
     }
@@ -373,6 +377,7 @@ class ReaderViewModelCoverageTest {
                 syncReadingProgressUseCase = syncReadingProgressUseCase,
                 tapZoneEvaluator = TapZoneEvaluator(),
                 pageFileBuilder = ReaderPageFileBuilder(),
+                userPreferencesDataStore = userPreferencesDataStore,
                 ioDispatcher = mainDispatcherRule.dispatcher,
             )
         advanceUntilIdle()
