@@ -57,8 +57,7 @@ class StatisticsViewModel
                     monthlyTrend = buildMonthlyTrend(recentProgress),
                     readingCount = libraryItems.count { it.status == LibraryStatus.READING },
                     completedCount = libraryItems.count { it.status == LibraryStatus.COMPLETED },
-                    // Yêu thích là cờ độc lập (is_favorite), không phải một status
-                    favoriteCount = libraryItems.count { it.is_favorite },
+                    favoriteCount = libraryItems.count { it.is_favorite && it.status != LibraryStatus.READING && it.status != LibraryStatus.COMPLETED },
                 )
             }.combine(chapterDao.observeTopReadManga()) { state, topManga ->
                 state.copy(topManga = topManga)
