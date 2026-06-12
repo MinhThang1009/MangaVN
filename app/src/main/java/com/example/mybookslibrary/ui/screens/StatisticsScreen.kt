@@ -71,7 +71,8 @@ import ir.ehsannarmani.compose_charts.models.LabelProperties
 import ir.ehsannarmani.compose_charts.models.Line
 import ir.ehsannarmani.compose_charts.models.VerticalIndicatorProperties
 import ir.ehsannarmani.compose_charts.models.Pie
-import java.util.Calendar
+import java.time.LocalDate
+import java.time.format.TextStyle
 import java.util.Locale
 
 @Suppress("LongMethod")
@@ -453,14 +454,10 @@ private fun BreakdownLegend(items: List<LegendItem>) {
 }
 
 private fun weekDayLabels(): List<String> {
-    val cal = Calendar.getInstance()
-    val today = cal.get(Calendar.DAY_OF_WEEK)
+    val today = LocalDate.now()
     return (0 until DAYS_IN_WEEK).map { offset ->
-        cal.set(
-            Calendar.DAY_OF_WEEK,
-            ((today - DAYS_IN_WEEK + 1 + offset + Calendar.SATURDAY) % DAYS_IN_WEEK) + 1,
-        )
-        cal.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.SHORT, Locale.getDefault()) ?: ""
+        val day = today.minusDays((DAYS_IN_WEEK - 1 - offset).toLong())
+        day.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
     }
 }
 
