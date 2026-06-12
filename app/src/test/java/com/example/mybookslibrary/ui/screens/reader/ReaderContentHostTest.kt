@@ -5,6 +5,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.example.mybookslibrary.domain.model.ReadingMode
@@ -36,6 +37,7 @@ class ReaderContentHostTest {
     private fun host(
         state: ReaderState,
         onEvent: (ReaderEvent) -> Unit = {},
+        onBackClick: () -> Unit = {},
     ) {
         composeRule.setContent {
             val listState = rememberLazyListState()
@@ -44,7 +46,7 @@ class ReaderContentHostTest {
                 state = state,
                 listState = listState,
                 pagerState = pagerState,
-                onBackClick = {},
+                onBackClick = onBackClick,
                 onEvent = onEvent,
             )
         }
@@ -62,6 +64,25 @@ class ReaderContentHostTest {
     fun errorState_showsErrorText() {
         host(ReaderState(isLoading = false, error = "network down"))
         composeRule.onNodeWithText("Error: network down").assertIsDisplayed()
+        composeRule.onNodeWithText("Retry").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("Back").assertIsDisplayed()
+    }
+
+    @Test
+    fun errorState_retryAndBack_areAvailable() {
+        var event: ReaderEvent? = null
+        var backClicked = false
+        host(
+            state = ReaderState(isLoading = false, error = "network down"),
+            onEvent = { event = it },
+            onBackClick = { backClicked = true },
+        )
+
+        composeRule.onNodeWithText("Retry").performClick()
+        assert(event == ReaderEvent.RetryLoadPages)
+
+        composeRule.onNodeWithContentDescription("Back").performClick()
+        assert(backClicked)
     }
 
     @Test
@@ -89,7 +110,7 @@ class ReaderContentHostTest {
     fun overlay_visible_showsBars() {
         host(ReaderState(pages = listOf("p0"), isOverlayVisible = true, chapterTitle = "Chapter 7"))
         composeRule.onNodeWithText("Chapter 7").assertIsDisplayed()
-        composeRule.onNodeWithText("Pages").assertIsDisplayed()
+        composeRule.onNodeWithText("1 / 1").assertIsDisplayed()
     }
 
     @Test
@@ -123,12 +144,12 @@ class ReaderContentHostTest {
             ReaderState(pages = listOf("p0"), isOverlayVisible = true, currentReadingMode = ReadingMode.LTR),
             onEvent = { event = it },
         )
-        composeRule.onNodeWithText("Pages").assertIsDisplayed()
+        composeRule.onNodeWithText("1 / 1").assertIsDisplayed()
         // BottomBar toggle → CycleReadingMode
         composeRule.onNodeWithText("1 / 1").performClick()
         composeRule.waitForIdle()
         // Clique em "1 / 1" não é o botão — verifica via toggle button com content description
         // O teste verifica que a composição não crasha e o overlay está visível
-        composeRule.onNodeWithText("Pages").assertIsDisplayed()
+        composeRule.onNodeWithText("1 / 1").assertIsDisplayed()
     }
 }

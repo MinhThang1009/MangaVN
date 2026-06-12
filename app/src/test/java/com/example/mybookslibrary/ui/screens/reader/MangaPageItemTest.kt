@@ -10,6 +10,7 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import com.example.mybookslibrary.ui.util.FakeImageLoader
+import me.saket.telephoto.zoomable.EnabledZoomGestures
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -101,6 +102,21 @@ class MangaPageItemTest {
     }
 
     @Test
+    fun parentPageSwipe_atBaseZoom_disablesSingleFingerImagePan() {
+        assertEquals(EnabledZoomGestures.ZoomOnly, mangaPageGestures(allowParentPageSwipe = true, zoomFraction = null))
+        assertEquals(EnabledZoomGestures.ZoomOnly, mangaPageGestures(allowParentPageSwipe = true, zoomFraction = 0f))
+    }
+
+    @Test
+    fun parentPageSwipe_whenZoomed_keepsImagePanEnabled() {
+        assertEquals(
+            EnabledZoomGestures.ZoomAndPan,
+            mangaPageGestures(allowParentPageSwipe = true, zoomFraction = 0.01f),
+        )
+        assertEquals(EnabledZoomGestures.ZoomAndPan, mangaPageGestures(allowParentPageSwipe = false, zoomFraction = 0f))
+    }
+
+    @Test
     fun errorState_showsRetryButton() {
         FakeImageLoader.reset()
         FakeImageLoader.installFailing()
@@ -111,6 +127,21 @@ class MangaPageItemTest {
             composeRule.waitForIdle()
             // isError=true khi Coil fail → "Tap to retry" hoặc BrokenImage icon visible
             composeRule.onNodeWithText("Tap to retry").assertIsDisplayed()
+        } finally {
+            FakeImageLoader.reset()
+            FakeImageLoader.install()
+        }
+    }
+
+    @Test
+    fun loadingState_showsPageLoadingIndicator() {
+        FakeImageLoader.reset()
+        FakeImageLoader.installPending()
+        try {
+            composeRule.setContent {
+                MangaPageItem(imageUrl = "https://x/pending.jpg", index = 1)
+            }
+            composeRule.onNodeWithContentDescription("Loading page 2").assertIsDisplayed()
         } finally {
             FakeImageLoader.reset()
             FakeImageLoader.install()

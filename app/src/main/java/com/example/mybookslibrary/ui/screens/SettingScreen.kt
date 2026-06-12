@@ -20,9 +20,16 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import com.composables.icons.lucide.ArrowLeft
+import com.composables.icons.lucide.Lucide
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -46,9 +53,11 @@ import com.example.mybookslibrary.util.isOpenLinksGranted
 import com.example.mybookslibrary.util.openAppLinkSettings
 
 @Suppress("unused", "CyclomaticComplexMethod", "LongMethod")
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingScreenContent(
     modifier: Modifier = Modifier,
+    onBackClick: () -> Unit = {},
     onChangePasswordClick: () -> Unit = {},
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
@@ -56,7 +65,6 @@ fun SettingScreenContent(
     val context = LocalContext.current
     val bottomNavPadding = LocalBottomNavPadding.current
     var showSignOutConfirm by remember { mutableStateOf(false) }
-    var showDeleteAccountConfirm by remember { mutableStateOf(false) }
 
     val backupLauncher =
         rememberLauncherForActivityResult(
@@ -75,6 +83,19 @@ fun SettingScreenContent(
 
     Scaffold(
         modifier = modifier,
+        topBar = {
+            TopAppBar(
+                title = { Text(appString(R.string.settings_title)) },
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Icon(Lucide.ArrowLeft, contentDescription = appString(R.string.cd_back))
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                ),
+            )
+        },
         containerColor = MaterialTheme.colorScheme.background,
     ) { innerPadding ->
         Box(
@@ -91,15 +112,6 @@ fun SettingScreenContent(
                     bottom = bottomNavPadding + Dimens.SpacingLg,
                 ),
         ) {
-            item {
-                Text(
-                    appString(R.string.settings_title),
-                    style = MaterialTheme.typography.displayMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-                Spacer(Modifier.height(Dimens.SpacingXxl))
-            }
-
             item { SettingsSectionLabel(appString(R.string.settings_section_appearance)) }
             item {
                 val themeLabel =
@@ -179,10 +191,12 @@ fun SettingScreenContent(
                         null -> appString(R.string.settings_restore_subtitle)
                     }
                 SettingsCard {
-                    SettingsRow(appString(R.string.settings_sync), syncSub) {
-                        if (!uiState.isSyncing) viewModel.forceSync()
+                    if (!uiState.isGuest) {
+                        SettingsRow(appString(R.string.settings_sync), syncSub) {
+                            if (!uiState.isSyncing) viewModel.forceSync()
+                        }
+                        SettingsDivider()
                     }
-                    SettingsDivider()
                     SettingsRow(appString(R.string.settings_backup), backupSub) {
                         backupLauncher.launch("kanso_library_backup.json")
                     }
@@ -239,32 +253,29 @@ fun SettingScreenContent(
                         appString(R.string.settings_sign_out_subtitle)
                     }
                 SettingsCard {
-                    SettingsRow(
-                        title = appString(R.string.settings_change_password),
-                        subtitle = appString(R.string.settings_change_password_subtitle),
-                        onClick = onChangePasswordClick,
-                    )
-                    SettingsDivider()
+                    if (!uiState.isGuest) {
+                        SettingsRow(
+                            title = appString(R.string.settings_change_password),
+                            subtitle = appString(R.string.settings_change_password_subtitle),
+                            onClick = onChangePasswordClick,
+                        )
+                        SettingsDivider()
+                    }
                     SettingsRow(
                         title = signOutTitle,
                         subtitle = signOutSub,
                         titleColor = MaterialTheme.colorScheme.error,
                         onClick = { showSignOutConfirm = true },
                     )
-                    SettingsDivider()
-                    SettingsRow(
-                        title = appString(R.string.settings_delete_account),
-                        subtitle = appString(R.string.settings_delete_account_subtitle),
-                        titleColor = MaterialTheme.colorScheme.error,
-                        onClick = { showDeleteAccountConfirm = true },
-                    )
-                    SettingsDivider()
-                    SettingsRow(
-                        title = appString(R.string.settings_delete_account),
-                        subtitle = appString(R.string.settings_delete_account_subtitle),
-                        titleColor = MaterialTheme.colorScheme.error,
-                        onClick = { showDeleteAccountDialog = true },
-                    )
+                    if (!uiState.isGuest) {
+                        SettingsDivider()
+                        SettingsRow(
+                            title = appString(R.string.settings_delete_account),
+                            subtitle = appString(R.string.settings_delete_account_subtitle),
+                            titleColor = MaterialTheme.colorScheme.error,
+                            onClick = { showDeleteAccountDialog = true },
+                        )
+                    }
                 }
 
                 if (showDeleteAccountDialog) {
@@ -323,29 +334,6 @@ fun SettingScreenContent(
         )
     }
 
-    if (showDeleteAccountConfirm) {
-        AlertDialog(
-            onDismissRequest = { showDeleteAccountConfirm = false },
-            title = { Text(appString(R.string.delete_account_confirm_title)) },
-            text = { Text(appString(R.string.delete_account_confirm_body)) },
-            confirmButton = {
-                com.example.mybookslibrary.ui.screens.components.AppButton(
-                    text = appString(R.string.settings_delete_account),
-                    onClick = {
-                        showDeleteAccountConfirm = false
-                        viewModel.deleteAccount()
-                    },
-                )
-            },
-            dismissButton = {
-                com.example.mybookslibrary.ui.screens.components.AppButton(
-                    text = appString(R.string.action_cancel),
-                    onClick = { showDeleteAccountConfirm = false },
-                    style = com.example.mybookslibrary.ui.screens.components.AppButtonStyle.Text,
-                )
-            },
-        )
-    }
 }
 
 @Composable

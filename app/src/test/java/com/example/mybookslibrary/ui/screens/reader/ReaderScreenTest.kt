@@ -3,6 +3,8 @@
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.lifecycle.SavedStateHandle
+import com.example.mybookslibrary.data.local.UserPreferencesDataStore
+import com.example.mybookslibrary.domain.model.ReadingMode
 import com.example.mybookslibrary.domain.usecase.LoadReaderPagesUseCase
 import com.example.mybookslibrary.domain.usecase.SyncReadingProgressUseCase
 import com.example.mybookslibrary.domain.usecase.TapZoneEvaluator
@@ -41,8 +43,10 @@ class ReaderScreenTest {
 
     private val loadReaderPagesUseCase = mockk<LoadReaderPagesUseCase>()
     private val syncReadingProgressUseCase = mockk<SyncReadingProgressUseCase>(relaxed = true)
+    private val userPreferencesDataStore = mockk<UserPreferencesDataStore>(relaxed = true)
 
     private fun viewModel(chapterId: String = "c1"): ReaderViewModel {
+        coEvery { userPreferencesDataStore.getReaderReadingMode() } returns ReadingMode.LTR
         coEvery { loadReaderPagesUseCase("m1", chapterId) } returns
             Result.success(listOf("page-0.jpg", "page-1.jpg"))
         return ReaderViewModel(
@@ -60,6 +64,7 @@ class ReaderScreenTest {
             syncReadingProgressUseCase = syncReadingProgressUseCase,
             tapZoneEvaluator = TapZoneEvaluator(),
             pageFileBuilder = ReaderPageFileBuilder(),
+            userPreferencesDataStore = userPreferencesDataStore,
             ioDispatcher = UnconfinedTestDispatcher(),
         )
     }
@@ -90,6 +95,7 @@ class ReaderScreenTest {
                 syncReadingProgressUseCase = syncReadingProgressUseCase,
                 tapZoneEvaluator = TapZoneEvaluator(),
                 pageFileBuilder = ReaderPageFileBuilder(),
+                userPreferencesDataStore = userPreferencesDataStore,
                 ioDispatcher = UnconfinedTestDispatcher(),
             )
 
@@ -120,6 +126,7 @@ class ReaderScreenTest {
                 syncReadingProgressUseCase = syncReadingProgressUseCase,
                 tapZoneEvaluator = TapZoneEvaluator(),
                 pageFileBuilder = ReaderPageFileBuilder(),
+                userPreferencesDataStore = userPreferencesDataStore,
                 ioDispatcher = UnconfinedTestDispatcher(),
             )
         composeRule.setContent {

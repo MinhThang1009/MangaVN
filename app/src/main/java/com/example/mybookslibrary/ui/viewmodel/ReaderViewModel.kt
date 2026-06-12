@@ -6,6 +6,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.example.mybookslibrary.R
+import com.example.mybookslibrary.data.local.UserPreferencesDataStore
 import com.example.mybookslibrary.di.IoDispatcher
 import com.example.mybookslibrary.domain.model.ReaderTapAction
 import com.example.mybookslibrary.domain.model.ReadingMode
@@ -37,6 +38,7 @@ constructor(
     private val syncReadingProgressUseCase: SyncReadingProgressUseCase,
     private val tapZoneEvaluator: TapZoneEvaluator,
     private val pageFileBuilder: ReaderPageFileBuilder,
+    private val userPreferencesDataStore: UserPreferencesDataStore,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : AndroidViewModel(application) {
     private fun str(resId: Int) = getApplication<Application>().getString(resId)
@@ -49,6 +51,9 @@ constructor(
 
     private var lastSyncedPageIndex: Int? = null
     private var pendingPageIndex: Int? = null
+
+    @Volatile
+    private var readingModeChangedByUser = false
 
     private val _state =
         MutableStateFlow(
@@ -63,7 +68,21 @@ constructor(
     val effects: SharedFlow<ReaderUiEffect> = _effects.asSharedFlow()
 
     init {
+        loadReadingMode()
         loadChapterPages()
+    }
+
+    private fun loadReadingMode() {
+        viewModelScope.launch(ioDispatcher) {
+            try {
+                val storedMode = userPreferencesDataStore.getReaderReadingMode()
+                if (!readingModeChangedByUser) {
+                    _state.update { it.copy(currentReadingMode = storedMode) }
+                }
+            } catch (t: Throwable) {
+                Timber.e(t, "loadReadingMode error")
+            }
+        }
     }
 
     private fun loadChapterPages() {
@@ -105,6 +124,7 @@ constructor(
 
     fun onEvent(event: ReaderEvent) {
         when (event) {
+            ReaderEvent.RetryLoadPages -> loadChapterPages()
             ReaderEvent.ToggleOverlay -> toggleOverlay()
             is ReaderEvent.ChangeReadingMode -> changeReadingMode(event.mode)
             ReaderEvent.CycleReadingMode -> cycleReadingMode()
@@ -128,7 +148,15 @@ constructor(
         val oldMode = _state.value.currentReadingMode
         if (oldMode == mode) return
         Timber.d("ReadingMode changed: %s -> %s", oldMode, mode)
+        readingModeChangedByUser = true
         _state.update { it.copy(currentReadingMode = mode) }
+        viewModelScope.launch(ioDispatcher) {
+            try {
+                userPreferencesDataStore.setReaderReadingMode(mode)
+            } catch (t: Throwable) {
+                Timber.e(t, "saveReadingMode error: mode=%s", mode)
+            }
+        }
     }
 
     private fun cycleReadingMode() {

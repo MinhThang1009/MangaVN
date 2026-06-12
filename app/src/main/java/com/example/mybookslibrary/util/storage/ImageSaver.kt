@@ -17,6 +17,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import timber.log.Timber
 import java.io.File
+import java.net.URI
 
 /**
  * Downloads manga page images and persists them for save/share workflows.
@@ -49,7 +50,7 @@ class ImageSaver(private val context: Context) {
     ): Uri {
         Timber.d("quickSave start: displayName=%s, imageUrl=%s", displayName, imageUrl)
         return try {
-            val image = downloadImage(imageUrl)
+            val image = loadImage(imageUrl)
             val safeName = displayName.replace(Regex("[^a-zA-Z0-9_\\-]"), "_")
             val filename = "$safeName.${image.format.extension}"
 
@@ -76,7 +77,7 @@ class ImageSaver(private val context: Context) {
     ) {
         Timber.d("saveToUri start: uri=%s, imageUrl=%s", uri, imageUrl)
         try {
-            val bytes = downloadImage(imageUrl).bytes
+            val bytes = loadImage(imageUrl).bytes
             context.contentResolver.openOutputStream(uri)?.use { out ->
                 out.write(bytes)
             } ?: throw ImageSaveException("Cannot open output stream for $uri")
@@ -104,7 +105,7 @@ class ImageSaver(private val context: Context) {
     ): Intent {
         Timber.d("shareImage start: displayName=%s, imageUrl=%s", displayName, imageUrl)
         try {
-            val image = downloadImage(imageUrl)
+            val image = loadImage(imageUrl)
             val safeName = displayName.replace(Regex("[^a-zA-Z0-9_\\-]"), "_")
             val filename = "$safeName.${image.format.extension}"
 
@@ -138,7 +139,35 @@ class ImageSaver(private val context: Context) {
     //  Internal helpers
     // ────────────────────────────────────────────────────────────────
 
-    private fun downloadImage(url: String): DownloadedImage {
+    private fun loadImage(source: String): DownloadedImage {
+        val bytes = readSourceBytes(source)
+        return DownloadedImage(bytes, requireImageFormat(bytes, source))
+    }
+
+    private fun readSourceBytes(source: String): ByteArray {
+        val bytes =
+            when (URI(source).scheme?.lowercase()) {
+                "file" -> File(URI(source)).readBytes()
+                "content" -> readContentUri(source)
+                "http", "https" -> downloadImage(source)
+                else -> throw ImageSaveException("Unsupported image source: $source")
+            }
+        return requireNotEmpty(bytes, source)
+    }
+
+    private fun readContentUri(source: String): ByteArray =
+        context.contentResolver.openInputStream(Uri.parse(source))?.use { it.readBytes() }
+            ?: throw ImageSaveException("Cannot open input stream for $source")
+
+    private fun requireNotEmpty(bytes: ByteArray, source: String): ByteArray =
+        bytes.takeUnless(ByteArray::isEmpty)
+            ?: throw ImageSaveException("Image content was empty: $source")
+
+    private fun requireImageFormat(bytes: ByteArray, source: String): ImageFormat =
+        detectFormat(bytes)
+            ?: throw ImageSaveException("Image content is not a supported image: $source")
+
+    private fun downloadImage(url: String): ByteArray {
         val request = Request.Builder().url(url).build()
         httpClient.newCall(request).execute().use { response ->
             if (!response.isSuccessful) {
@@ -147,14 +176,7 @@ class ImageSaver(private val context: Context) {
             @Suppress("USELESS_ELVIS") // OkHttp body là nullable ở runtime dù annotation nói khác
             val responseBody =
                 response.body ?: throw ImageSaveException("Download response body was empty: $url")
-            val bytes = responseBody.bytes()
-            if (bytes.isEmpty()) {
-                throw ImageSaveException("Downloaded content was empty: $url")
-            }
-            val format =
-                detectFormat(bytes)
-                    ?: throw ImageSaveException("Downloaded content is not a supported image: $url")
-            return DownloadedImage(bytes, format)
+            return responseBody.bytes()
         }
     }
 

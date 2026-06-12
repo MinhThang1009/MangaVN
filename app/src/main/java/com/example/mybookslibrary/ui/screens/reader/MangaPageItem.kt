@@ -42,6 +42,7 @@ import com.example.mybookslibrary.R
 import com.example.mybookslibrary.ui.theme.Alphas
 import com.example.mybookslibrary.ui.theme.MyBooksLibraryTheme
 import com.example.mybookslibrary.ui.util.appString
+import me.saket.telephoto.zoomable.EnabledZoomGestures
 import me.saket.telephoto.zoomable.ZoomSpec
 import me.saket.telephoto.zoomable.ZoomableImageState
 import me.saket.telephoto.zoomable.coil3.ZoomableAsyncImage
@@ -65,6 +66,8 @@ import java.net.URI
  * confirms a single tap.
  * @param onLongPress Optional callback invoked with [imageUrl] and [index] when the user
  * long-presses the page; if `null`, the gesture is ignored.
+ * @param allowParentPageSwipe Lets a parent pager handle one-finger drags while the image is at
+ * its base zoom. Pinch and double-tap zoom remain available.
  */
 @Composable
 fun MangaPageItem(
@@ -73,18 +76,22 @@ fun MangaPageItem(
     modifier: Modifier = Modifier,
     onConfirmedTap: (x: Float, y: Float, width: Float, height: Float) -> Unit = { _, _, _, _ -> },
     onLongPress: ((String, Int) -> Unit)? = null,
+    allowParentPageSwipe: Boolean = false,
 ) {
     val context = LocalContext.current
     var retryHash by remember(imageUrl) { mutableIntStateOf(0) }
+    var isLoading by remember(imageUrl) { mutableStateOf(true) }
     var isError by remember(imageUrl) { mutableStateOf(false) }
     var pageSize by remember(imageUrl) { mutableStateOf(IntSize.Zero) }
     val zoomableState = rememberZoomableState(zoomSpec = ZoomSpec(maxZoomFactor = 3f))
     val zoomableImageState = rememberZoomableImageState(zoomableState)
+    val gestures = mangaPageGestures(allowParentPageSwipe, zoomableState.zoomFraction)
     val retryPageLoad =
         remember(imageUrl, index) {
             {
                 Timber.v("Retry tapped for page=%d url=%s", displayPage(index), imageUrl)
                 retryHash++
+                isLoading = true
                 isError = false
             }
         }
@@ -95,7 +102,18 @@ fun MangaPageItem(
                 imageUrl = imageUrl,
                 pageIndex = index,
                 retryHash = retryHash,
-                onLoadingChanged = { isError = it },
+                onLoading = {
+                    isLoading = true
+                    isError = false
+                },
+                onSuccess = {
+                    isLoading = false
+                    isError = false
+                },
+                onError = {
+                    isLoading = false
+                    isError = true
+                },
             )
         }
 
@@ -113,8 +131,13 @@ fun MangaPageItem(
             imageUrl = imageUrl,
             onConfirmedTap = onConfirmedTap,
             onLongPress = onLongPress,
+            gestures = gestures,
             modifier = Modifier.fillMaxSize(),
         )
+
+        if (isLoading) {
+            ReaderPageLoadingOverlay(pageNumber = displayPage(index))
+        }
 
         if (isError) {
             MangaPageRetryOverlay(onRetry = retryPageLoad)
@@ -127,7 +150,9 @@ private fun buildPageImageRequest(
     imageUrl: String,
     pageIndex: Int,
     retryHash: Int,
-    onLoadingChanged: (Boolean) -> Unit,
+    onLoading: () -> Unit,
+    onSuccess: () -> Unit,
+    onError: () -> Unit,
 ): ImageRequest =
     ImageRequest
         .Builder(context)
@@ -135,13 +160,13 @@ private fun buildPageImageRequest(
         .memoryCacheKey("$imageUrl#retry=$retryHash")
         .listener(
             onStart = {
-                onLoadingChanged(false)
+                onLoading()
             },
             onSuccess = { _, _ ->
-                onLoadingChanged(false)
+                onSuccess()
             },
             onError = { _, result ->
-                onLoadingChanged(true)
+                onError()
                 Timber.w(result.throwable, "Failed to load page=%d url=%s", displayPage(pageIndex), imageUrl)
             },
         ).build()
@@ -162,12 +187,14 @@ private fun MangaPageImage(
     imageUrl: String,
     onConfirmedTap: (x: Float, y: Float, width: Float, height: Float) -> Unit,
     onLongPress: ((String, Int) -> Unit)?,
+    gestures: EnabledZoomGestures,
     modifier: Modifier = Modifier,
 ) {
     ZoomableAsyncImage(
         model = model,
         contentDescription = appString(R.string.reader_page_description, displayPage(index)),
         state = state,
+        gestures = gestures,
         contentScale = ContentScale.FillWidth,
         onClick = { offset ->
             onConfirmedTap(offset.x, offset.y, pageSize.width.toFloat(), pageSize.height.toFloat())
@@ -179,6 +206,16 @@ private fun MangaPageImage(
         modifier = modifier,
     )
 }
+
+internal fun mangaPageGestures(
+    allowParentPageSwipe: Boolean,
+    zoomFraction: Float?,
+): EnabledZoomGestures =
+    if (allowParentPageSwipe && (zoomFraction == null || zoomFraction <= BASE_ZOOM_FRACTION)) {
+        EnabledZoomGestures.ZoomOnly
+    } else {
+        EnabledZoomGestures.ZoomAndPan
+    }
 
 @Composable
 private fun MangaPageRetryOverlay(onRetry: () -> Unit) {
@@ -218,6 +255,7 @@ private fun MangaPageRetryOverlay(onRetry: () -> Unit) {
 private fun displayPage(index: Int): Int = index + 1
 
 private const val FILE_URI_PREFIX = "file:"
+private const val BASE_ZOOM_FRACTION = 0f
 private const val PREVIEW_PAGE_URL = "https://example.com/preview-page.jpg"
 
 @Preview(name = "Manga Page Item", showBackground = true)
