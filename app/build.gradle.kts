@@ -386,6 +386,8 @@ dependencies {
     testImplementation(libs.androidx.work.testing)
     testImplementation(libs.okhttp.mockwebserver)
     testImplementation(libs.kotest.property)
+    testImplementation(libs.androidx.compose.ui.test.junit4)
+    testImplementation(libs.androidx.compose.ui.test.manifest)
     testImplementation(libs.roborazzi.core)
     testImplementation(libs.roborazzi.compose)
     testImplementation(libs.roborazzi.junit.rule)
