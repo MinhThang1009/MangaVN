@@ -110,7 +110,8 @@ class ReaderBarsTest {
             Box(Modifier.fillMaxSize()) {
                 ReaderBottomBar(
                     isVisible = true,
-                    state = ReaderBottomBarState(currentPage = 4, totalPages = 20, currentReadingMode = ReadingMode.LTR),
+                    state =
+                        ReaderBottomBarState(currentPage = 4, totalPages = 20, currentReadingMode = ReadingMode.LTR),
                     onToggleReadingMode = {},
                 )
             }
@@ -127,7 +128,8 @@ class ReaderBarsTest {
             Box(Modifier.fillMaxSize()) {
                 ReaderBottomBar(
                     isVisible = false,
-                    state = ReaderBottomBarState(currentPage = 0, totalPages = 10, currentReadingMode = ReadingMode.LTR),
+                    state =
+                        ReaderBottomBarState(currentPage = 0, totalPages = 10, currentReadingMode = ReadingMode.LTR),
                     onToggleReadingMode = {},
                 )
             }
@@ -143,7 +145,12 @@ class ReaderBarsTest {
             Box(Modifier.fillMaxSize()) {
                 ReaderBottomBar(
                     isVisible = true,
-                    state = ReaderBottomBarState(currentPage = 0, totalPages = 5, currentReadingMode = ReadingMode.VERTICAL),
+                    state =
+                        ReaderBottomBarState(
+                            currentPage = 0,
+                            totalPages = 5,
+                            currentReadingMode = ReadingMode.VERTICAL,
+                        ),
                     onToggleReadingMode = { toggled = true },
                 )
             }
@@ -223,7 +230,8 @@ class ReaderBarsTest {
             Box(Modifier.fillMaxSize()) {
                 ReaderBottomBar(
                     isVisible = true,
-                    state = ReaderBottomBarState(currentPage = -1, totalPages = 5, currentReadingMode = ReadingMode.LTR),
+                    state =
+                        ReaderBottomBarState(currentPage = -1, totalPages = 5, currentReadingMode = ReadingMode.LTR),
                     onToggleReadingMode = {},
                 )
             }
@@ -252,7 +260,12 @@ class ReaderBarsTest {
             Box(Modifier.fillMaxSize()) {
                 ReaderBottomBar(
                     isVisible = true,
-                    state = ReaderBottomBarState(currentPage = 1, totalPages = 5, currentReadingMode = ReadingMode.VERTICAL),
+                    state =
+                        ReaderBottomBarState(
+                            currentPage = 1,
+                            totalPages = 5,
+                            currentReadingMode = ReadingMode.VERTICAL,
+                        ),
                     onToggleReadingMode = {},
                 )
             }

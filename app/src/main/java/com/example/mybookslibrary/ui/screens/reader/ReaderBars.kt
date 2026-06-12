@@ -328,7 +328,12 @@ internal fun BoxScope.ReaderBottomBar(
                 Icon(
                     Lucide.ChevronLeft,
                     contentDescription = appString(R.string.reader_prev_chapter),
-                    tint = if (state.hasPrevChapter) colors.content else colors.content.copy(alpha = Alphas.ContainerFaint),
+                    tint =
+                        if (state.hasPrevChapter) {
+                            colors.content
+                        } else {
+                            colors.content.copy(alpha = Alphas.ContainerFaint)
+                        },
                     modifier = Modifier.size(Dimens.IconDefault),
                 )
             }
@@ -386,7 +391,12 @@ internal fun BoxScope.ReaderBottomBar(
                 Icon(
                     Lucide.ChevronRight,
                     contentDescription = appString(R.string.reader_next_chapter),
-                    tint = if (state.hasNextChapter) colors.content else colors.content.copy(alpha = Alphas.ContainerFaint),
+                    tint =
+                        if (state.hasNextChapter) {
+                            colors.content
+                        } else {
+                            colors.content.copy(alpha = Alphas.ContainerFaint)
+                        },
                     modifier = Modifier.size(Dimens.IconDefault),
                 )
             }
