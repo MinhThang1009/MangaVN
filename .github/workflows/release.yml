@@ -1,12 +1,19 @@
 # Release pipeline (issue #104): push tag v* → build AAB + APK ký bằng release keystore,
 # tạo GitHub Release kèm changelog từ conventional commits + mapping.txt (deobfuscate R8).
-# workflow_dispatch = dry-run: build + verify chữ ký nhưng KHÔNG tạo Release.
+# workflow_dispatch + push main = dry-run: build + verify chữ ký, upload artifact
+# (giữ 7 ngày) nhưng KHÔNG tạo Release — mỗi lần merge có sẵn bản ký mới nhất để tải.
 name: Release
 
 on:
   push:
     tags: ['v*']
+    branches: [main]
   workflow_dispatch:
+
+# Merge dồn dập → chỉ giữ run mới nhất trên main; run theo tag không bao giờ bị cancel.
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref_type != 'tag' }}
 
 permissions:
   contents: write
@@ -102,7 +109,8 @@ jobs:
             app/build/outputs/apk/release/app-release.apk \
             app/build/outputs/mapping/release/mapping.txt
 
-      # Dry-run (workflow_dispatch): giữ artifact để kiểm tra tay thay vì tạo Release.
+      # Dry-run (workflow_dispatch hoặc push main): giữ artifact để kiểm tra tay
+      # thay vì tạo Release.
       - name: Upload artifacts (dry-run)
         if: github.ref_type != 'tag'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
