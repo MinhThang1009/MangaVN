@@ -424,7 +424,9 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.mockk)
     testImplementation(libs.robolectric)
-    testImplementation(libs.androidx.work.testing)
+    // work-testing dùng cả ở instrumented test: HiltTestRunner init WorkManager test mode
+    // (HiltTestApplication không implement Configuration.Provider).
+    listOf("testImplementation", "androidTestImplementation").forEach { add(it, libs.androidx.work.testing) }
     testImplementation(libs.okhttp.mockwebserver)
     testImplementation(libs.kotest.property)
     testImplementation(libs.androidx.compose.ui.test.junit4)
