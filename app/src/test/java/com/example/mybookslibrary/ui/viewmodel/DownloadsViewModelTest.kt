@@ -1,5 +1,6 @@
 package com.example.mybookslibrary.ui.viewmodel
 
+import com.example.mybookslibrary.data.download.OfflineDownloadManager
 import com.example.mybookslibrary.data.local.ChapterProgressEntity
 import com.example.mybookslibrary.data.local.dao.ChapterDao
 import com.example.mybookslibrary.test.MainDispatcherRule
@@ -22,6 +23,9 @@ class DownloadsViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
+    private val dao = mockk<ChapterDao>()
+    private val downloadManager = mockk<OfflineDownloadManager>()
+
     @Test
     fun downloadedChapters_emitsFromDao() =
         runTest(mainDispatcherRule.dispatcher.scheduler) {
@@ -33,26 +37,23 @@ class DownloadsViewModelTest {
                     updated_at = 1L,
                 ),
             )
-            val dao = mockk<ChapterDao>()
             every { dao.observeDownloadedChapters() } returns flowOf(chapters)
-            coEvery { dao.clearDownloadedChapterFlag(any()) } just Runs
 
-            val vm = DownloadsViewModel(dao, mainDispatcherRule.dispatcher)
+            val vm = DownloadsViewModel(dao, downloadManager, mainDispatcherRule.dispatcher)
 
             assertEquals(chapters, vm.downloadedChapters.first())
         }
 
     @Test
-    fun deleteDownload_clearsFlagInDao() =
+    fun deleteDownload_delegatesToDownloadManager() =
         runTest(mainDispatcherRule.dispatcher.scheduler) {
-            val dao = mockk<ChapterDao>()
             every { dao.observeDownloadedChapters() } returns flowOf(emptyList())
-            coEvery { dao.clearDownloadedChapterFlag(any()) } just Runs
+            coEvery { downloadManager.deleteDownload(any(), any()) } just Runs
 
-            val vm = DownloadsViewModel(dao, mainDispatcherRule.dispatcher)
-            vm.deleteDownload("c1")
+            val vm = DownloadsViewModel(dao, downloadManager, mainDispatcherRule.dispatcher)
+            vm.deleteDownload("m1", "c1")
             advanceUntilIdle()
 
-            coVerify(exactly = 1) { dao.clearDownloadedChapterFlag("c1") }
+            coVerify(exactly = 1) { downloadManager.deleteDownload("m1", "c1") }
         }
 }
