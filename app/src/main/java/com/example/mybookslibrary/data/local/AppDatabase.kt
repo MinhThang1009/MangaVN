@@ -11,8 +11,7 @@ import com.example.mybookslibrary.data.local.dao.ChapterDao
 import com.example.mybookslibrary.data.local.dao.DownloadQueueDao
 import com.example.mybookslibrary.data.local.dao.LibraryDao
 
-@Suppress("UnusedPrivateProperty")
-private const val CURRENT_DATABASE_VERSION = 2
+private const val CURRENT_DATABASE_VERSION = 1
 
 @Database(
     entities = [
@@ -51,8 +50,7 @@ abstract class AppDatabase : RoomDatabase() {
                             AppDatabase::class.java,
                             "mybooks_library.db",
                         )
-                        .addMigrations(migration1To2)
-                        // Dùng cho lần downgrade từ 6 -> 1 này. Các version sau (2, 3...) bắt buộc phải viết Migration.
+                        .addMigrations(migration5To1)
                         .fallbackToDestructiveMigration()
                         .build()
 
@@ -61,14 +59,11 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        // Dummy migration
         @Suppress("MagicNumber")
-        val migration1To2 =
-            object : Migration(1, 2) {
-                override fun migrate(db: SupportSQLiteDatabase) {
-                    db.execSQL(
-                        "ALTER TABLE `library_items` ADD COLUMN `sync_status` TEXT NOT NULL DEFAULT 'PENDING_UPDATE'"
-                    )
-                }
+        val migration5To1 =
+            object : Migration(5, 1) {
+                override fun migrate(db: SupportSQLiteDatabase) = Unit
             }
     }
 }

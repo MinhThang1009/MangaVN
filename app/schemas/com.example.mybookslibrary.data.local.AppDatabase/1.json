@@ -1,7 +1,7 @@
 {
   "formatVersion": 1,
   "database": {
-    "version": 2,
+    "version": 1,
     "identityHash": "2ff8b2fdc1e7c160532660f28c0c1d8c",
     "entities": [
       {
@@ -50,7 +50,7 @@
             "notNull": true
           },
           {
-            "fieldPath": "sync_status",
+            "fieldPath": "syncStatus",
             "columnName": "sync_status",
             "affinity": "TEXT",
             "notNull": true
