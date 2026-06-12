@@ -6,6 +6,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.mybookslibrary.data.local.UserPreferencesDataStore
+import com.example.mybookslibrary.domain.model.AuthStatus
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import kotlinx.coroutines.runBlocking
@@ -17,7 +18,7 @@ import javax.inject.Inject
 
 /**
  * Instrumented navigation test dùng HiltAndroidTest.
- * createAndroidComposeRule v1 — v2 và createEmptyComposeRule đều gây
+ * createAndroidComposeRule v1 — v2 và empty compose rule đều gây
  * "No compose hierarchies" với HiltAndroidTest trên project này.
  * Activity launch trước @Before nên không thể reset DataStore để ảnh hưởng
  * startDestination — dùng conditional pattern để handle cả hai initial state.
@@ -77,7 +78,7 @@ class NavigationTest {
     @Test
     fun signOut_navigatesToLogin() {
         composeRule.waitForIdle()
-        runBlocking { preferencesDataStore.setLoggedInUserId(null) }
+        runBlocking { preferencesDataStore.updateAuthStatus(AuthStatus.LOGGED_OUT) }
         composeRule.waitForIdle()
     }
 

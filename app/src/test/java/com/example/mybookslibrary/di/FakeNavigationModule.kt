@@ -10,7 +10,6 @@ import com.example.mybookslibrary.data.local.UserPreferencesDataStore
 import com.example.mybookslibrary.data.local.dao.ChapterDao
 import com.example.mybookslibrary.data.local.dao.DownloadQueueDao
 import com.example.mybookslibrary.data.local.dao.LibraryDao
-import com.example.mybookslibrary.data.local.dao.UserDao
 import com.example.mybookslibrary.data.local.userPreferencesDataStore
 import com.example.mybookslibrary.data.remote.MangaDexApi
 import com.example.mybookslibrary.data.remote.NetworkModule
@@ -56,9 +55,6 @@ object FakeNavigationModule {
     ): UserPreferencesDataStore = UserPreferencesDataStore(context.userPreferencesDataStore)
 
     @Provides
-    fun provideUserDao(db: AppDatabase): UserDao = db.userDao()
-
-    @Provides
     fun provideLibraryDao(db: AppDatabase): LibraryDao = db.libraryDao()
 
     @Provides
@@ -89,7 +85,16 @@ object FakeNavigationModule {
         libraryDao: LibraryDao,
         chapterDao: ChapterDao,
         db: AppDatabase,
-    ): LibraryRepository = LibraryRepository(libraryDao, chapterDao, db)
+    ): LibraryRepository {
+        return LibraryRepository(
+            libraryDao = libraryDao,
+            chapterDao = chapterDao,
+            database = db,
+            firestoreDataSource = mockk(relaxed = true),
+            authRepository = mockk(relaxed = true),
+            externalScope = kotlinx.coroutines.test.TestScope()
+        )
+    }
 
     @Provides
     @Singleton
@@ -99,6 +104,14 @@ object FakeNavigationModule {
     @Singleton
     @Named("ImageOkHttpClient")
     fun provideImageOkHttpClient(): OkHttpClient = mockk(relaxed = true)
+
+        @Provides
+    @Singleton
+    fun provideFirebaseAuth(): com.google.firebase.auth.FirebaseAuth = mockk(relaxed = true)
+
+    @Provides
+    @Singleton
+    fun provideFirebaseFirestore(): com.google.firebase.firestore.FirebaseFirestore = mockk(relaxed = true)
 
     @Provides
     @Singleton

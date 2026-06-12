@@ -1,3 +1,5 @@
+@file:Suppress("ktlint")
+
 package com.example.mybookslibrary.data.local
 
 import androidx.datastore.core.DataStore
@@ -89,19 +91,32 @@ class UserPreferencesDataStoreTest {
         }
 
     @Test
-    fun loggedInUserId_setRoiObserveRoiXoaBangNull() =
+    fun authStatus_macDinhRoiSetDocLai() =
         runTest {
             val store = store()
-            assertNull(store.getLoggedInUserId())
-            assertNull(store.observeLoggedInUserId().first())
+            // Default AuthStatus string from empty is null -> AuthStatus.LOGGED_OUT
+            assertEquals(com.example.mybookslibrary.domain.model.AuthStatus.LOGGED_OUT, store.getAuthStatus())
+            assertEquals(com.example.mybookslibrary.domain.model.AuthStatus.LOGGED_OUT, store.observeAuthStatus().first())
 
-            store.setLoggedInUserId("user-1")
-            assertEquals("user-1", store.getLoggedInUserId())
-            assertEquals("user-1", store.observeLoggedInUserId().first())
+            store.updateAuthStatus(com.example.mybookslibrary.domain.model.AuthStatus.LOGGED_IN)
+            assertEquals(com.example.mybookslibrary.domain.model.AuthStatus.LOGGED_IN, store.getAuthStatus())
+            assertEquals(com.example.mybookslibrary.domain.model.AuthStatus.LOGGED_IN, store.observeAuthStatus().first())
+        }
+
+    @Test
+    fun firebaseUid_setRoiObserveRoiXoaBangNull() =
+        runTest {
+            val store = store()
+            assertNull(store.getFirebaseUid())
+            assertNull(store.observeFirebaseUid().first())
+
+            store.updateFirebaseUid("user-1")
+            assertEquals("user-1", store.getFirebaseUid())
+            assertEquals("user-1", store.observeFirebaseUid().first())
 
             // Nhánh else: set null -> remove key -> đọc lại ra null
-            store.setLoggedInUserId(null)
-            assertNull(store.getLoggedInUserId())
+            store.updateFirebaseUid(null)
+            assertNull(store.getFirebaseUid())
         }
 
     @Test
@@ -110,13 +125,15 @@ class UserPreferencesDataStoreTest {
             val store = store()
             store.setLanguage("vi")
             store.setReaderQuality("data-saver")
-            store.setLoggedInUserId("user-1")
+            store.updateFirebaseUid("user-1")
+            store.updateAuthStatus(com.example.mybookslibrary.domain.model.AuthStatus.LOGGED_IN)
 
             store.clearAll()
 
             assertEquals("vi", store.getLanguage())
             assertEquals("data", store.getReaderQuality())
-            assertNull(store.getLoggedInUserId())
+            assertNull(store.getFirebaseUid())
+            assertEquals(com.example.mybookslibrary.domain.model.AuthStatus.LOGGED_OUT, store.getAuthStatus())
         }
 
     @Test

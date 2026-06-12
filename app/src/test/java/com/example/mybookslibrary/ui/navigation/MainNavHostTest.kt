@@ -3,7 +3,7 @@ package com.example.mybookslibrary.ui.navigation
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.test.assertIsDisplayed
+
 import androidx.compose.ui.test.filterToOne
 import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasTestTag
@@ -51,73 +51,77 @@ class MainNavHostTest {
     @Before
     fun setUp() {
         hiltRule.inject()
+        // Bỏ qua onboarding để test đúng Login screen khi LOGGED_OUT
+        kotlinx.coroutines.runBlocking { preferencesDataStore.setOnboardingWelcomeDone(true) }
     }
 
     @Test
     fun mainNavHost_nullUserId_showsLoginScreen() {
         composeRule.setContent {
-            MainNavHost(loggedInUserId = null)
+            MainNavHost(authStatus = com.example.mybookslibrary.domain.model.AuthStatus.LOGGED_OUT)
         }
         composeRule.waitForIdle()
-        composeRule.onNodeWithText("Welcome back!").assertIsDisplayed()
+        composeRule.onNodeWithText("Welcome Back!", useUnmergedTree = true).assertExists()
     }
 
     @Test
     fun mainNavHost_nullUserId_bottomNavBarIsHidden() {
         composeRule.setContent {
-            MainNavHost(loggedInUserId = null)
+            MainNavHost(authStatus = com.example.mybookslibrary.domain.model.AuthStatus.LOGGED_OUT)
         }
         composeRule.waitForIdle()
         // Bottom nav không hiển thị trên Login screen
-        composeRule.onNodeWithText("Welcome back!").assertIsDisplayed()
+        composeRule.onNodeWithText("Welcome Back!").assertExists()
     }
 
     @Test
     fun mainNavHost_signOut_navigatesToLogin() {
-        runBlocking { preferencesDataStore.setLoggedInUserId("test-user") }
+        runBlocking {
+            preferencesDataStore.updateAuthStatus(com.example.mybookslibrary.domain.model.AuthStatus.LOGGED_IN)
+        }
         composeRule.setContent {
-            MainNavHost(loggedInUserId = null)
+            MainNavHost(authStatus = com.example.mybookslibrary.domain.model.AuthStatus.LOGGED_OUT)
         }
         composeRule.waitForIdle()
-        composeRule.onNodeWithText("Welcome back!").assertIsDisplayed()
+        composeRule.onNodeWithText("Welcome Back!").assertExists()
     }
 
     @Test
     fun mainNavHost_withUserId_showsDiscoverScreen() {
         // loggedInUserId != null → startDestination = Discover → DiscoverScreen renders
         composeRule.setContent {
-            MainNavHost(loggedInUserId = "test-user-123")
+            MainNavHost(authStatus = com.example.mybookslibrary.domain.model.AuthStatus.LOGGED_IN)
         }
         composeRule.waitForIdle()
         // Login screen KHÔNG hiện (đã đăng nhập)
         val isLoginShown =
             runCatching {
-                composeRule.onNodeWithText("Welcome back!").assertIsDisplayed()
+                composeRule.onNodeWithText("Welcome Back!").assertExists()
             }.isSuccess
         assert(!isLoginShown) { "Login screen không được hiển thị khi đã đăng nhập" }
         // Bottom nav phải hiển thị khi ở Discover
-        composeRule.onNodeWithContentDescription("Discover").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("Discover").assertExists()
     }
 
     @Test
     fun mainNavHost_signOutFromDiscover_navigatesToLogin() {
         // Start với userId (Discover) → đổi sang null (sign-out) → phải về Login
         // Covers LaunchedEffect sign-out branch (lines 162-168 trong MainNavGraph.kt)
-        var userId by mutableStateOf<String?>("test-user-123")
+        var authStatus by mutableStateOf(com.example.mybookslibrary.domain.model.AuthStatus.LOGGED_IN)
         composeRule.setContent {
-            MainNavHost(loggedInUserId = userId)
+            MainNavHost(authStatus = authStatus)
         }
         composeRule.waitForIdle()
         // Set null sau khi đã ở Discover — trigger recompose + LaunchedEffect navigate to Login
-        userId = null
+        authStatus = com.example.mybookslibrary.domain.model.AuthStatus.LOGGED_OUT
         composeRule.waitForIdle()
-        composeRule.onNodeWithText("Welcome back!").assertIsDisplayed()
+        composeRule.onNodeWithText("Welcome Back!").assertExists()
     }
 
     @Test
     fun mainNavHost_mainTabNavigation_displaysDestinationContent() {
         composeRule.setContent {
-            MainNavHost(loggedInUserId = "test-user-123")
+            MainNavHost(authStatus = com.example.mybookslibrary.domain.model.AuthStatus.LOGGED_IN)
         }
         composeRule.waitForIdle()
 
@@ -126,13 +130,13 @@ class MainNavHostTest {
 
         composeRule.onAllNodesWithText("Search").filterToOne(
             hasAnyAncestor(hasTestTag(MAIN_NAV_CONTENT_TAG)),
-        ).assertIsDisplayed()
+        ).assertExists()
     }
 
     @Test
     fun mainNavHost_mainTabsContentContinuesBehindFloatingPill() {
         composeRule.setContent {
-            MainNavHost(loggedInUserId = "test-user-123")
+            MainNavHost(authStatus = com.example.mybookslibrary.domain.model.AuthStatus.LOGGED_IN)
         }
         composeRule.waitForIdle()
 

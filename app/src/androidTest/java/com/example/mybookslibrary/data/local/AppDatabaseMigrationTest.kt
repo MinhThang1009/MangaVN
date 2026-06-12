@@ -25,7 +25,7 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class AppDatabaseMigrationTest {
     /**
-     * Smoke test: DB v4 (schema hiện tại) có thể mở được và tất cả bảng tồn tại.
+     * Smoke test: schema hiện tại có thể mở được và tất cả bảng tồn tại.
      *
      * Dùng inMemoryDatabaseBuilder thay MigrationTestHelper.createDatabase() vì
      * Room 2.8.4 có binary incompatibility: DatabaseBundle$$serializer được compile
@@ -43,7 +43,6 @@ class AppDatabaseMigrationTest {
                 .build()
         try {
             db.openHelper.readableDatabase.apply {
-                query("SELECT * FROM users LIMIT 1").close()
                 query("SELECT * FROM library_items LIMIT 1").close()
                 query("SELECT * FROM chapter_progress LIMIT 1").close()
                 query("SELECT * FROM download_queue LIMIT 1").close()

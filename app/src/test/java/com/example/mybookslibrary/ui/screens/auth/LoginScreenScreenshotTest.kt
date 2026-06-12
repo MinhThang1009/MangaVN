@@ -34,7 +34,7 @@ class LoginScreenScreenshotTest {
             LoginScreen(
                 onLoginSuccess = {},
                 onNavigateToRegister = {},
-                viewModel = AuthViewModel(authRepository),
+                viewModel = AuthViewModel(authRepository, mockk(relaxed = true)),
             )
         }
         composeRule.onRoot().captureRoboImage("src/test/screenshots/login_screen_default.png")

@@ -1,4 +1,4 @@
-﻿@file:Suppress("ktlint")
+@file:Suppress("ktlint")
 
 package com.example.mybookslibrary.ui.screens
 
@@ -69,7 +69,7 @@ class MainScreensTest {
                     SettingsViewModel(
                         preferencesDataStore = prefs,
                         libraryRepository = mockk<LibraryRepository>(relaxed = true),
-                        authRepository = mockk(relaxed = true),
+                        authRepository = mockk<com.example.mybookslibrary.data.repository.AuthRepository>(relaxed = true),
                         imageLoader = mockk<ImageLoader>(relaxed = true),
                         ioDispatcher = UnconfinedTestDispatcher(),
                         json = NetworkModule.provideJson(),

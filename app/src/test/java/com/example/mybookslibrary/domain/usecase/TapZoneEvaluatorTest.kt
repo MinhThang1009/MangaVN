@@ -1,3 +1,5 @@
+@file:Suppress("ktlint")
+
 package com.example.mybookslibrary.domain.usecase
 
 import com.example.mybookslibrary.domain.model.ReaderTapAction

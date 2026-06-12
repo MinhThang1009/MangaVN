@@ -1,4 +1,4 @@
-﻿package com.example.mybookslibrary.ui.screens
+package com.example.mybookslibrary.ui.screens
 
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsDisplayed
@@ -51,7 +51,7 @@ class SettingScreenContentTest {
         return SettingsViewModel(
             preferencesDataStore = prefs,
             libraryRepository = libraryRepo,
-            authRepository = mockk(relaxed = true),
+            authRepository = mockk<com.example.mybookslibrary.data.repository.AuthRepository>(relaxed = true),
             imageLoader = imageLoader,
             ioDispatcher = UnconfinedTestDispatcher(),
             json = NetworkModule.provideJson(),

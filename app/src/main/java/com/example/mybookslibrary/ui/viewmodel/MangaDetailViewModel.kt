@@ -37,6 +37,7 @@ data class MangaDetailUiState(
     val firstChapterPages: List<String> = emptyList(),
     val isLoadingFirstChapterPages: Boolean = false,
     val firstChapterPagesError: String? = null,
+    val lastReadChapterId: String? = null,
 )
 
 @HiltViewModel
@@ -70,7 +71,7 @@ class MangaDetailViewModel
                 } catch (c: CancellationException) {
                     throw c
                 } catch (e: Exception) {
-                    Timber.e(e, "MangaDetailViewModel: tác vụ thất bại")
+                    Timber.e(e, "MangaDetailViewModel: task failed")
                 }
             }
         }
@@ -146,6 +147,7 @@ class MangaDetailViewModel
                     it.copy(
                         isInLibrary = item != null,
                         isFavorite = item?.is_favorite == true,
+                        lastReadChapterId = item?.last_read_chapter_id,
                     )
                 }
             }

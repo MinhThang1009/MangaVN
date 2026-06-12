@@ -30,6 +30,7 @@ class SettingsViewModelTest {
 
     private val prefs = mockk<UserPreferencesDataStore>(relaxed = true)
     private val libraryRepository = mockk<LibraryRepository>(relaxed = true)
+    private val authRepository = mockk<com.example.mybookslibrary.data.repository.AuthRepository>(relaxed = true)
     private val imageLoader = mockk<ImageLoader>(relaxed = true)
 
     private fun stubDefaults(
@@ -46,7 +47,7 @@ class SettingsViewModelTest {
         SettingsViewModel(
             preferencesDataStore = prefs,
             libraryRepository = libraryRepository,
-            authRepository = mockk(relaxed = true),
+            authRepository = authRepository,
             imageLoader = imageLoader,
             ioDispatcher = mainDispatcherRule.dispatcher,
             json = NetworkModule.provideJson(),
@@ -139,7 +140,7 @@ class SettingsViewModelTest {
 
             assertTrue(vm.uiState.value.signedOut)
             assertEquals("data", vm.uiState.value.quality)
-            coVerify { prefs.setLoggedInUserId(null) }
+            coVerify { authRepository.signOut() }
             coVerify { libraryRepository.clearAll() }
         }
 
@@ -155,6 +156,37 @@ class SettingsViewModelTest {
             advanceUntilIdle()
 
             assertFalse(vm.uiState.value.signedOut)
+        }
+
+    @Test
+    fun forceSync_chayFullTwoWaySyncVaBaoThanhCong() =
+        runTest(mainDispatcherRule.dispatcher.scheduler) {
+            stubDefaults()
+            val vm = viewModel()
+            advanceUntilIdle()
+
+            vm.forceSync()
+            advanceUntilIdle()
+
+            coVerify(exactly = 1) { libraryRepository.performSync() }
+            assertFalse(vm.uiState.value.isSyncing)
+            assertEquals(true, vm.uiState.value.syncSuccess)
+        }
+
+    @Test
+    fun forceSync_fullTwoWaySyncLoi_thongBaoThatBai() =
+        runTest(mainDispatcherRule.dispatcher.scheduler) {
+            stubDefaults()
+            coEvery { libraryRepository.performSync() } throws RuntimeException("sync lỗi")
+            val vm = viewModel()
+            advanceUntilIdle()
+
+            vm.forceSync()
+            advanceUntilIdle()
+
+            coVerify(exactly = 1) { libraryRepository.performSync() }
+            assertFalse(vm.uiState.value.isSyncing)
+            assertEquals(false, vm.uiState.value.syncSuccess)
         }
 
     @Test

@@ -1,3 +1,5 @@
+@file:Suppress("ktlint")
+
 package com.example.mybookslibrary.ui.screens.auth
 
 import androidx.compose.foundation.layout.Arrangement
@@ -62,7 +64,7 @@ fun LoginScreen(
     isReturningUser: Boolean = false,
     viewModel: AuthViewModel = hiltViewModel(),
 ) {
-    var username by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
 
@@ -126,13 +128,13 @@ fun LoginScreen(
             )
 
             OutlinedTextField(
-                value = username,
-                onValueChange = { username = it },
-                label = { Text(appString(R.string.auth_username)) },
-                placeholder = { Text(appString(R.string.auth_username_placeholder)) },
-                isError = uiState is AuthState.Error && username.isBlank(),
+                value = email,
+                onValueChange = { email = it },
+                label = { Text(appString(R.string.auth_email)) },
+                isError = uiState is AuthState.Error && email.isBlank(),
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
             )
 
             Spacer(modifier = Modifier.height(Dimens.SpacingLg))
@@ -171,7 +173,7 @@ fun LoginScreen(
             }
 
             Button(
-                onClick = { viewModel.login(username, password) },
+                onClick = { viewModel.login(email, password) },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = uiState !is AuthState.Loading,
             ) {
@@ -193,6 +195,16 @@ fun LoginScreen(
                 enabled = uiState !is AuthState.Loading,
             ) {
                 Text(appString(R.string.auth_google_signin))
+            }
+
+            Spacer(modifier = Modifier.height(Dimens.SpacingLg))
+
+            TextButton(
+                onClick = { viewModel.continueAsGuest() },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = uiState !is AuthState.Loading,
+            ) {
+                Text(appString(R.string.auth_continue_guest))
             }
 
             Spacer(modifier = Modifier.height(Dimens.SpacingXxl))

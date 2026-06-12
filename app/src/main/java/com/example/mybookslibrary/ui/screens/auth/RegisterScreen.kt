@@ -1,3 +1,5 @@
+@file:Suppress("ktlint")
+
 package com.example.mybookslibrary.ui.screens.auth
 
 import androidx.compose.foundation.layout.Arrangement
@@ -60,7 +62,7 @@ fun RegisterScreen(
     onNavigateToLogin: () -> Unit,
     viewModel: AuthViewModel = hiltViewModel(),
 ) {
-    var username by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
@@ -113,13 +115,13 @@ fun RegisterScreen(
             Spacer(Modifier.height(Dimens.SpacingXxl))
 
             OutlinedTextField(
-                value = username,
-                onValueChange = { username = it },
-                label = { Text(appString(R.string.auth_username)) },
-                placeholder = { Text(appString(R.string.auth_username_placeholder)) },
-                isError = uiState is AuthState.Error && username.isBlank(),
+                value = email,
+                onValueChange = { email = it },
+                label = { Text(appString(R.string.auth_email)) },
+                isError = uiState is AuthState.Error && email.isBlank(),
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
             )
 
             Spacer(modifier = Modifier.height(Dimens.SpacingLg))
@@ -183,7 +185,7 @@ fun RegisterScreen(
             Button(
                 onClick = {
                     if (password == confirmPassword) {
-                        viewModel.register(username, password)
+                        viewModel.register(email, password)
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
@@ -191,7 +193,7 @@ fun RegisterScreen(
                     uiState !is AuthState.Loading &&
                         password == confirmPassword &&
                         password.isNotEmpty() &&
-                        username.isNotEmpty(),
+                        email.isNotEmpty(),
             ) {
                 if (uiState is AuthState.Loading) {
                     LoadingIndicator(

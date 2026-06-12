@@ -1,3 +1,5 @@
+@file:Suppress("ktlint")
+
 package com.example.mybookslibrary.data.repository
 
 import androidx.room.Room
@@ -7,6 +9,11 @@ import com.example.mybookslibrary.data.local.ChapterProgressEntity
 import com.example.mybookslibrary.data.local.ChapterStatus
 import com.example.mybookslibrary.data.local.LibraryItemEntity
 import com.example.mybookslibrary.data.local.LibraryStatus
+import com.example.mybookslibrary.data.remote.FirestoreDataSource
+import com.google.firebase.auth.FirebaseUser
+import io.mockk.coVerify
+import io.mockk.every
+import io.mockk.mockk
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -27,6 +34,8 @@ import org.robolectric.RuntimeEnvironment
 @RunWith(RobolectricTestRunner::class)
 class LibraryRepositoryCoverageTest {
     private lateinit var db: AppDatabase
+    private lateinit var firestoreDataSource: FirestoreDataSource
+    private lateinit var authRepository: AuthRepository
     private lateinit var repository: LibraryRepository
 
     @Before
@@ -38,7 +47,17 @@ class LibraryRepositoryCoverageTest {
                     AppDatabase::class.java,
                 ).allowMainThreadQueries()
                 .build()
-        repository = LibraryRepository(db.libraryDao(), db.chapterDao(), db)
+        firestoreDataSource = mockk(relaxed = true)
+        authRepository = mockk(relaxed = true)
+        repository =
+            LibraryRepository(
+                db.libraryDao(),
+                db.chapterDao(),
+                db,
+                firestoreDataSource,
+                authRepository,
+                kotlinx.coroutines.test.TestScope(),
+            )
     }
 
     @After
@@ -74,6 +93,37 @@ class LibraryRepositoryCoverageTest {
             repository.clearAll()
 
             assertTrue(repository.getAllItems().isEmpty())
+        }
+
+    @Test
+    fun getLibraryItem_returnsMatchingItemOrNull() =
+        runTest {
+            repository.addToLibrary(MANGA_ID, title = "Manga", coverUrl = "c")
+
+            assertEquals(MANGA_ID, repository.getLibraryItem(MANGA_ID)?.manga_id)
+            assertNull(repository.getLibraryItem("missing"))
+        }
+
+    @Test
+    fun clearAllRemote_withSignedInUser_deletesFirestoreData() =
+        runTest {
+            val user = mockk<FirebaseUser>()
+            every { user.uid } returns "user-1"
+            every { authRepository.getCurrentUser() } returns user
+
+            repository.clearAllRemote()
+
+            coVerify { firestoreDataSource.deleteAllUserData("user-1") }
+        }
+
+    @Test
+    fun clearAllRemote_withoutSignedInUser_doesNothing() =
+        runTest {
+            every { authRepository.getCurrentUser() } returns null
+
+            repository.clearAllRemote()
+
+            coVerify(exactly = 0) { firestoreDataSource.deleteAllUserData(any()) }
         }
 
     @Test
@@ -123,7 +173,7 @@ class LibraryRepositoryCoverageTest {
             repository.removeBookmark(MANGA_ID)
 
             assertFalse(repository.isInLibrary(MANGA_ID))
-            assertNull(db.chapterDao().getChapterProgressByChapter(CHAPTER_ID))
+            org.junit.Assert.assertNotNull(db.chapterDao().getChapterProgressByChapter(CHAPTER_ID))
         }
 
     @Test

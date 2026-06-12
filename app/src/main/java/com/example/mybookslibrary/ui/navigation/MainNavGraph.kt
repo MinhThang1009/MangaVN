@@ -52,6 +52,7 @@ import com.composables.icons.lucide.CircleUserRound
 import com.composables.icons.lucide.Compass
 import com.composables.icons.lucide.Lucide
 import com.example.mybookslibrary.R
+import com.example.mybookslibrary.domain.model.AuthStatus
 import com.example.mybookslibrary.ui.screens.onboarding.CoachMarkOverlay
 import com.example.mybookslibrary.ui.screens.onboarding.CoachMarkStep
 import com.example.mybookslibrary.ui.screens.onboarding.rememberCoachMarkState
@@ -95,7 +96,7 @@ internal val bottomDestinations =
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun MainNavHost(
-    loggedInUserId: String?,
+    authStatus: AuthStatus,
     incomingMangaId: String? = null,
     onboardingWelcomeDone: Boolean = true,
     onWelcomeDone: () -> Unit = {},
@@ -108,7 +109,7 @@ fun MainNavHost(
     val coachMarkState = rememberCoachMarkState()
     val snackbarHostState = remember { SnackbarHostState() }
     val isReturningUser = remember { onboardingWelcomeDone }
-    val showTour = loggedInUserId != null && !inAppTourDone
+    val showTour = authStatus != AuthStatus.LOGGED_OUT && !inAppTourDone
 
     var navBarVisible by remember { mutableStateOf(true) }
     val navBarScrollConnection = remember {
@@ -124,8 +125,8 @@ fun MainNavHost(
         }
     }
 
-    LaunchedEffect(loggedInUserId) {
-        if (loggedInUserId == null) {
+    LaunchedEffect(authStatus) {
+        if (authStatus == AuthStatus.LOGGED_OUT) {
             if (currentDestination != null &&
                 !currentDestination.hasRoute<Login>() &&
                 !currentDestination.hasRoute<Register>() &&
@@ -141,7 +142,7 @@ fun MainNavHost(
 
     // Navigate to manga detail when app is opened via share sheet (ACTION_SEND from browser).
     LaunchedEffect(incomingMangaId) {
-        if (!incomingMangaId.isNullOrBlank() && loggedInUserId != null) {
+        if (!incomingMangaId.isNullOrBlank() && authStatus != AuthStatus.LOGGED_OUT) {
             navController.navigate(MangaDetail(incomingMangaId)) {
                 launchSingleTop = true
             }
@@ -182,8 +183,8 @@ fun MainNavHost(
                     navController = navController,
                     startDestination =
                     when {
-                        loggedInUserId == null && !onboardingWelcomeDone -> Onboarding
-                        loggedInUserId == null -> Login
+                        authStatus == AuthStatus.LOGGED_OUT && !onboardingWelcomeDone -> Onboarding
+                        authStatus == AuthStatus.LOGGED_OUT -> Login
                         else -> Discover
                     },
                     modifier = modifier,
