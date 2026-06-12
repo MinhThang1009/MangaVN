@@ -92,7 +92,7 @@ fun SettingScreenContent(modifier: Modifier = Modifier, viewModel: SettingsViewM
                     style = MaterialTheme.typography.displayMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
-                Spacer(Modifier.height(32.dp))
+                Spacer(Modifier.height(Dimens.SpacingXxl))
             }
 
             item { SettingsSectionLabel(appString(R.string.settings_section_appearance)) }
@@ -118,7 +118,7 @@ fun SettingScreenContent(modifier: Modifier = Modifier, viewModel: SettingsViewM
                         viewModel.setLanguage(if (uiState.language == "vi") "en" else "vi")
                     }
                 }
-                Spacer(Modifier.height(24.dp))
+                Spacer(Modifier.height(Dimens.SpacingXl))
             }
 
             item { SettingsSectionLabel(appString(R.string.settings_section_reading)) }
@@ -134,7 +134,7 @@ fun SettingScreenContent(modifier: Modifier = Modifier, viewModel: SettingsViewM
                 SettingsCard {
                     SettingsRow(appString(R.string.settings_image_quality), qualityLabel) { viewModel.toggleQuality() }
                 }
-                Spacer(Modifier.height(24.dp))
+                Spacer(Modifier.height(Dimens.SpacingXl))
             }
 
             item { SettingsSectionLabel(appString(R.string.settings_section_storage)) }
@@ -150,7 +150,7 @@ fun SettingScreenContent(modifier: Modifier = Modifier, viewModel: SettingsViewM
                 SettingsCard {
                     SettingsRow(appString(R.string.settings_clear_cache), cacheSubtitle) { viewModel.clearImageCache() }
                 }
-                Spacer(Modifier.height(24.dp))
+                Spacer(Modifier.height(Dimens.SpacingXl))
             }
 
             item { SettingsSectionLabel(appString(R.string.settings_section_data)) }
@@ -176,7 +176,7 @@ fun SettingScreenContent(modifier: Modifier = Modifier, viewModel: SettingsViewM
                         restoreLauncher.launch(arrayOf("application/json"))
                     }
                 }
-                Spacer(Modifier.height(24.dp))
+                Spacer(Modifier.height(Dimens.SpacingXl))
             }
 
             item { SettingsSectionLabel(appString(R.string.settings_section_links)) }
@@ -184,7 +184,7 @@ fun SettingScreenContent(modifier: Modifier = Modifier, viewModel: SettingsViewM
                 SettingsCard {
                     OpenLinksRow(context = context)
                 }
-                Spacer(Modifier.height(24.dp))
+                Spacer(Modifier.height(Dimens.SpacingXl))
             }
 
             item { SettingsSectionLabel(appString(R.string.settings_about)) }
@@ -265,7 +265,7 @@ private fun SettingsSectionLabel(title: String) {
         title.uppercase(),
         style = MaterialTheme.typography.labelLarge,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(bottom = 8.dp, start = 4.dp),
+        modifier = Modifier.padding(bottom = Dimens.SpacingSm, start = Dimens.SpacingXs),
     )
 }
 
@@ -293,7 +293,7 @@ private fun SettingsRow(
         Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(horizontal = 20.dp, vertical = 16.dp),
+            .padding(horizontal = Dimens.SpacingXl, vertical = Dimens.SpacingLg),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
     ) {
@@ -315,7 +315,7 @@ private fun SettingsDivider() {
         Modifier
             .fillMaxWidth()
             .height(1.dp)
-            .padding(horizontal = 20.dp)
+            .padding(horizontal = Dimens.SpacingXl)
             .background(MaterialTheme.colorScheme.outlineVariant),
     )
 }
@@ -351,11 +351,11 @@ private fun OpenLinksRow(context: android.content.Context) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 14.dp),
+            .padding(horizontal = Dimens.SpacingXl, vertical = Dimens.SpacingMd),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Column(Modifier.weight(1f).padding(end = 12.dp)) {
+        Column(Modifier.weight(1f).padding(end = Dimens.SpacingMd)) {
             Text(
                 appString(R.string.settings_open_links),
                 style = MaterialTheme.typography.titleMedium,

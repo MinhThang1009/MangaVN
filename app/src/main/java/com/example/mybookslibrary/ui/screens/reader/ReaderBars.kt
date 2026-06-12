@@ -43,7 +43,6 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.example.mybookslibrary.R
 import com.example.mybookslibrary.domain.model.ReadingMode
 import com.example.mybookslibrary.ui.theme.Alphas
@@ -147,7 +146,7 @@ internal fun BoxScope.ReaderTopBar(
                 color = colors.content,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f).padding(start = 8.dp),
+                modifier = Modifier.weight(1f).padding(start = Dimens.SpacingSm),
             )
         }
     }
@@ -280,7 +279,7 @@ internal fun BoxScope.ReaderBottomBar(
                 text = appString(R.string.reader_pages_label),
                 style = MaterialTheme.typography.bodySmall,
                 color = colors.secondaryContent,
-                modifier = Modifier.padding(end = 8.dp),
+                modifier = Modifier.padding(end = Dimens.SpacingSm),
             )
             IconButton(onClick = {
                 Timber.v("ReaderBottomBar toggle clicked: currentMode=%s", state.currentReadingMode)
@@ -294,7 +293,7 @@ internal fun BoxScope.ReaderBottomBar(
                             appString(nextReadingModeRes),
                         ),
                     tint = colors.content,
-                    modifier = Modifier.size(24.dp),
+                    modifier = Modifier.size(Dimens.IconDefault),
                 )
             }
         }

@@ -37,6 +37,7 @@ import com.example.mybookslibrary.ui.screens.components.MangaCoverCard
 import com.example.mybookslibrary.ui.screens.components.SectionHeader
 import com.example.mybookslibrary.ui.theme.Alphas
 import com.example.mybookslibrary.ui.theme.Dimens
+import com.example.mybookslibrary.ui.theme.Elevations
 import com.example.mybookslibrary.ui.util.adaptiveGridColumns
 import com.example.mybookslibrary.ui.util.appString
 import com.example.mybookslibrary.ui.util.isLandscape
@@ -159,7 +160,7 @@ private fun SpotlightCard(manga: MangaModel, onClick: () -> Unit, modifier: Modi
         onClick = onClick,
         modifier = modifier.fillMaxWidth().height(spotlightHeight),
         shape = MaterialTheme.shapes.large,
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = Elevations.Resting),
     ) {
         Box(Modifier.fillMaxSize()) {
             AsyncImage(

@@ -40,6 +40,7 @@ import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Star
 import com.example.mybookslibrary.R
 import com.example.mybookslibrary.ui.theme.Dimens
+import com.example.mybookslibrary.ui.theme.Elevations
 import com.example.mybookslibrary.ui.util.appString
 import androidx.compose.material3.Icon as M3Icon
 
@@ -95,7 +96,7 @@ internal fun FirstChapterPreviewSection(pageUrls: List<String>) {
             items(pageUrls) { pageUrl ->
                 Card(
                     shape = MaterialTheme.shapes.small,
-                    elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = Elevations.Dialog),
                     modifier = Modifier.width(160.dp).aspectRatio(2f / 3f),
                 ) {
                     AsyncImage(

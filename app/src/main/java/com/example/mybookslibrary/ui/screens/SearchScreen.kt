@@ -28,7 +28,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.composables.icons.lucide.Filter
@@ -193,7 +192,7 @@ private fun SearchResultItem(manga: MangaModel, onClick: () -> Unit) {
         modifier = Modifier.fillMaxWidth(),
         onClick = onClick,
         shape = MaterialTheme.shapes.large,
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = Dimens.BorderThin),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
     ) {
         Row(
@@ -203,7 +202,7 @@ private fun SearchResultItem(manga: MangaModel, onClick: () -> Unit) {
             MangaCoverCard(
                 coverUrl = manga.coverArt,
                 contentDescription = manga.title,
-                width = 56.dp,
+                width = Dimens.IconXxl,
             )
             Spacer(Modifier.width(Dimens.SpacingLg))
             Column(Modifier.weight(1f)) {
