@@ -15,9 +15,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -32,6 +35,7 @@ import com.example.mybookslibrary.R
 import com.example.mybookslibrary.ui.navigation.LucideSearchIcon
 import com.example.mybookslibrary.ui.screens.components.DiscoverSkeletonLoading
 import com.example.mybookslibrary.ui.screens.components.ErrorState
+import com.example.mybookslibrary.data.local.userPreferencesDataStore
 import com.example.mybookslibrary.ui.screens.components.StyledDropdownMenu
 import com.example.mybookslibrary.ui.theme.Dimens
 import com.example.mybookslibrary.ui.util.appString
@@ -149,6 +153,15 @@ private fun DiscoverMenuItem(
 
 @Composable
 private fun DiscoverTopBarActions(onSearchClick: () -> Unit, onProfileClick: () -> Unit) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val prefs = remember(context) {
+        com.example.mybookslibrary.data.local.UserPreferencesDataStore(
+            context.userPreferencesDataStore,
+        )
+    }
+    val avatarUri by prefs.observeAvatarUri()
+        .collectAsStateWithLifecycle(initialValue = "")
+
     IconButton(onClick = onSearchClick) {
         Icon(LucideSearchIcon, appString(R.string.cd_search), tint = MaterialTheme.colorScheme.primary)
     }
@@ -158,15 +171,24 @@ private fun DiscoverTopBarActions(onSearchClick: () -> Unit, onProfileClick: () 
                 Modifier
                     .size(Dimens.IconLg)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primary),
+                    .background(MaterialTheme.colorScheme.primaryContainer),
             contentAlignment = Alignment.Center,
         ) {
-            Icon(
-                Lucide.User,
-                appString(R.string.cd_profile),
-                tint = MaterialTheme.colorScheme.onPrimary,
-                modifier = Modifier.size(Dimens.IconSm),
-            )
+            if (avatarUri.isNotBlank()) {
+                coil3.compose.AsyncImage(
+                    model = avatarUri,
+                    contentDescription = appString(R.string.cd_profile),
+                    contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            } else {
+                Icon(
+                    Lucide.User,
+                    appString(R.string.cd_profile),
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                    modifier = Modifier.size(Dimens.IconSm),
+                )
+            }
         }
     }
 }
