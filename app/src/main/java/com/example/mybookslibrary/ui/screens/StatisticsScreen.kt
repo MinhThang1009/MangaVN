@@ -1,3 +1,5 @@
+@file:Suppress("TooManyFunctions")
+
 package com.example.mybookslibrary.ui.screens
 
 import androidx.compose.animation.core.Spring
@@ -57,7 +59,12 @@ import ir.ehsannarmani.compose_charts.models.BarProperties
 import ir.ehsannarmani.compose_charts.models.Bars
 import ir.ehsannarmani.compose_charts.models.DotProperties
 import ir.ehsannarmani.compose_charts.models.DrawStyle
+import ir.ehsannarmani.compose_charts.models.GridProperties
+import ir.ehsannarmani.compose_charts.models.HorizontalIndicatorProperties
+import ir.ehsannarmani.compose_charts.models.LabelHelperProperties
+import ir.ehsannarmani.compose_charts.models.LabelProperties
 import ir.ehsannarmani.compose_charts.models.Line
+import ir.ehsannarmani.compose_charts.models.VerticalIndicatorProperties
 import ir.ehsannarmani.compose_charts.models.Pie
 import java.util.Calendar
 import java.util.Locale
@@ -193,6 +200,10 @@ private fun WeeklyColumnChart(activity: List<Int>) {
                 spacing = 4.dp,
                 thickness = 24.dp,
             ),
+            gridProperties = themedGridProperties(),
+            labelProperties = themedLabelProperties(),
+            labelHelperProperties = themedLabelHelperProperties(),
+            indicatorProperties = themedIndicatorProperties(),
             animationSpec = spring(
                 dampingRatio = Spring.DampingRatioMediumBouncy,
                 stiffness = Spring.StiffnessLow,
@@ -204,11 +215,12 @@ private fun WeeklyColumnChart(activity: List<Int>) {
 @Composable
 private fun MonthlyLineChart(trend: List<Int>) {
     val primary = MaterialTheme.colorScheme.primary
+    val chaptersLabel = appString(R.string.stats_total_chapters)
 
-    val lineData = remember(trend) {
+    val lineData = remember(trend, chaptersLabel) {
         listOf(
             Line(
-                label = "Chapters",
+                label = chaptersLabel,
                 values = trend.map { it.toDouble().coerceAtLeast(0.0) },
                 color = SolidColor(primary),
                 curvedEdges = true,
@@ -228,6 +240,9 @@ private fun MonthlyLineChart(trend: List<Int>) {
         LineChart(
             modifier = Modifier.fillMaxWidth().height(lineChartHeight).padding(Dimens.SpacingSm),
             data = lineData,
+            gridProperties = themedGridProperties(),
+            labelHelperProperties = themedLabelHelperProperties(),
+            indicatorProperties = themedIndicatorProperties(),
         )
     }
 }
@@ -340,6 +355,10 @@ private fun StatusRowChart(reading: Int, completed: Int, favorite: Int) {
                 spacing = 4.dp,
                 thickness = 28.dp,
             ),
+            gridProperties = themedGridProperties(),
+            labelProperties = themedLabelProperties(),
+            labelHelperProperties = themedLabelHelperProperties(),
+            indicatorProperties = themedVerticalIndicatorProperties(),
             animationSpec = spring(
                 dampingRatio = Spring.DampingRatioMediumBouncy,
                 stiffness = Spring.StiffnessLow,
@@ -395,6 +414,47 @@ private fun weekDayLabels(): List<String> {
         )
         cal.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.SHORT, Locale.getDefault()) ?: ""
     }
+}
+
+@Composable
+private fun themedGridProperties(): GridProperties {
+    val gridColor = SolidColor(MaterialTheme.colorScheme.outlineVariant)
+    return GridProperties(
+        xAxisProperties = GridProperties.AxisProperties(color = gridColor),
+        yAxisProperties = GridProperties.AxisProperties(color = gridColor),
+    )
+}
+
+@Composable
+private fun themedLabelProperties(): LabelProperties {
+    val style = MaterialTheme.typography.labelSmall.copy(
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+    return LabelProperties(enabled = true, textStyle = style)
+}
+
+@Composable
+private fun themedLabelHelperProperties(): LabelHelperProperties {
+    val style = MaterialTheme.typography.labelSmall.copy(
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+    return LabelHelperProperties(enabled = true, textStyle = style)
+}
+
+@Composable
+private fun themedIndicatorProperties(): HorizontalIndicatorProperties {
+    val style = MaterialTheme.typography.labelSmall.copy(
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+    return HorizontalIndicatorProperties(enabled = true, textStyle = style)
+}
+
+@Composable
+private fun themedVerticalIndicatorProperties(): VerticalIndicatorProperties {
+    val style = MaterialTheme.typography.labelSmall.copy(
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+    return VerticalIndicatorProperties(enabled = true, textStyle = style)
 }
 
 private const val DAYS_IN_WEEK = 7
