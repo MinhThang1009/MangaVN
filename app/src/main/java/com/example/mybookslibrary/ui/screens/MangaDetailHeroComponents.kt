@@ -33,6 +33,8 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import com.composables.icons.lucide.ArrowLeft
+import com.composables.icons.lucide.Bookmark
+import com.composables.icons.lucide.BookmarkCheck
 import com.composables.icons.lucide.Heart
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Share2
@@ -161,16 +163,29 @@ internal fun MangaDetailActions(
             modifier = Modifier.fillMaxWidth(),
         )
         Spacer(Modifier.height(Dimens.SpacingMd))
-        AppButton(
-            text = if (isInLibrary) {
-                appString(R.string.detail_in_library)
-            } else {
-                appString(R.string.detail_add_to_library)
-            },
+        androidx.compose.material3.OutlinedButton(
             onClick = onToggleLibrary,
-            style = AppButtonStyle.Secondary,
             modifier = Modifier.fillMaxWidth(),
-        )
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                horizontal = Dimens.SpacingLg,
+                vertical = Dimens.SpacingSm,
+            ),
+        ) {
+            Icon(
+                if (isInLibrary) Lucide.BookmarkCheck else Lucide.Bookmark,
+                contentDescription = null,
+                modifier = Modifier.size(Dimens.IconSm),
+            )
+            Spacer(Modifier.size(Dimens.SpacingSm))
+            Text(
+                if (isInLibrary) {
+                    appString(R.string.detail_in_library)
+                } else {
+                    appString(R.string.detail_add_to_library)
+                },
+                style = MaterialTheme.typography.labelLarge,
+            )
+        }
     }
 }
 

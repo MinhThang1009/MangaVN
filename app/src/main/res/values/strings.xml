@@ -84,7 +84,7 @@
     <string name="detail_read_now">READ NOW</string>
     <string name="detail_continue_reading">CONTINUE READING</string>
     <string name="detail_loading">LOADING…</string>
-    <string name="detail_in_library">IN LIBRARY</string>
+    <string name="detail_in_library">REMOVE FROM LIBRARY</string>
     <string name="detail_add_to_library">ADD TO LIBRARY</string>
     <string name="detail_pages_suffix">%1$dp</string>
     <string name="detail_error">Couldn\'t load manga details</string>
