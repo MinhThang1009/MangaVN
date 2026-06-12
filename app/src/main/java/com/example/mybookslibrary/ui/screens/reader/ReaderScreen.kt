@@ -33,6 +33,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun ReaderScreen(
     onBackClick: () -> Unit,
+    onNavigateToChapter: (mangaId: String, chapterId: String, chapterTitle: String) -> Unit = { _, _, _ -> },
     modifier: Modifier = Modifier,
     viewModel: ReaderViewModel = hiltViewModel(),
 ) {
@@ -67,6 +68,7 @@ fun ReaderScreen(
         currentReadingMode = state.currentReadingMode,
         onEvent = onEvent,
         snackbarHostState = snackbarHostState,
+        onNavigateToChapter = onNavigateToChapter,
     )
 
     ReaderProgressEffects(

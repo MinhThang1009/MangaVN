@@ -10,17 +10,17 @@ import com.example.mybookslibrary.ui.viewmodel.SettingsViewModel
 fun DiscoverScreen(
     onMangaClick: (MangaModel) -> Unit = {},
     onSearchClick: () -> Unit = {},
-    onLibraryClick: () -> Unit = {},
     onProfileClick: () -> Unit = {},
     onReadingHistoryClick: () -> Unit = {},
+    onDownloadsClick: () -> Unit = {},
     onSettingsClick: () -> Unit = {},
 ) {
     DiscoverScreenContent(
         onMangaClick = onMangaClick,
         onSearchClick = onSearchClick,
-        onLibraryClick = onLibraryClick,
         onProfileClick = onProfileClick,
         onReadingHistoryClick = onReadingHistoryClick,
+        onDownloadsClick = onDownloadsClick,
         onSettingsClick = onSettingsClick,
     )
 }

@@ -149,6 +149,60 @@ class UserPreferencesDataStoreTest {
         }
 
     @Test
+    fun displayNameVaAvatarUri_macDinhRongSetRoiObserve() =
+        runTest {
+            val store = store()
+            assertEquals("", store.observeDisplayName().first())
+            assertEquals("", store.observeAvatarUri().first())
+
+            store.setDisplayName("Thắng")
+            store.setAvatarUri("content://photo/1")
+
+            assertEquals("Thắng", store.observeDisplayName().first())
+            assertEquals("content://photo/1", store.observeAvatarUri().first())
+        }
+
+    @Test
+    fun preferredChapterLanguage_macDinhRongSetRoiObserve() =
+        runTest {
+            val store = store()
+            assertEquals("", store.observePreferredChapterLanguage().first())
+
+            store.setPreferredChapterLanguage("vi")
+
+            assertEquals("vi", store.observePreferredChapterLanguage().first())
+        }
+
+    @Test
+    fun cacCoBoolean_macDinhFalseSetTrueRoiObserve() =
+        runTest {
+            val store = store()
+            assertEquals(false, store.observeReaderHintDone().first())
+            assertEquals(false, store.observeInAppTourDone().first())
+            assertEquals(false, store.observeRateAppDismissed().first())
+
+            store.setReaderHintDone(true)
+            store.setInAppTourDone(true)
+            store.setRateAppDismissed(true)
+
+            assertTrue(store.observeReaderHintDone().first())
+            assertTrue(store.observeInAppTourDone().first())
+            assertTrue(store.observeRateAppDismissed().first())
+        }
+
+    @Test
+    fun firstOpenTime_lanDauGhiNowLanSauTraVeGiaTriCu() =
+        runTest {
+            val store = store()
+            // Lần đầu: chưa có giá trị -> ghi now và trả về
+            val first = store.getFirstOpenTime()
+            assertTrue(first > 0)
+
+            // Lần sau: trả về đúng giá trị đã lưu (không ghi đè)
+            assertEquals(first, store.getFirstOpenTime())
+        }
+
+    @Test
     fun safeData_khiNonIOExceptionThiReném() {
         // safeData chỉ nuốt IOException; lỗi khác phải bung ra (nhánh `else throw e`).
         val throwingStore =

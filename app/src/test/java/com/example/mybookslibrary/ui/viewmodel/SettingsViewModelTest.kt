@@ -203,7 +203,7 @@ class SettingsViewModelTest {
 
             assertEquals(BackupRestoreResult.Success(1), vm.uiState.value.backupResult)
             assertEquals(
-                """[{"manga_id":"m1","title":"Title m1","cover_url":"https://x/m1.jpg","status":"READING","last_read_chapter_id":"","last_read_page_index":0,"updated_at":1000,"is_favorite":false}]""",
+                """[{"manga_id":"m1","title":"Title m1","cover_url":"https://x/m1.jpg","status":"READING","last_read_chapter_id":"","last_read_page_index":0,"added_at":1000,"updated_at":1000,"is_favorite":false}]""",
                 output.toString(),
             )
         }
@@ -240,7 +240,7 @@ class SettingsViewModelTest {
 
             assertEquals(BackupRestoreResult.Success(1), vm.uiState.value.restoreResult)
             assertEquals(
-                sampleEntity("m1").copy(title = "T", cover_url = "", updated_at = 123),
+                sampleEntity("m1").copy(title = "T", cover_url = "", added_at = 123, updated_at = 123),
                 restoredItems.captured.single(),
             )
         }
@@ -354,6 +354,7 @@ class SettingsViewModelTest {
             status = LibraryStatus.READING,
             last_read_chapter_id = null,
             last_read_page_index = 0,
+            added_at = 1000L,
             updated_at = 1000L,
         )
 }

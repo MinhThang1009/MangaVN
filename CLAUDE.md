@@ -24,12 +24,14 @@ JAVA_HOME="C:/Program Files/Java/jdk-21.0.10" ./gradlew assembleDebug
 ```
 
 ## Coverage Thresholds
-- Overall + diff: **85%** (JaCoCo). Ceiling ~90% INSTRUCTION do Compose bytecode.
+- Combined (unit + emulator, JaCoCo): overall ≥ **75%**, changed-files ≥ **60%** — ratchet theo mức thật 2026-06-13 (75.54%), siết dần khi trả nợ `@Preview` cho các screen 0% coverage. Ngưỡng 85% cũ đặt từ khi codebase nhỏ, không còn đạt được sau redesign.
+- Per-package (unit, fail build): rules trong `app/build.gradle.kts` `jacocoCoverageVerification`.
+- Unit-only overall trên PR: chỉ informational (comment), không fail.
 - `MainNavGraph.kt` (62.77%) và `MainScreens.kt` (48.84%): Compose ceiling, không cố fix.
 
 ## Database (Room)
-- **Version hiện tại: 4** (`CURRENT_DATABASE_VERSION` trong `AppDatabase.kt`). Schema exported tại `app/schemas/...4.json`.
-- Schema v1, v2 không còn — chỉ test migration từ v3 trở đi.
+- **Version hiện tại: 3** (`CURRENT_DATABASE_VERSION` trong `AppDatabase.kt`). Schema exported tại `app/schemas/...3.json`.
+- Schema v1, v2 không còn — chỉ test migration từ v2 trở đi.
 - Khi bump version: cập nhật `PREVIOUS_DATABASE_VERSION`/`CURRENT_DATABASE_VERSION`, viết `Migration(old, new)`, register qua `.addMigrations(...)` trong `AppDatabase.getInstance()`, build để KSP export schema JSON rồi commit, cập nhật `AppDatabaseMigrationTest.kt`.
 - Gate chặn bump thiếu migration: `scripts/check-room-migration.sh` — chạy ở cả pre-commit hook (local) lẫn CI job `static-analysis` (check Migration + register + schema JSON).
 

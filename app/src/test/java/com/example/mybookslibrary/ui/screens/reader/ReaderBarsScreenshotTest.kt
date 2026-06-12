@@ -45,9 +45,13 @@ class ReaderBarsScreenshotTest {
                     )
                     ReaderBottomBar(
                         isVisible = true,
-                        currentPage = 4,
-                        totalPages = 20,
-                        currentReadingMode = ReadingMode.LTR,
+                        state = ReaderBottomBarState(
+                            currentPage = 4,
+                            totalPages = 20,
+                            currentReadingMode = ReadingMode.LTR,
+                            hasPrevChapter = true,
+                            hasNextChapter = true,
+                        ),
                         onToggleReadingMode = {},
                     )
                 }

@@ -26,9 +26,9 @@ fun DiscoverScreenContent(
     modifier: Modifier = Modifier,
     onMangaClick: (MangaModel) -> Unit = {},
     onSearchClick: () -> Unit = {},
-    onLibraryClick: () -> Unit = {},
     onProfileClick: () -> Unit = {},
     onReadingHistoryClick: () -> Unit = {},
+    onDownloadsClick: () -> Unit = {},
     onSettingsClick: () -> Unit = {},
     vm: DiscoverViewModel = hiltViewModel(),
 ) {
@@ -49,9 +49,9 @@ fun DiscoverScreenContent(
         topBar = {
             EditorialTopBar(
                 onSearchClick = onSearchClick,
-                onLibraryClick = onLibraryClick,
                 onProfileClick = onProfileClick,
                 onHistoryClick = onReadingHistoryClick,
+                onDownloadsClick = onDownloadsClick,
                 onSettingsClick = onSettingsClick,
             )
         },

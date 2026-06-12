@@ -41,7 +41,7 @@ class LibraryViewModelTest {
 
     @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
     @Test
-    fun showFavoritesOnly_chiTraVeItemYeuThich() =
+    fun filterFavorites_chiTraVeItemYeuThich() =
         runTest(mainDispatcherRule.dispatcher.scheduler) {
             val favorite =
                 LibraryItemEntity("1", "Yêu thích", "cover", LibraryStatus.READING, is_favorite = true)
@@ -53,11 +53,82 @@ class LibraryViewModelTest {
             val viewModel = LibraryViewModel(repository, mainDispatcherRule.dispatcher)
             assertEquals(listOf(favorite, normal), viewModel.libraryItems.first())
 
-            viewModel.setShowFavoritesOnly(true)
+            viewModel.setFilter(LibraryFilter.FAVORITES)
             assertEquals(listOf(favorite), viewModel.libraryItems.first())
 
-            viewModel.setShowFavoritesOnly(false)
+            viewModel.setFilter(LibraryFilter.ALL)
             assertEquals(listOf(favorite, normal), viewModel.libraryItems.first())
+        }
+
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    @Test
+    fun filterStatus_locTheoReadingVaCompleted() =
+        runTest(mainDispatcherRule.dispatcher.scheduler) {
+            val reading =
+                LibraryItemEntity("1", "A", "cover", LibraryStatus.READING)
+            val completed =
+                LibraryItemEntity("2", "B", "cover", LibraryStatus.COMPLETED)
+            val repository = mockk<LibraryRepository>()
+            every { repository.observeLibraryItems() } returns flowOf(listOf(reading, completed))
+
+            val viewModel = LibraryViewModel(repository, mainDispatcherRule.dispatcher)
+
+            viewModel.setFilter(LibraryFilter.READING)
+            assertEquals(listOf(reading), viewModel.libraryItems.first())
+
+            viewModel.setFilter(LibraryFilter.COMPLETED)
+            assertEquals(listOf(completed), viewModel.libraryItems.first())
+        }
+
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    @Test
+    fun searchQuery_locTheoTieuDe() =
+        runTest(mainDispatcherRule.dispatcher.scheduler) {
+            val onePiece =
+                LibraryItemEntity("1", "One Piece", "cover", LibraryStatus.READING)
+            val naruto =
+                LibraryItemEntity("2", "Naruto", "cover", LibraryStatus.READING)
+            val repository = mockk<LibraryRepository>()
+            every { repository.observeLibraryItems() } returns flowOf(listOf(onePiece, naruto))
+
+            val viewModel = LibraryViewModel(repository, mainDispatcherRule.dispatcher)
+
+            viewModel.setSearchQuery("piece")
+            assertEquals(listOf(onePiece), viewModel.libraryItems.first())
+        }
+
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    @Test
+    fun sortTitle_sapXepTheoTen() =
+        runTest(mainDispatcherRule.dispatcher.scheduler) {
+            val b = LibraryItemEntity("1", "Berserk", "cover", LibraryStatus.READING)
+            val a = LibraryItemEntity("2", "Akira", "cover", LibraryStatus.READING)
+            val repository = mockk<LibraryRepository>()
+            every { repository.observeLibraryItems() } returns flowOf(listOf(b, a))
+
+            val viewModel = LibraryViewModel(repository, mainDispatcherRule.dispatcher)
+
+            viewModel.setSort(LibrarySort.TITLE)
+            assertEquals(listOf(a, b), viewModel.libraryItems.first())
+        }
+
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    @Test
+    fun filterCounts_demTrenListChuaFilter() =
+        runTest(mainDispatcherRule.dispatcher.scheduler) {
+            val items = listOf(
+                LibraryItemEntity("1", "A", "c", LibraryStatus.READING, is_favorite = true),
+                LibraryItemEntity("2", "B", "c", LibraryStatus.COMPLETED),
+                LibraryItemEntity("3", "C", "c", LibraryStatus.READING),
+            )
+            val repository = mockk<LibraryRepository>()
+            every { repository.observeLibraryItems() } returns flowOf(items)
+
+            val viewModel = LibraryViewModel(repository, mainDispatcherRule.dispatcher)
+            viewModel.setFilter(LibraryFilter.FAVORITES)
+
+            val counts = viewModel.filterCounts.first()
+            assertEquals(LibraryFilterCounts(all = 3, favorites = 1, reading = 2, completed = 1), counts)
         }
 
     @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)

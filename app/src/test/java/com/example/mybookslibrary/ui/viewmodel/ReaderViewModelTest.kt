@@ -243,11 +243,16 @@ class ReaderViewModelTest {
                 "startPageIndex" to (startPageIndex ?: 0),
             )
 
+        val chapterDao = mockk<com.example.mybookslibrary.data.local.dao.ChapterDao>(relaxed = true)
+        coEvery { chapterDao.getPrevChapter(any(), any()) } returns null
+        coEvery { chapterDao.getNextChapter(any(), any()) } returns null
+
         return ReaderViewModel(
             application = RuntimeEnvironment.getApplication(),
             savedStateHandle = SavedStateHandle(args),
             loadReaderPagesUseCase = loadReaderPagesUseCase,
             syncReadingProgressUseCase = syncReadingProgressUseCase,
+            chapterDao = chapterDao,
             tapZoneEvaluator = TapZoneEvaluator(),
             pageFileBuilder = ReaderPageFileBuilder(),
             userPreferencesDataStore = userPreferencesDataStore,

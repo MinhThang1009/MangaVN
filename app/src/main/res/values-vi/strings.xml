@@ -68,13 +68,20 @@
     <string name="library_remove_bookmark">Xoá đánh dấu</string>
     <string name="library_remove_bookmark_confirm">Xoá "%1$s" khỏi thư viện?</string>
     <string name="library_filter_all">Tất cả</string>
+    <string name="filter_label_with_count">%1$s (%2$d)</string>
+    <string name="library_filter_reading">Đang đọc</string>
+    <string name="library_filter_completed">Hoàn thành</string>
+    <string name="library_sort_recent">Mới cập nhật</string>
+    <string name="library_sort_title">Tên A-Z</string>
+    <string name="library_search_hint">Tìm trong thư viện…</string>
+    <string name="cd_sort">Sắp xếp</string>
     <string name="library_filter_favorites">Yêu thích</string>
     <string name="library_favorites_empty_title">Chưa có truyện yêu thích</string>
     <string name="library_favorites_empty_subtitle">Nhấn biểu tượng trái tim trên truyện để thêm vào đây</string>
 
     <!-- Trạng thái -->
     <string name="status_reading">Đang đọc</string>
-    <string name="status_completed">Đã đọc</string>
+    <string name="status_completed">Hoàn thành</string>
     <string name="status_favorite">Yêu thích</string>
 
     <!-- Chi tiết manga -->
@@ -84,7 +91,7 @@
     <string name="detail_read_now">ĐỌC NGAY</string>
     <string name="detail_continue_reading">TIẾP TỤC ĐỌC</string>
     <string name="detail_loading">ĐANG TẢI…</string>
-    <string name="detail_in_library">TRONG THƯ VIỆN</string>
+    <string name="detail_in_library">XÓA KHỎI THƯ VIỆN</string>
     <string name="detail_add_to_library">THÊM VÀO THƯ VIỆN</string>
     <string name="detail_pages_suffix">%1$d trang</string>
     <string name="detail_error">Không tải được chi tiết truyện</string>
@@ -124,6 +131,8 @@
     <string name="reader_mode_label_ltr">LTR</string>
     <string name="reader_mode_label_rtl">RTL</string>
     <string name="reader_switch_mode_action">Chuyển chế độ đọc sang %1$s</string>
+    <string name="reader_prev_chapter">Chương trước</string>
+    <string name="reader_next_chapter">Chương sau</string>
 
     <!-- Cài đặt -->
     <string name="settings_title">Cài đặt</string>
@@ -305,7 +314,7 @@
     <string name="stats_weekly_activity">Hoạt động trong tuần</string>
     <string name="stats_monthly_trend">Xu hướng theo tháng</string>
     <string name="stats_no_data">Bắt đầu đọc truyện để xem thống kê tại đây</string>
-    <string name="stats_library_breakdown">Truyện theo trạng thái</string>
+    <string name="stats_library_breakdown">Phân loại thư viện</string>
     <string name="stats_top_manga">Truyện đọc nhiều nhất</string>
     <string name="stats_reading">Đang đọc</string>
     <string name="stats_completed">Hoàn thành</string>
