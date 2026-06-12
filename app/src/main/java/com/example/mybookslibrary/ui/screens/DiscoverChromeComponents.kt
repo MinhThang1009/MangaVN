@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 
 import com.composables.icons.lucide.BookOpen
+import com.composables.icons.lucide.Clock
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Menu
 import com.composables.icons.lucide.Settings
@@ -41,6 +42,8 @@ internal fun EditorialTopBar(
     onSearchClick: () -> Unit = {},
     onLibraryClick: () -> Unit = {},
     onProfileClick: () -> Unit = {},
+    onHistoryClick: () -> Unit = {},
+    onSettingsClick: () -> Unit = {},
 ) {
     val menuExpanded = remember { mutableStateOf(false) }
 
@@ -51,7 +54,8 @@ internal fun EditorialTopBar(
                 expanded = menuExpanded.value,
                 onExpandedChange = { menuExpanded.value = it },
                 onLibraryClick = onLibraryClick,
-                onProfileClick = onProfileClick,
+                onHistoryClick = onHistoryClick,
+                onSettingsClick = onSettingsClick,
             )
         },
         actions = {
@@ -91,7 +95,8 @@ private fun DiscoverNavigationMenu(
     expanded: Boolean,
     onExpandedChange: (Boolean) -> Unit,
     onLibraryClick: () -> Unit,
-    onProfileClick: () -> Unit,
+    onHistoryClick: () -> Unit,
+    onSettingsClick: () -> Unit,
 ) {
     Box {
         IconButton(onClick = { onExpandedChange(true) }) {
@@ -101,24 +106,45 @@ private fun DiscoverNavigationMenu(
             expanded = expanded,
             onDismissRequest = { onExpandedChange(false) },
         ) {
-            DropdownMenuItem(
-                text = { Text(appString(R.string.nav_library), style = MaterialTheme.typography.bodyLarge) },
+            DiscoverMenuItem(
+                label = appString(R.string.nav_library),
+                icon = Lucide.BookOpen,
                 onClick = {
                     onExpandedChange(false)
                     onLibraryClick()
                 },
-                leadingIcon = { Icon(Lucide.BookOpen, null, tint = MaterialTheme.colorScheme.primary) },
             )
-            DropdownMenuItem(
-                text = { Text(appString(R.string.settings_title), style = MaterialTheme.typography.bodyLarge) },
+            DiscoverMenuItem(
+                label = appString(R.string.reading_history_title),
+                icon = Lucide.Clock,
                 onClick = {
                     onExpandedChange(false)
-                    onProfileClick()
+                    onHistoryClick()
                 },
-                leadingIcon = { Icon(Lucide.Settings, null, tint = MaterialTheme.colorScheme.primary) },
+            )
+            DiscoverMenuItem(
+                label = appString(R.string.settings_title),
+                icon = Lucide.Settings,
+                onClick = {
+                    onExpandedChange(false)
+                    onSettingsClick()
+                },
             )
         }
     }
+}
+
+@Composable
+private fun DiscoverMenuItem(
+    label: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    onClick: () -> Unit,
+) {
+    DropdownMenuItem(
+        text = { Text(label, style = MaterialTheme.typography.bodyLarge) },
+        onClick = onClick,
+        leadingIcon = { Icon(icon, null, tint = MaterialTheme.colorScheme.primary) },
+    )
 }
 
 @Composable

@@ -18,6 +18,10 @@ val LocalIsLandscape = compositionLocalOf { false }
 fun isLandscape(): Boolean =
     LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
 
+/** Tablet thật (smallest width ≥ 600dp) — không đổi khi xoay, dùng để chọn rail vs bottom bar. */
+@Composable
+fun isTablet(): Boolean = LocalConfiguration.current.smallestScreenWidthDp >= TABLET_MIN_WIDTH_DP
+
 @Composable
 fun adaptiveMaxWidth(): Dp = if (isLandscape()) MAX_CONTENT_WIDTH_LANDSCAPE else Dp.Unspecified
 
@@ -42,6 +46,8 @@ fun CenteredContent(
         }
     }
 }
+
+private const val TABLET_MIN_WIDTH_DP = 600
 
 private val MAX_CONTENT_WIDTH_LANDSCAPE = 640.dp
 private val MAX_FORM_WIDTH = 420.dp

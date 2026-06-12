@@ -47,11 +47,16 @@ import com.example.mybookslibrary.util.openAppLinkSettings
 
 @Suppress("unused", "CyclomaticComplexMethod", "LongMethod")
 @Composable
-fun SettingScreenContent(modifier: Modifier = Modifier, viewModel: SettingsViewModel = hiltViewModel(),) {
+fun SettingScreenContent(
+    modifier: Modifier = Modifier,
+    onChangePasswordClick: () -> Unit = {},
+    viewModel: SettingsViewModel = hiltViewModel(),
+) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val bottomNavPadding = LocalBottomNavPadding.current
     var showSignOutConfirm by remember { mutableStateOf(false) }
+    var showDeleteAccountConfirm by remember { mutableStateOf(false) }
 
     val backupLauncher =
         rememberLauncherForActivityResult(
@@ -223,10 +228,23 @@ fun SettingScreenContent(modifier: Modifier = Modifier, viewModel: SettingsViewM
                     }
                 SettingsCard {
                     SettingsRow(
+                        title = appString(R.string.settings_change_password),
+                        subtitle = appString(R.string.settings_change_password_subtitle),
+                        onClick = onChangePasswordClick,
+                    )
+                    SettingsDivider()
+                    SettingsRow(
                         title = signOutTitle,
                         subtitle = signOutSub,
                         titleColor = MaterialTheme.colorScheme.error,
                         onClick = { showSignOutConfirm = true },
+                    )
+                    SettingsDivider()
+                    SettingsRow(
+                        title = appString(R.string.settings_delete_account),
+                        subtitle = appString(R.string.settings_delete_account_subtitle),
+                        titleColor = MaterialTheme.colorScheme.error,
+                        onClick = { showDeleteAccountConfirm = true },
                     )
                 }
             }
@@ -252,6 +270,30 @@ fun SettingScreenContent(modifier: Modifier = Modifier, viewModel: SettingsViewM
                 com.example.mybookslibrary.ui.screens.components.AppButton(
                     text = appString(R.string.action_cancel),
                     onClick = { showSignOutConfirm = false },
+                    style = com.example.mybookslibrary.ui.screens.components.AppButtonStyle.Text,
+                )
+            },
+        )
+    }
+
+    if (showDeleteAccountConfirm) {
+        AlertDialog(
+            onDismissRequest = { showDeleteAccountConfirm = false },
+            title = { Text(appString(R.string.delete_account_confirm_title)) },
+            text = { Text(appString(R.string.delete_account_confirm_body)) },
+            confirmButton = {
+                com.example.mybookslibrary.ui.screens.components.AppButton(
+                    text = appString(R.string.settings_delete_account),
+                    onClick = {
+                        showDeleteAccountConfirm = false
+                        viewModel.deleteAccount()
+                    },
+                )
+            },
+            dismissButton = {
+                com.example.mybookslibrary.ui.screens.components.AppButton(
+                    text = appString(R.string.action_cancel),
+                    onClick = { showDeleteAccountConfirm = false },
                     style = com.example.mybookslibrary.ui.screens.components.AppButtonStyle.Text,
                 )
             },

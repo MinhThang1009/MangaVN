@@ -6,6 +6,7 @@ import com.example.mybookslibrary.data.local.ChapterProgressEntity
 import com.example.mybookslibrary.data.local.LibraryStatus
 import com.example.mybookslibrary.data.local.dao.ChapterDao
 import com.example.mybookslibrary.data.local.dao.LibraryDao
+import com.example.mybookslibrary.data.local.dao.TopMangaCount
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -23,6 +24,7 @@ data class StatisticsUiState(
     val readingCount: Int = 0,
     val completedCount: Int = 0,
     val favoriteCount: Int = 0,
+    val topManga: List<TopMangaCount> = emptyList(),
 ) {
     companion object {
         const val WEEK_DAYS = 7
@@ -54,6 +56,8 @@ class StatisticsViewModel
                     completedCount = libraryItems.count { it.status == LibraryStatus.COMPLETED },
                     favoriteCount = libraryItems.count { it.status == LibraryStatus.FAVORITE },
                 )
+            }.combine(chapterDao.observeTopReadManga()) { state, topManga ->
+                state.copy(topManga = topManga)
             }.stateIn(
                 viewModelScope,
                 SharingStarted.WhileSubscribed(SUBSCRIPTION_TIMEOUT),

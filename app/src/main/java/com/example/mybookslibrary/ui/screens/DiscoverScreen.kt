@@ -28,6 +28,7 @@ fun DiscoverScreenContent(
     onLibraryClick: () -> Unit = {},
     onProfileClick: () -> Unit = {},
     onReadingHistoryClick: () -> Unit = {},
+    onSettingsClick: () -> Unit = {},
     modifier: Modifier = Modifier,
     vm: DiscoverViewModel = hiltViewModel(),
 ) {
@@ -50,6 +51,8 @@ fun DiscoverScreenContent(
                 onSearchClick = onSearchClick,
                 onLibraryClick = onLibraryClick,
                 onProfileClick = onProfileClick,
+                onHistoryClick = onReadingHistoryClick,
+                onSettingsClick = onSettingsClick,
             )
         },
         containerColor = MaterialTheme.colorScheme.background,

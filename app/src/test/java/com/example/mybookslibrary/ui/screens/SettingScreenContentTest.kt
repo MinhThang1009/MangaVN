@@ -51,6 +51,7 @@ class SettingScreenContentTest {
         return SettingsViewModel(
             preferencesDataStore = prefs,
             libraryRepository = libraryRepo,
+            authRepository = mockk(relaxed = true),
             imageLoader = imageLoader,
             ioDispatcher = UnconfinedTestDispatcher(),
             json = NetworkModule.provideJson(),

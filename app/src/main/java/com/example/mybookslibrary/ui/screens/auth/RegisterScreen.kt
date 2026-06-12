@@ -129,6 +129,9 @@ fun RegisterScreen(
                 onValueChange = { password = it },
                 label = { Text(appString(R.string.auth_password)) },
                 placeholder = { Text(appString(R.string.auth_password_placeholder)) },
+                supportingText = {
+                    Text(appString(R.string.auth_password_hint), style = MaterialTheme.typography.bodySmall)
+                },
                 isError = uiState is AuthState.Error && password.isBlank(),
                 visualTransformation =
                     if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),

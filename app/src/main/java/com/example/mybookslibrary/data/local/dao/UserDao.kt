@@ -23,4 +23,7 @@ interface UserDao {
 
     @Query("SELECT * FROM users ORDER BY created_at DESC LIMIT 1")
     fun observeLatestUser(): Flow<UserEntity?>
+
+    @Query("DELETE FROM users WHERE id = :id")
+    suspend fun deleteById(id: Long)
 }

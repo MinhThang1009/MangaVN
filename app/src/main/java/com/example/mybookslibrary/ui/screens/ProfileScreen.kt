@@ -50,12 +50,12 @@ import com.example.mybookslibrary.ui.viewmodel.ProfileViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
-    onBackClick: () -> Unit,
     onReadingHistoryClick: () -> Unit,
     onStatisticsClick: () -> Unit,
     onDownloadsClick: () -> Unit,
     onEditProfileClick: () -> Unit,
     onSettingsClick: () -> Unit,
+    onBackClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
     vm: ProfileViewModel = hiltViewModel(),
 ) {
@@ -67,8 +67,10 @@ fun ProfileScreen(
             TopAppBar(
                 title = { Text(appString(R.string.profile_title)) },
                 navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(Lucide.ArrowLeft, contentDescription = appString(R.string.cd_back))
+                    if (onBackClick != null) {
+                        IconButton(onClick = onBackClick) {
+                            Icon(Lucide.ArrowLeft, contentDescription = appString(R.string.cd_back))
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -87,7 +89,7 @@ fun ProfileScreen(
         ) {
             item {
                 ProfileHeader(
-                    userId = state.userId,
+                    username = state.username,
                     displayName = state.displayName,
                     avatarUri = state.avatarUri,
                     onEditClick = onEditProfileClick,
@@ -139,7 +141,7 @@ fun ProfileScreen(
 
 @Composable
 private fun ProfileHeader(
-    userId: String?,
+    username: String,
     displayName: String,
     avatarUri: String,
     onEditClick: () -> Unit,
@@ -162,9 +164,9 @@ private fun ProfileHeader(
                     contentScale = androidx.compose.ui.layout.ContentScale.Crop,
                     modifier = Modifier.fillMaxSize(),
                 )
-            } else if (!userId.isNullOrBlank()) {
+            } else if (username.isNotBlank()) {
                 Text(
-                    text = (displayName.ifBlank { userId }).first().uppercase(),
+                    text = (displayName.ifBlank { username }).first().uppercase(),
                     style = MaterialTheme.typography.displayMedium,
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
@@ -179,14 +181,14 @@ private fun ProfileHeader(
         }
         Spacer(Modifier.height(Dimens.SpacingMd))
         Text(
-            text = displayName.ifBlank { userId ?: "—" },
+            text = displayName.ifBlank { username.ifBlank { "—" } },
             style = MaterialTheme.typography.headlineMedium,
             color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center,
         )
-        if (!userId.isNullOrBlank() && displayName.isNotBlank()) {
+        if (username.isNotBlank() && displayName.isNotBlank()) {
             Text(
-                text = "@$userId",
+                text = "@$username",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

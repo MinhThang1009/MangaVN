@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.mybookslibrary.data.local.UserPreferencesDataStore
 import com.example.mybookslibrary.data.local.dao.ChapterDao
 import com.example.mybookslibrary.data.local.dao.LibraryDao
+import com.example.mybookslibrary.data.local.dao.UserDao
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -13,7 +14,7 @@ import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
 data class ProfileUiState(
-    val userId: String? = null,
+    val username: String = "",
     val displayName: String = "",
     val avatarUri: String = "",
     val bookmarkCount: Int = 0,
@@ -28,6 +29,7 @@ class ProfileViewModel
         preferencesDataStore: UserPreferencesDataStore,
         libraryDao: LibraryDao,
         chapterDao: ChapterDao,
+        private val userDao: UserDao,
     ) : ViewModel() {
         val uiState: StateFlow<ProfileUiState> =
             combine(
@@ -37,8 +39,10 @@ class ProfileViewModel
                 libraryDao.observeCount(),
                 libraryDao.observeReadCount(),
             ) { userId, displayName, avatarUri, bookmarks, mangaRead ->
+                // userId trong DataStore là row id — hiển thị username thật từ DB
+                val username = userId?.toLongOrNull()?.let { userDao.getById(it)?.username }.orEmpty()
                 ProfileUiState(
-                    userId = userId,
+                    username = username,
                     displayName = displayName,
                     avatarUri = avatarUri,
                     bookmarkCount = bookmarks,

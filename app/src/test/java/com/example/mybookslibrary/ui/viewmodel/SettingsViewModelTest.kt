@@ -46,6 +46,7 @@ class SettingsViewModelTest {
         SettingsViewModel(
             preferencesDataStore = prefs,
             libraryRepository = libraryRepository,
+            authRepository = mockk(relaxed = true),
             imageLoader = imageLoader,
             ioDispatcher = mainDispatcherRule.dispatcher,
             json = NetworkModule.provideJson(),

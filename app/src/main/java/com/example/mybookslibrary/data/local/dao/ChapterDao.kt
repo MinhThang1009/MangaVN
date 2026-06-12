@@ -57,6 +57,19 @@ abstract class ChapterDao {
     @Query("SELECT * FROM chapter_progress ORDER BY updated_at DESC LIMIT 200")
     abstract fun observeRecentProgress(): Flow<List<ChapterProgressEntity>>
 
+    /** Top truyện có nhiều chương đã đọc nhất — cho Statistics RowChart. */
+    @Query(
+        """
+        SELECT li.title AS title, COUNT(cp.chapter_id) AS chapterCount
+        FROM chapter_progress cp
+        INNER JOIN library_items li ON li.manga_id = cp.manga_id
+        GROUP BY cp.manga_id
+        ORDER BY chapterCount DESC
+        LIMIT 5
+        """,
+    )
+    abstract fun observeTopReadManga(): Flow<List<TopMangaCount>>
+
     @Query("SELECT chapter_id FROM chapter_progress WHERE is_downloaded = 1")
     abstract suspend fun getDownloadedChapterIds(): List<String>
 
@@ -121,3 +134,9 @@ abstract class ChapterDao {
         deleteLibraryItemByMangaId(mangaId)
     }
 }
+
+/** Kết quả projection cho [ChapterDao.observeTopReadManga]. */
+data class TopMangaCount(
+    val title: String,
+    val chapterCount: Int,
+)

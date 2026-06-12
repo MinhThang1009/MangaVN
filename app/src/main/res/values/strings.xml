@@ -5,7 +5,7 @@
     <string name="nav_discover">Discover</string>
     <string name="nav_search">Search</string>
     <string name="nav_library">Library</string>
-    <string name="nav_setting">Setting</string>
+    <string name="nav_profile">Profile</string>
 
     <!-- Discover Screen -->
     <string name="brand_name">MangaVN</string>
@@ -205,6 +205,23 @@
     <string name="auth_have_account_action">Login</string>
     <string name="auth_have_account_login">Already have an account? Login</string>
     <string name="auth_error_empty_fields">Username and password cannot be empty</string>
+    <string name="auth_error_password_weak">Password must have at least 8 characters, including uppercase, lowercase, number and special character</string>
+    <string name="auth_error_password_same_username">Password must not match username</string>
+    <string name="auth_password_hint">At least 8 characters: uppercase, lowercase, number, special character</string>
+    <string name="auth_change_password_title">Change Password</string>
+    <string name="auth_current_password">Current password *</string>
+    <string name="auth_new_password">New password *</string>
+    <string name="auth_confirm_new_password">Confirm new password *</string>
+    <string name="auth_error_current_password_wrong">Current password is incorrect</string>
+    <string name="auth_error_password_same_old">New password must be different from current password</string>
+    <string name="auth_error_google_no_password">Google accounts don\'t have an in-app password</string>
+    <string name="feedback_password_changed">Password changed!</string>
+    <string name="settings_change_password">Change password</string>
+    <string name="settings_change_password_subtitle">Update your account password</string>
+    <string name="settings_delete_account">Delete account</string>
+    <string name="settings_delete_account_subtitle">Permanently remove your account</string>
+    <string name="delete_account_confirm_title">Delete account?</string>
+    <string name="delete_account_confirm_body">Your account and reading data will be permanently deleted. This cannot be undone.</string>
     <string name="auth_error_login_failed">Login failed</string>
     <string name="auth_error_register_failed">Registration failed</string>
     <string name="auth_error_google_signin_failed">Google Sign-In failed</string>
@@ -241,8 +258,8 @@
     <string name="tour_step2_body">Find manga by title, genre, or language. Filter by status, content rating, and more</string>
     <string name="tour_step3_title">Your library</string>
     <string name="tour_step3_body">All your saved manga lives here. Tap the bookmark button on any manga to add it</string>
-    <string name="tour_step4_title">Settings</string>
-    <string name="tour_step4_body">Change theme, language, image quality, and manage your data</string>
+    <string name="tour_step4_title">Profile</string>
+    <string name="tour_step4_body">Your profile — reading stats, history, downloads and app settings</string>
 
     <!-- Reading History -->
     <string name="reading_history_title">Reading History</string>
@@ -268,11 +285,14 @@
     <string name="stats_completed_chapters">Completed</string>
     <string name="stats_in_progress_chapters">In progress</string>
     <string name="stats_chapters_read">Chapters read</string>
+    <string name="stats_week_this">This week</string>
+    <string name="stats_week_last">Last week</string>
+    <string name="stats_weeks_ago">%1$d wk ago</string>
     <string name="stats_weekly_activity">Weekly activity</string>
     <string name="stats_monthly_trend">Monthly trend</string>
     <string name="stats_no_data">Start reading to see your stats here</string>
-    <string name="stats_library_breakdown">Library breakdown</string>
-    <string name="stats_status_comparison">Status comparison</string>
+    <string name="stats_library_breakdown">Titles by status</string>
+    <string name="stats_top_manga">Most read titles</string>
     <string name="stats_reading">Reading</string>
     <string name="stats_completed">Completed</string>
     <string name="stats_favorite">Favorite</string>

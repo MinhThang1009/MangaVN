@@ -64,7 +64,7 @@ class RegisterScreenTest {
         }
 
         composeRule.onNodeWithText("Username *").performTextInput("user1")
-        composeRule.onNodeWithText("Password *").performTextInput("pass123")
+        composeRule.onNodeWithText("Password *").performTextInput("Abc@1234")
         composeRule.onNodeWithText("Confirm Password").performTextInput("different")
 
         composeRule.onNodeWithText("Passwords do not match").assertIsDisplayed()
@@ -77,8 +77,8 @@ class RegisterScreenTest {
         }
 
         composeRule.onNodeWithText("Username *").performTextInput("user1")
-        composeRule.onNodeWithText("Password *").performTextInput("pass123")
-        composeRule.onNodeWithText("Confirm Password").performTextInput("pass123")
+        composeRule.onNodeWithText("Password *").performTextInput("Abc@1234")
+        composeRule.onNodeWithText("Confirm Password").performTextInput("Abc@1234")
 
         composeRule.onNode(hasText("Register") and hasClickAction()).assertIsEnabled()
     }
@@ -115,8 +115,8 @@ class RegisterScreenTest {
             RegisterScreen(onRegisterSuccess = {}, onNavigateToLogin = {}, viewModel = vm)
         }
         composeRule.onNodeWithText("Username *").performTextInput("existing")
-        composeRule.onNodeWithText("Password *").performTextInput("pass1")
-        composeRule.onNodeWithText("Confirm Password").performTextInput("pass1")
+        composeRule.onNodeWithText("Password *").performTextInput("Abc@1234")
+        composeRule.onNodeWithText("Confirm Password").performTextInput("Abc@1234")
         composeRule.onNode(hasText("Register") and hasClickAction()).performClick()
         composeRule.waitForIdle()
         composeRule.onNodeWithText("Username already taken").assertIsDisplayed()
@@ -129,7 +129,7 @@ class RegisterScreenTest {
         val repo = mockk<AuthRepository>(relaxed = true)
         coEvery { repo.register(any(), any()) } coAnswers { Result.success(Unit) }
         val vm = AuthViewModel(repo)
-        vm.register("newuser", "pass1")
+        vm.register("newuser", "Abc@1234")
 
         composeRule.setContent {
             RegisterScreen(onRegisterSuccess = { successCalled = true }, onNavigateToLogin = {}, viewModel = vm)

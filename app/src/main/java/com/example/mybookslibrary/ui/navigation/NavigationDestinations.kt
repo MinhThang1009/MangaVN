@@ -39,6 +39,9 @@ data object Downloads
 data object EditProfile
 
 @Serializable
+data object ChangePassword
+
+@Serializable
 data class MangaDetail(
     val mangaId: String,
 )

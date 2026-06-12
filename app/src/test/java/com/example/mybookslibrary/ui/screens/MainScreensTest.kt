@@ -69,6 +69,7 @@ class MainScreensTest {
                     SettingsViewModel(
                         preferencesDataStore = prefs,
                         libraryRepository = mockk<LibraryRepository>(relaxed = true),
+                        authRepository = mockk(relaxed = true),
                         imageLoader = mockk<ImageLoader>(relaxed = true),
                         ioDispatcher = UnconfinedTestDispatcher(),
                         json = NetworkModule.provideJson(),

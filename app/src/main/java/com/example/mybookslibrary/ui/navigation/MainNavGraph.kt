@@ -16,7 +16,6 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
-import android.content.res.Configuration
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
@@ -29,7 +28,6 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -50,9 +48,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.composables.icons.lucide.BookOpen
+import com.composables.icons.lucide.CircleUserRound
 import com.composables.icons.lucide.Compass
 import com.composables.icons.lucide.Lucide
-import com.composables.icons.lucide.Settings
 import com.example.mybookslibrary.R
 import com.example.mybookslibrary.ui.screens.onboarding.CoachMarkOverlay
 import com.example.mybookslibrary.ui.screens.onboarding.CoachMarkStep
@@ -81,8 +79,8 @@ sealed class BottomNavDestination(
     data object LibraryTab :
         BottomNavDestination(Library, Library::class, R.string.nav_library, Lucide.BookOpen)
 
-    data object SettingTab :
-        BottomNavDestination(Setting, Setting::class, R.string.nav_setting, Lucide.Settings)
+    data object ProfileTab :
+        BottomNavDestination(Profile, Profile::class, R.string.nav_profile, Lucide.CircleUserRound)
 }
 
 internal val bottomDestinations =
@@ -90,7 +88,7 @@ internal val bottomDestinations =
         BottomNavDestination.DiscoverTab,
         BottomNavDestination.SearchTab,
         BottomNavDestination.LibraryTab,
-        BottomNavDestination.SettingTab,
+        BottomNavDestination.ProfileTab,
     )
 
 @Suppress("CyclomaticComplexMethod", "ComplexCondition", "LongMethod")
@@ -160,15 +158,15 @@ fun MainNavHost(
                 dest.hasRoute<MangaReview>()
         } ?: false
 
-    val widthSizeClass = LocalWindowWidthSizeClass.current
-    val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
-    val useRail = showNav && (widthSizeClass != WindowWidthSizeClass.Compact || isLandscape)
+    // Rail CHỈ cho tablet (sw ≥ 600dp); phone landscape vẫn dùng bottom bar
+    val useRail = showNav && com.example.mybookslibrary.ui.util.isTablet()
 
+    // KHÔNG dùng saveState/restoreState: secondary screen (Setting, History…) nằm trong
+    // saved stack sẽ bị restore lại khi bấm tab → navbar nhìn như không phản ứng.
     val navBarCallback: (BottomNavDestination) -> Unit = { destination ->
         navController.navigate(destination.destination) {
-            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+            popUpTo(navController.graph.findStartDestination().id)
             launchSingleTop = true
-            restoreState = true
         }
     }
 
@@ -216,6 +214,7 @@ fun MainNavHost(
                     reviewGraph(navController)
                     profileGraph(navController)
                     editProfileGraph(navController)
+                    changePasswordGraph(navController)
                     readingHistoryGraph(navController)
                     statisticsGraph(navController)
                     downloadsGraph(navController)
@@ -243,7 +242,8 @@ fun MainNavHost(
                         currentDestination = currentDestination,
                         onNavigate = navBarCallback,
                         modifier = Modifier.testTag(FLOATING_PILL_NAV_TAG),
-                        isVisible = navBarVisible,
+                        // Tour cần đo vị trí tab → ép navbar hiện khi tour đang chạy
+                        isVisible = navBarVisible || showTour,
                         coachMarkState = if (showTour) coachMarkState else null,
                     )
                 }

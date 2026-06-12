@@ -138,7 +138,7 @@ class MainNavHostTest {
 
         assertMainContentContinuesBehindPill()
 
-        listOf("Search", "Library", "Setting").forEach { destination ->
+        listOf("Search", "Library", "Profile").forEach { destination ->
             val pillNodeIndex = if (destination == "Search") 1 else 0
             composeRule.onAllNodesWithContentDescription(destination)[pillNodeIndex].performClick()
             composeRule.waitForIdle()

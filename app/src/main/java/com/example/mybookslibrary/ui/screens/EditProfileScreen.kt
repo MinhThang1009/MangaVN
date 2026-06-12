@@ -121,25 +121,31 @@ fun EditProfileScreen(
                 Box(
                     modifier = Modifier
                         .size(Dimens.AvatarLg)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primaryContainer)
                         .clickable { avatarPicker.launch("image/*") },
                     contentAlignment = Alignment.Center,
                 ) {
-                    if (avatarUri.isNotBlank()) {
-                        AsyncImage(
-                            model = avatarUri,
-                            contentDescription = appString(R.string.profile_change_avatar),
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize(),
-                        )
-                    } else {
-                        Icon(
-                            Lucide.User,
-                            contentDescription = null,
-                            modifier = Modifier.size(Dimens.IconXl),
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primaryContainer),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        if (avatarUri.isNotBlank()) {
+                            AsyncImage(
+                                model = avatarUri,
+                                contentDescription = appString(R.string.profile_change_avatar),
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.fillMaxSize(),
+                            )
+                        } else {
+                            Icon(
+                                Lucide.User,
+                                contentDescription = null,
+                                modifier = Modifier.size(Dimens.IconXl),
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                            )
+                        }
                     }
                     Box(
                         modifier = Modifier
@@ -180,8 +186,10 @@ fun EditProfileScreen(
                         scope.launch {
                             prefs.setDisplayName(displayName)
                             prefs.setAvatarUri(avatarUri)
-                            snackbar.showSnackbar(savedMsg)
+                            // Back ngay sau khi lưu; snackbar hiện song song
+                            // (showSnackbar suspend đến khi snackbar tắt — không được chặn back)
                             onBackClick()
+                            snackbar.showSnackbar(savedMsg)
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),

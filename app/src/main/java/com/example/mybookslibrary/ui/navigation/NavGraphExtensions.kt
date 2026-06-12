@@ -20,6 +20,7 @@ import com.example.mybookslibrary.ui.screens.EditProfileScreen
 import com.example.mybookslibrary.ui.screens.ProfileScreen
 import com.example.mybookslibrary.ui.screens.ReadingHistoryScreen
 import com.example.mybookslibrary.ui.screens.StatisticsScreen
+import com.example.mybookslibrary.ui.screens.auth.ChangePasswordScreen
 import com.example.mybookslibrary.ui.screens.auth.LoginScreen
 import com.example.mybookslibrary.ui.screens.auth.RegisterScreen
 import com.example.mybookslibrary.ui.screens.onboarding.WelcomeCarouselScreen
@@ -106,7 +107,6 @@ internal fun NavGraphBuilder.reviewGraph(navController: NavHostController) {
 internal fun NavGraphBuilder.profileGraph(navController: NavHostController) {
     composable<Profile> {
         ProfileScreen(
-            onBackClick = { navController.popBackStack() },
             onReadingHistoryClick = { navController.navigate(ReadingHistory) },
             onStatisticsClick = { navController.navigate(Statistics) },
             onDownloadsClick = { navController.navigate(Downloads) },
@@ -132,6 +132,12 @@ internal fun NavGraphBuilder.readingHistoryGraph(navController: NavHostControlle
 internal fun NavGraphBuilder.editProfileGraph(navController: NavHostController) {
     composable<EditProfile> {
         EditProfileScreen(onBackClick = { navController.popBackStack() })
+    }
+}
+
+internal fun NavGraphBuilder.changePasswordGraph(navController: NavHostController) {
+    composable<ChangePassword> {
+        ChangePasswordScreen(onBackClick = { navController.popBackStack() })
     }
 }
 

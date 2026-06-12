@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -31,11 +33,12 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.style.TextAlign
@@ -46,9 +49,9 @@ import com.composables.icons.lucide.ArrowLeft
 import com.composables.icons.lucide.ChartNoAxesColumn
 import com.composables.icons.lucide.Lucide
 import com.example.mybookslibrary.R
+import com.example.mybookslibrary.data.local.dao.TopMangaCount
 import com.example.mybookslibrary.ui.screens.components.EmptyState
 import com.example.mybookslibrary.ui.screens.components.SectionHeader
-import com.example.mybookslibrary.ui.theme.Alphas
 import com.example.mybookslibrary.ui.theme.Dimens
 import com.example.mybookslibrary.ui.util.appString
 import com.example.mybookslibrary.ui.util.isLandscape
@@ -131,14 +134,10 @@ fun StatisticsScreen(
                         favorite = state.favoriteCount,
                     )
                 }
-                item { SectionHeader(title = appString(R.string.stats_status_comparison)) }
-                item {
-                    StatusRowChart(
-                        reading = state.readingCount,
-                        completed = state.completedCount,
-                        favorite = state.favoriteCount,
-                    )
-                }
+            }
+            if (state.topManga.isNotEmpty()) {
+                item { SectionHeader(title = appString(R.string.stats_top_manga)) }
+                item { TopMangaRowChart(items = state.topManga) }
             }
             if (!hasActivity && !hasLibrary) {
                 item {
@@ -156,12 +155,24 @@ fun StatisticsScreen(
 @Composable
 private fun ChapterSummaryRow(total: Int, completed: Int, inProgress: Int) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Max),
         horizontalArrangement = Arrangement.spacedBy(Dimens.SpacingMd),
     ) {
-        SummaryCard(total.toString(), appString(R.string.stats_total_chapters), Modifier.weight(1f))
-        SummaryCard(completed.toString(), appString(R.string.stats_completed_chapters), Modifier.weight(1f))
-        SummaryCard(inProgress.toString(), appString(R.string.stats_in_progress_chapters), Modifier.weight(1f))
+        SummaryCard(
+            total.toString(),
+            appString(R.string.stats_total_chapters),
+            Modifier.weight(1f).fillMaxHeight(),
+        )
+        SummaryCard(
+            completed.toString(),
+            appString(R.string.stats_completed_chapters),
+            Modifier.weight(1f).fillMaxHeight(),
+        )
+        SummaryCard(
+            inProgress.toString(),
+            appString(R.string.stats_in_progress_chapters),
+            Modifier.weight(1f).fillMaxHeight(),
+        )
     }
 }
 
@@ -191,17 +202,18 @@ private fun SummaryCard(value: String, label: String, modifier: Modifier = Modif
 @Composable
 private fun WeeklyColumnChart(activity: List<Int>) {
     val primary = MaterialTheme.colorScheme.primary
-    val primaryLight = primary.copy(alpha = Alphas.EmphasisFaint)
     val labels = remember { weekDayLabels() }
+    val seriesLabel = appString(R.string.stats_chapters_read)
 
-    val barsData = remember(activity) {
+    val barsData = remember(activity, seriesLabel) {
         activity.mapIndexed { index, value ->
             Bars(
                 label = labels.getOrElse(index) { "" },
                 values = listOf(
                     Bars.Data(
+                        label = seriesLabel,
                         value = value.toDouble().coerceAtLeast(0.0),
-                        color = Brush.verticalGradient(listOf(primary, primaryLight)),
+                        color = SolidColor(primary),
                     ),
                 ),
             )
@@ -220,7 +232,7 @@ private fun WeeklyColumnChart(activity: List<Int>) {
             ),
             gridProperties = themedGridProperties(),
             labelProperties = themedLabelProperties(),
-            labelHelperProperties = LabelHelperProperties(enabled = false),
+            labelHelperProperties = themedLabelHelperProperties(),
             indicatorProperties = themedIndicatorProperties(),
             animationSpec = spring(
                 dampingRatio = Spring.DampingRatioMediumBouncy,
@@ -253,12 +265,28 @@ private fun MonthlyLineChart(trend: List<Int>) {
         )
     }
 
+    // Nhãn trục X: 3 tuần trước → tuần này (khớp thứ tự buildMonthlyTrend)
+    val weekLabels = listOf(
+        appString(R.string.stats_weeks_ago, 3),
+        appString(R.string.stats_weeks_ago, 2),
+        appString(R.string.stats_week_last),
+        appString(R.string.stats_week_this),
+    )
+    val labelStyle = MaterialTheme.typography.labelSmall.copy(
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+
     val lineChartHeight = if (isLandscape()) 140.dp else 180.dp
     ChartCard {
         LineChart(
             modifier = Modifier.fillMaxWidth().height(lineChartHeight).padding(Dimens.SpacingSm),
             data = lineData,
             gridProperties = themedGridProperties(),
+            labelProperties = LabelProperties(
+                enabled = true,
+                textStyle = labelStyle,
+                labels = weekLabels,
+            ),
             labelHelperProperties = themedLabelHelperProperties(),
             indicatorProperties = themedIndicatorProperties(),
         )
@@ -275,40 +303,61 @@ private fun LibraryPieChart(reading: Int, completed: Int, favorite: Int) {
     val cl = appString(R.string.stats_completed)
     val fl = appString(R.string.stats_favorite)
 
-    val pieData = remember(reading, completed, favorite, rl, cl, fl) {
-        listOfNotNull(
-            if (reading >
-                0) {
+    var pieData by remember(reading, completed, favorite, rl, cl, fl) {
+        mutableStateOf(
+            listOfNotNull(
+                if (reading > 0) {
                     Pie(label = rl, data = reading.toDouble(), color = primaryColor, selectedColor = primaryColor)
                 } else {
                     null
                 },
-            if (completed >
-                0) {
+                if (completed > 0) {
                     Pie(label = cl, data = completed.toDouble(), color = secondaryColor, selectedColor = secondaryColor)
                 } else {
                     null
                 },
-            if (favorite >
-                0) {
+                if (favorite > 0) {
                     Pie(label = fl, data = favorite.toDouble(), color = tertiaryColor, selectedColor = tertiaryColor)
                 } else {
                     null
                 },
+            ),
         )
     }
 
     ChartCard {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             if (total > 0) {
-                PieChart(
-                    modifier = Modifier.size(180.dp),
-                    data = pieData,
-                    scaleAnimEnterSpec = spring(
-                        dampingRatio = Spring.DampingRatioMediumBouncy,
-                        stiffness = Spring.StiffnessLow,
-                    ),
-                )
+                Box(contentAlignment = Alignment.Center) {
+                    PieChart(
+                        modifier = Modifier.size(180.dp),
+                        data = pieData,
+                        onPieClick = { clicked ->
+                            // Tap slice → popup label + số lượng giữa chart (tap lại để ẩn)
+                            pieData = pieData.map {
+                                it.copy(selected = it.label == clicked.label && !it.selected)
+                            }
+                        },
+                        selectedScale = 1f,
+                        labelHelperProperties = LabelHelperProperties(enabled = false),
+                        scaleAnimEnterSpec = spring(
+                            dampingRatio = Spring.DampingRatioMediumBouncy,
+                            stiffness = Spring.StiffnessLow,
+                        ),
+                    )
+                    val selected = pieData.firstOrNull { it.selected }
+                    if (selected != null) {
+                        Text(
+                            text = "${selected.label}: ${selected.data.toInt()}",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.inverseOnSurface,
+                            modifier = Modifier
+                                .clip(MaterialTheme.shapes.small)
+                                .background(MaterialTheme.colorScheme.inverseSurface)
+                                .padding(horizontal = Dimens.SpacingSm, vertical = Dimens.SpacingXs),
+                        )
+                    }
+                }
                 Spacer(Modifier.height(Dimens.SpacingLg))
             }
             BreakdownLegend(
@@ -323,50 +372,25 @@ private fun LibraryPieChart(reading: Int, completed: Int, favorite: Int) {
 }
 
 @Composable
-private fun StatusRowChart(reading: Int, completed: Int, favorite: Int) {
+private fun TopMangaRowChart(items: List<TopMangaCount>) {
     val primaryColor = MaterialTheme.colorScheme.primary
-    val secondaryColor = MaterialTheme.colorScheme.secondary
-    val tertiaryColor = MaterialTheme.colorScheme.tertiary
-    val readingLabel = appString(R.string.stats_reading)
-    val completedLabel = appString(R.string.stats_completed)
-    val favoriteLabel = appString(R.string.stats_favorite)
 
-    val rowData = remember(
-        reading, completed, favorite,
-        readingLabel, completedLabel, favoriteLabel,
-    ) {
-        listOf(
+    val rowData = remember(items) {
+        items.map { manga ->
             Bars(
-                label = readingLabel,
+                label = manga.title.ellipsize(MAX_TITLE_CHARS),
                 values = listOf(
                     Bars.Data(
-                        value = reading.toDouble().coerceAtLeast(0.0),
+                        value = manga.chapterCount.toDouble(),
                         color = SolidColor(primaryColor),
                     ),
                 ),
-            ),
-            Bars(
-                label = completedLabel,
-                values = listOf(
-                    Bars.Data(
-                        value = completed.toDouble().coerceAtLeast(0.0),
-                        color = SolidColor(secondaryColor),
-                    ),
-                ),
-            ),
-            Bars(
-                label = favoriteLabel,
-                values = listOf(
-                    Bars.Data(
-                        value = favorite.toDouble().coerceAtLeast(0.0),
-                        color = SolidColor(tertiaryColor),
-                    ),
-                ),
-            ),
-        )
+            )
+        }
     }
 
-    val rowChartHeight = if (isLandscape()) 120.dp else 160.dp
+    // Cao theo số truyện (56dp/hàng) + 48dp cho trục X để bar/label không bị bóp
+    val rowChartHeight = (items.size * ROW_HEIGHT_DP + AXIS_HEIGHT_DP).dp
     ChartCard {
         RowChart(
             modifier = Modifier.fillMaxWidth().height(rowChartHeight).padding(Dimens.SpacingSm),
@@ -374,7 +398,7 @@ private fun StatusRowChart(reading: Int, completed: Int, favorite: Int) {
             barProperties = BarProperties(
                 cornerRadius = Bars.Data.Radius.Rectangle(topRight = 6.dp, bottomRight = 6.dp),
                 spacing = 4.dp,
-                thickness = 28.dp,
+                thickness = 20.dp,
             ),
             gridProperties = themedGridProperties(),
             labelProperties = themedLabelProperties(),
@@ -387,6 +411,9 @@ private fun StatusRowChart(reading: Int, completed: Int, favorite: Int) {
         )
     }
 }
+
+private fun String.ellipsize(maxChars: Int): String =
+    if (length <= maxChars) this else take(maxChars - 1) + "…"
 
 @Composable
 private fun ChartCard(content: @Composable () -> Unit) {
@@ -456,8 +483,8 @@ private fun themedLabelProperties(): LabelProperties {
 
 @Composable
 private fun themedLabelHelperProperties(): LabelHelperProperties {
-    val style = MaterialTheme.typography.labelSmall.copy(
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    val style = MaterialTheme.typography.labelMedium.copy(
+        color = MaterialTheme.colorScheme.onSurface,
     )
     return LabelHelperProperties(enabled = true, textStyle = style)
 }
@@ -479,3 +506,6 @@ private fun themedVerticalIndicatorProperties(): VerticalIndicatorProperties {
 }
 
 private const val DAYS_IN_WEEK = 7
+private const val MAX_TITLE_CHARS = 12
+private const val ROW_HEIGHT_DP = 56
+private const val AXIS_HEIGHT_DP = 48

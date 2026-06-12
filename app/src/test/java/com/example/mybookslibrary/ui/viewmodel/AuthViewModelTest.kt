@@ -111,10 +111,10 @@ class AuthViewModelTest {
     @Test
     fun register_thanhCong_phatSuccess() =
         runTest(mainDispatcherRule.dispatcher.scheduler) {
-            coEvery { repository.register("u", "p") } returns Result.success(Unit)
+            coEvery { repository.register("u", "Abc@1234") } returns Result.success(Unit)
             val vm = AuthViewModel(repository)
 
-            vm.register("u", "p")
+            vm.register("u", "Abc@1234")
             advanceUntilIdle()
 
             assertEquals(AuthState.Success, vm.uiState.value)
@@ -123,10 +123,10 @@ class AuthViewModelTest {
     @Test
     fun register_thatBaiNullMessage_dungFallback() =
         runTest(mainDispatcherRule.dispatcher.scheduler) {
-            coEvery { repository.register("u", "p") } returns Result.failure(RuntimeException())
+            coEvery { repository.register("u", "Abc@1234") } returns Result.failure(RuntimeException())
             val vm = AuthViewModel(repository)
 
-            vm.register("u", "p")
+            vm.register("u", "Abc@1234")
             advanceUntilIdle()
 
             assertEquals(AuthState.Error(UiText.Resource(R.string.error_unexpected)), vm.uiState.value)
@@ -135,10 +135,11 @@ class AuthViewModelTest {
     @Test
     fun register_thatBaiCoMessage_phatErrorMessage() =
         runTest(mainDispatcherRule.dispatcher.scheduler) {
-            coEvery { repository.register("u", "p") } returns Result.failure(IllegalStateException("user tồn tại"))
+            coEvery { repository.register("u", "Abc@1234") } returns
+                Result.failure(IllegalStateException("user tồn tại"))
             val vm = AuthViewModel(repository)
 
-            vm.register("u", "p")
+            vm.register("u", "Abc@1234")
             advanceUntilIdle()
 
             assertEquals(AuthState.Error(UiText.Dynamic("user tồn tại")), vm.uiState.value)
@@ -197,14 +198,14 @@ class AuthViewModelTest {
     @Test
     fun register_dangLoading_boQuaLanGoiThuHai() =
         runTest(mainDispatcherRule.dispatcher.scheduler) {
-            coEvery { repository.register("u", "p") } returns Result.success(Unit)
+            coEvery { repository.register("u", "Abc@1234") } returns Result.success(Unit)
             val vm = AuthViewModel(repository)
 
-            vm.register("u", "p")
-            vm.register("u", "p") // trúng guard is Loading -> return
+            vm.register("u", "Abc@1234")
+            vm.register("u", "Abc@1234") // trúng guard is Loading -> return
             advanceUntilIdle()
 
-            coVerify(exactly = 1) { repository.register("u", "p") }
+            coVerify(exactly = 1) { repository.register("u", "Abc@1234") }
         }
 
     @Test

@@ -31,7 +31,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -59,8 +58,7 @@ internal fun FloatingPillNavBar(
     isVisible: Boolean = true,
     coachMarkState: CoachMarkState? = null,
 ) {
-    val widthSizeClass = LocalWindowWidthSizeClass.current
-    if (widthSizeClass == WindowWidthSizeClass.Compact) {
+    if (!com.example.mybookslibrary.ui.util.isTablet()) {
         AnimatedVisibility(
             visible = isVisible,
             enter = slideInVertically(initialOffsetY = { it }),
@@ -169,7 +167,7 @@ private fun navDestinationCoachKey(destination: BottomNavDestination): String? =
         BottomNavDestination.DiscoverTab -> "tab_discover"
         BottomNavDestination.SearchTab -> "tab_search"
         BottomNavDestination.LibraryTab -> "tab_library"
-        BottomNavDestination.SettingTab -> "tab_settings"
+        BottomNavDestination.ProfileTab -> "tab_settings"
     }
 
 @Composable

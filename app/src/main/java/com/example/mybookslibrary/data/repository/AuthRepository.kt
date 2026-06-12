@@ -86,6 +86,47 @@ class AuthRepository
             }
 
         /**
+         * Đổi mật khẩu cho user đang đăng nhập. Xác thực mật khẩu hiện tại trước khi
+         * hash và lưu mật khẩu mới. Tài khoản Google (không có mật khẩu nội bộ) bị từ chối.
+         */
+        suspend fun changePassword(
+            currentPassword: String,
+            newPassword: String,
+        ): Result<Unit> =
+            withContext(ioDispatcher) {
+                val userId =
+                    preferencesDataStore.getLoggedInUserId()?.toLongOrNull()
+                        ?: return@withContext Result.failure(Exception("Not logged in"))
+                val user =
+                    userDao.getById(userId)
+                        ?: return@withContext Result.failure(Exception("Not logged in"))
+
+                if (user.password.isBlank()) {
+                    return@withContext Result.failure(Exception("Google account has no password"))
+                }
+                if (!verifyPassword(currentPassword, user.password)) {
+                    return@withContext Result.failure(Exception("Current password is incorrect"))
+                }
+
+                userDao.upsert(user.copy(password = hashPassword(newPassword)))
+                Result.success(Unit)
+            }
+
+        /**
+         * Xóa tài khoản đang đăng nhập (yêu cầu Google Play cho app có account).
+         * Xóa user record và đăng xuất; dữ liệu đọc local (library) giữ nguyên.
+         */
+        suspend fun deleteAccount(): Result<Unit> =
+            withContext(ioDispatcher) {
+                val userId =
+                    preferencesDataStore.getLoggedInUserId()?.toLongOrNull()
+                        ?: return@withContext Result.failure(Exception("Not logged in"))
+                userDao.deleteById(userId)
+                preferencesDataStore.setLoggedInUserId(null)
+                Result.success(Unit)
+            }
+
+        /**
          * Đăng nhập bằng Google. Tự tạo [UserEntity] mới nếu Google ID chưa có trong DB.
          */
         suspend fun googleSignIn(context: Context): Result<Unit> {

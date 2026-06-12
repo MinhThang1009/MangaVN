@@ -54,6 +54,7 @@ class SettingsViewModel
     constructor(
         private val preferencesDataStore: UserPreferencesDataStore,
         private val libraryRepository: LibraryRepository,
+        private val authRepository: com.example.mybookslibrary.data.repository.AuthRepository,
         private val imageLoader: ImageLoader,
         @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
         private val json: Json,
@@ -120,6 +121,24 @@ class SettingsViewModel
                     // Tránh crash app do exception không bắt trong viewModelScope (Room/IO có thể ném)
                     Timber.e(e, "signOut thất bại")
                     _uiState.update { it.copy(signedOut = false) }
+                }
+            }
+        }
+
+        fun deleteAccount() {
+            viewModelScope.launch(ioDispatcher) {
+                try {
+                    val result = authRepository.deleteAccount()
+                    if (result.isSuccess) {
+                        libraryRepository.clearAll()
+                        _uiState.update { it.copy(signedOut = true) }
+                    } else {
+                        Timber.e(result.exceptionOrNull(), "deleteAccount thất bại")
+                    }
+                } catch (c: CancellationException) {
+                    throw c
+                } catch (e: Exception) {
+                    Timber.e(e, "deleteAccount thất bại")
                 }
             }
         }
