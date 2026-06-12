@@ -182,6 +182,7 @@
 
     <!-- Reader Page Actions -->
     <string name="reader_tap_to_retry">Tap to retry</string>
+    <string name="reader_loading_page">Loading page %1$d</string>
     <string name="reader_loading_failed">Failed to load image</string>
     <string name="reader_action_quick_save">Quick Save</string>
     <string name="reader_action_save_as">Save As…</string>

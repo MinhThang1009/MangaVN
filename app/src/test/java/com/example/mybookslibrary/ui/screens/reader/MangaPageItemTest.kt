@@ -116,4 +116,19 @@ class MangaPageItemTest {
             FakeImageLoader.install()
         }
     }
+
+    @Test
+    fun loadingState_showsPageLoadingIndicator() {
+        FakeImageLoader.reset()
+        FakeImageLoader.installPending()
+        try {
+            composeRule.setContent {
+                MangaPageItem(imageUrl = "https://x/pending.jpg", index = 1)
+            }
+            composeRule.onNodeWithContentDescription("Loading page 2").assertIsDisplayed()
+        } finally {
+            FakeImageLoader.reset()
+            FakeImageLoader.install()
+        }
+    }
 }

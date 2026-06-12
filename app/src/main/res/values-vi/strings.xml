@@ -182,6 +182,7 @@
 
     <!-- Thao tác trang truyện -->
     <string name="reader_tap_to_retry">Chạm để thử lại</string>
+    <string name="reader_loading_page">Đang tải trang %1$d</string>
     <string name="reader_loading_failed">Không tải được ảnh</string>
     <string name="reader_action_quick_save">Lưu nhanh</string>
     <string name="reader_action_save_as">Lưu vào…</string>

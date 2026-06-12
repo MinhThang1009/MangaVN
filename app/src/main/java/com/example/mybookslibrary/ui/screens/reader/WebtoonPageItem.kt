@@ -60,6 +60,7 @@ fun WebtoonPageItem(
     val context = LocalContext.current
     var aspectRatio by remember(imageUrl) { mutableStateOf<Float?>(null) }
     var retryHash by remember(imageUrl) { mutableIntStateOf(0) }
+    var isLoading by remember(imageUrl) { mutableStateOf(true) }
     var isError by remember(imageUrl) { mutableStateOf(false) }
     var pageWidthPx by remember(imageUrl) { mutableIntStateOf(0) }
     var pageHeightPx by remember(imageUrl) { mutableIntStateOf(0) }
@@ -69,6 +70,7 @@ fun WebtoonPageItem(
             {
                 Timber.v("Retry tapped for webtoon page=%d url=%s", index + 1, imageUrl)
                 retryHash++
+                isLoading = true
                 isError = false
             }
         }
@@ -79,6 +81,7 @@ fun WebtoonPageItem(
                 .data("$imageUrl#retry=$retryHash")
                 .listener(
                     onStart = {
+                        isLoading = true
                         isError = false
                     },
                     onSuccess = { _, result ->
@@ -88,9 +91,11 @@ fun WebtoonPageItem(
                         if (w > 0 && h > 0) {
                             aspectRatio = w.toFloat() / h.toFloat()
                         }
+                        isLoading = false
                         isError = false
                     },
                     onError = { _, result ->
+                        isLoading = false
                         isError = true
                         Timber.w(result.throwable, "Failed to load webtoon page=%d url=%s", index + 1, imageUrl)
                     },
@@ -137,6 +142,10 @@ fun WebtoonPageItem(
             contentScale = ContentScale.FillWidth,
             modifier = Modifier.fillMaxSize(),
         )
+
+        if (isLoading) {
+            ReaderPageLoadingOverlay(pageNumber = index + 1)
+        }
 
         if (isError) {
             Box(

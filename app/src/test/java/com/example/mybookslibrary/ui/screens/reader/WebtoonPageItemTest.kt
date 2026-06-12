@@ -83,4 +83,19 @@ class WebtoonPageItemTest {
             FakeImageLoader.install()
         }
     }
+
+    @Test
+    fun loadingState_showsPageLoadingIndicator() {
+        FakeImageLoader.reset()
+        FakeImageLoader.installPending()
+        try {
+            composeRule.setContent {
+                WebtoonPageItem(imageUrl = "https://x/pending.jpg", index = 2)
+            }
+            composeRule.onNodeWithContentDescription("Loading page 3").assertIsDisplayed()
+        } finally {
+            FakeImageLoader.reset()
+            FakeImageLoader.install()
+        }
+    }
 }

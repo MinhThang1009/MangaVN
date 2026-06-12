@@ -76,6 +76,7 @@ fun MangaPageItem(
 ) {
     val context = LocalContext.current
     var retryHash by remember(imageUrl) { mutableIntStateOf(0) }
+    var isLoading by remember(imageUrl) { mutableStateOf(true) }
     var isError by remember(imageUrl) { mutableStateOf(false) }
     var pageSize by remember(imageUrl) { mutableStateOf(IntSize.Zero) }
     val zoomableState = rememberZoomableState(zoomSpec = ZoomSpec(maxZoomFactor = 3f))
@@ -85,6 +86,7 @@ fun MangaPageItem(
             {
                 Timber.v("Retry tapped for page=%d url=%s", displayPage(index), imageUrl)
                 retryHash++
+                isLoading = true
                 isError = false
             }
         }
@@ -95,7 +97,18 @@ fun MangaPageItem(
                 imageUrl = imageUrl,
                 pageIndex = index,
                 retryHash = retryHash,
-                onLoadingChanged = { isError = it },
+                onLoading = {
+                    isLoading = true
+                    isError = false
+                },
+                onSuccess = {
+                    isLoading = false
+                    isError = false
+                },
+                onError = {
+                    isLoading = false
+                    isError = true
+                },
             )
         }
 
@@ -116,6 +129,10 @@ fun MangaPageItem(
             modifier = Modifier.fillMaxSize(),
         )
 
+        if (isLoading) {
+            ReaderPageLoadingOverlay(pageNumber = displayPage(index))
+        }
+
         if (isError) {
             MangaPageRetryOverlay(onRetry = retryPageLoad)
         }
@@ -127,7 +144,9 @@ private fun buildPageImageRequest(
     imageUrl: String,
     pageIndex: Int,
     retryHash: Int,
-    onLoadingChanged: (Boolean) -> Unit,
+    onLoading: () -> Unit,
+    onSuccess: () -> Unit,
+    onError: () -> Unit,
 ): ImageRequest =
     ImageRequest
         .Builder(context)
@@ -135,13 +154,13 @@ private fun buildPageImageRequest(
         .memoryCacheKey("$imageUrl#retry=$retryHash")
         .listener(
             onStart = {
-                onLoadingChanged(false)
+                onLoading()
             },
             onSuccess = { _, _ ->
-                onLoadingChanged(false)
+                onSuccess()
             },
             onError = { _, result ->
-                onLoadingChanged(true)
+                onError()
                 Timber.w(result.throwable, "Failed to load page=%d url=%s", displayPage(pageIndex), imageUrl)
             },
         ).build()
