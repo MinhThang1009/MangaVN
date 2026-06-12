@@ -52,13 +52,17 @@ abstract class ChapterDao {
     @Query("SELECT COUNT(*) FROM chapter_progress WHERE status = 'COMPLETED'")
     abstract fun observeCompletedChapterCount(): Flow<Int>
 
+    /** Đếm chapter đang đọc dở — cho Statistics. */
+    @Query("SELECT COUNT(*) FROM chapter_progress WHERE status = 'READING'")
+    abstract fun observeReadingChapterCount(): Flow<Int>
+
     /** Tổng số chapter đã có progress — cho Statistics. */
     @Query("SELECT COUNT(*) FROM chapter_progress")
     abstract fun observeTotalProgressCount(): Flow<Int>
 
-    /** Danh sách chapter progress gần nhất — cho Statistics chart (30 ngày). */
-    @Query("SELECT * FROM chapter_progress ORDER BY updated_at DESC LIMIT 200")
-    abstract fun observeRecentProgress(): Flow<List<ChapterProgressEntity>>
+    /** Danh sách chapter progress trong 28 ngày gần nhất — cho Statistics chart. */
+    @Query("SELECT * FROM chapter_progress WHERE updated_at >= :cutoff ORDER BY updated_at DESC")
+    abstract fun observeRecentProgress(cutoff: Long): Flow<List<ChapterProgressEntity>>
 
     /** Top truyện có nhiều chương đã đọc nhất — cho Statistics RowChart. */
     @Query(
@@ -66,6 +70,7 @@ abstract class ChapterDao {
         SELECT li.title AS title, COUNT(cp.chapter_id) AS chapterCount
         FROM chapter_progress cp
         INNER JOIN library_items li ON li.manga_id = cp.manga_id
+        WHERE li.sync_status != 'PENDING_DELETE'
         GROUP BY cp.manga_id
         ORDER BY chapterCount DESC
         LIMIT 5

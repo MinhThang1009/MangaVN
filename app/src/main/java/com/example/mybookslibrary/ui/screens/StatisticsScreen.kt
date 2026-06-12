@@ -207,7 +207,8 @@ private fun SummaryCard(value: String, label: String, modifier: Modifier = Modif
 @Composable
 private fun WeeklyColumnChart(activity: List<Int>) {
     val primary = MaterialTheme.colorScheme.primary
-    val labels = remember { weekDayLabels() }
+    val today = LocalDate.now()
+    val labels = remember(today) { weekDayLabels() }
     val seriesLabel = appString(R.string.stats_chapters_read)
 
     val barsData = remember(activity, seriesLabel) {

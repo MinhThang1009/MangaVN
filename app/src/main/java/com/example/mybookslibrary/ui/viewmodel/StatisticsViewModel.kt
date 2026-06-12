@@ -46,18 +46,27 @@ class StatisticsViewModel
             combine(
                 chapterDao.observeTotalProgressCount(),
                 chapterDao.observeCompletedChapterCount(),
-                chapterDao.observeRecentProgress(),
-                libraryDao.observeAll(),
-            ) { total, completed, recentProgress, libraryItems ->
+                chapterDao.observeReadingChapterCount(),
+                chapterDao.observeRecentProgress(
+                    cutoff = System.currentTimeMillis() - CHART_WINDOW_MS,
+                ),
+            ) { total, completed, reading, recentProgress ->
                 StatisticsUiState(
                     totalChapters = total,
                     completedChapters = completed,
-                    inProgressChapters = total - completed,
+                    inProgressChapters = reading,
                     weeklyActivity = buildWeeklyActivity(recentProgress),
                     monthlyTrend = buildMonthlyTrend(recentProgress),
-                    readingCount = libraryItems.count { it.status == LibraryStatus.READING },
-                    completedCount = libraryItems.count { it.status == LibraryStatus.COMPLETED },
-                    favoriteCount = libraryItems.count { it.status == LibraryStatus.FAVORITE },
+                )
+            }.combine(libraryDao.observeAll()) { state, libraryItems ->
+                state.copy(
+                    readingCount = libraryItems.count {
+                        it.status == LibraryStatus.READING && !it.is_favorite
+                    },
+                    completedCount = libraryItems.count {
+                        it.status == LibraryStatus.COMPLETED && !it.is_favorite
+                    },
+                    favoriteCount = libraryItems.count { it.is_favorite },
                 )
             }.combine(chapterDao.observeTopReadManga()) { state, topManga ->
                 state.copy(topManga = topManga)
@@ -69,6 +78,7 @@ class StatisticsViewModel
 
         companion object {
             private const val SUBSCRIPTION_TIMEOUT = 5_000L
+            private const val CHART_WINDOW_MS = 28L * 24 * 60 * 60 * 1000
         }
     }
 
