@@ -1,16 +1,17 @@
 # Release pipeline (issue #104): push tag v* → build AAB + APK ký bằng release keystore,
 # tạo GitHub Release kèm changelog từ conventional commits + mapping.txt (deobfuscate R8).
-# workflow_dispatch + push main = dry-run: build + verify chữ ký, upload artifact
-# (giữ 7 ngày) nhưng KHÔNG tạo Release — mỗi lần merge có sẵn bản ký mới nhất để tải.
+# workflow_dispatch + nightly = dry-run: build + verify chữ ký, upload artifact
+# (giữ 7 ngày) nhưng KHÔNG tạo Release. Nightly bỏ qua nếu main không có commit mới.
 name: Release
 
 on:
   push:
     tags: ['v*']
-    branches: [main]
+  schedule:
+    # 19:00 UTC = 2:00 sáng giờ VN — nightly build bản ký từ main.
+    - cron: '0 19 * * *'
   workflow_dispatch:
 
-# Merge dồn dập → chỉ giữ run mới nhất trên main; run theo tag không bao giờ bị cancel.
 concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: ${{ github.ref_type != 'tag' }}
@@ -22,7 +23,30 @@ env:
   GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx4g -XX:+UseG1GC"
 
 jobs:
+  # Nightly chỉ build khi main có commit mới trong 24h — tránh build lại cùng SHA.
+  # Tag/workflow_dispatch luôn proceed.
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      proceed: ${{ steps.check.outputs.proceed }}
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+
+      - id: check
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ] && \
+             [ -z "$(git log -1 --since='24 hours ago' --pretty=%H)" ]; then
+            echo "Không có commit mới trong 24h — bỏ qua nightly build."
+            echo "proceed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "proceed=true" >> "$GITHUB_OUTPUT"
+          fi
+
   release:
+    needs: gate
+    if: needs.gate.outputs.proceed == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 40
     steps:
