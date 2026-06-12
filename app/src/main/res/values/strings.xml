@@ -308,7 +308,7 @@
     <string name="stats_weekly_activity">Weekly activity</string>
     <string name="stats_monthly_trend">Monthly trend</string>
     <string name="stats_no_data">Start reading to see your stats here</string>
-    <string name="stats_library_breakdown">Titles by status</string>
+    <string name="stats_library_breakdown">Library breakdown</string>
     <string name="stats_top_manga">Most read titles</string>
     <string name="stats_reading">Reading</string>
     <string name="stats_completed">Completed</string>

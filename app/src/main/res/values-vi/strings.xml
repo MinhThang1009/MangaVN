@@ -307,7 +307,7 @@
     <string name="stats_weekly_activity">Hoạt động trong tuần</string>
     <string name="stats_monthly_trend">Xu hướng theo tháng</string>
     <string name="stats_no_data">Bắt đầu đọc truyện để xem thống kê tại đây</string>
-    <string name="stats_library_breakdown">Truyện theo trạng thái</string>
+    <string name="stats_library_breakdown">Phân loại thư viện</string>
     <string name="stats_top_manga">Truyện đọc nhiều nhất</string>
     <string name="stats_reading">Đang đọc</string>
     <string name="stats_completed">Hoàn thành</string>

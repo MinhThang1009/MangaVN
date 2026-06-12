@@ -192,7 +192,18 @@ private fun SummaryCard(value: String, label: String, modifier: Modifier = Modif
             modifier = Modifier.fillMaxWidth().padding(Dimens.SpacingLg),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Text(value, style = MaterialTheme.typography.headlineLarge, color = MaterialTheme.colorScheme.primary)
+            // Số ≥5 chữ số tràn card 1/3 màn hình ở headlineLarge → hạ cỡ chữ
+            val valueStyle = if (value.length > SUMMARY_VALUE_MAX_DIGITS) {
+                MaterialTheme.typography.headlineSmall
+            } else {
+                MaterialTheme.typography.headlineLarge
+            }
+            Text(
+                value,
+                style = valueStyle,
+                color = MaterialTheme.colorScheme.primary,
+                maxLines = 1,
+            )
             Spacer(Modifier.height(Dimens.SpacingXs))
             Text(
                 label,
@@ -345,7 +356,8 @@ private fun LibraryPieChart(reading: Int, completed: Int, favorite: Int) {
                                 it.copy(selected = it.label == clicked.label && !it.selected)
                             }
                         },
-                        selectedScale = 1f,
+                        // Phóng nhẹ slice đang chọn để user nhận biết ngoài popup giữa chart
+                        selectedScale = 1.08f,
                         labelHelperProperties = LabelHelperProperties(enabled = false),
                         scaleAnimEnterSpec = spring(
                             dampingRatio = Spring.DampingRatioMediumBouncy,
@@ -419,8 +431,32 @@ private fun TopMangaRowChart(items: List<TopMangaCount>) {
     }
 }
 
-private fun String.ellipsize(maxChars: Int): String =
-    if (length <= maxChars) this else take(maxChars - 1) + "…"
+/**
+ * Cắt title theo độ rộng ước lượng thay vì số ký tự thuần:
+ * ký tự CJK (kanji/kana/hangul) rộng ~gấp đôi latin nên tính 2 đơn vị.
+ * Tránh title tiếng Nhật/Trung bị clip trong label area của RowChart.
+ */
+private fun String.ellipsize(maxWidthUnits: Int): String {
+    var width = 0
+    forEachIndexed { index, char ->
+        width += if (char.isCjk()) 2 else 1
+        if (width > maxWidthUnits) {
+            return take(index).trimEnd() + "…"
+        }
+    }
+    return this
+}
+
+private fun Char.isCjk(): Boolean {
+    val block = Character.UnicodeBlock.of(this) ?: return false
+    return block == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS ||
+        block == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS_EXTENSION_A ||
+        block == Character.UnicodeBlock.CJK_SYMBOLS_AND_PUNCTUATION ||
+        block == Character.UnicodeBlock.HIRAGANA ||
+        block == Character.UnicodeBlock.KATAKANA ||
+        block == Character.UnicodeBlock.HANGUL_SYLLABLES ||
+        block == Character.UnicodeBlock.HALFWIDTH_AND_FULLWIDTH_FORMS
+}
 
 @Composable
 private fun ChartCard(content: @Composable () -> Unit) {
@@ -497,7 +533,12 @@ private fun themedIndicatorProperties(): HorizontalIndicatorProperties {
     val style = MaterialTheme.typography.labelSmall.copy(
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
-    return HorizontalIndicatorProperties(enabled = true, textStyle = style)
+    // Số chương luôn nguyên — không hiện tick thập phân (0.5, 1.5…)
+    return HorizontalIndicatorProperties(
+        enabled = true,
+        textStyle = style,
+        contentBuilder = { value -> value.toInt().toString() },
+    )
 }
 
 @Composable
@@ -505,10 +546,15 @@ private fun themedVerticalIndicatorProperties(): VerticalIndicatorProperties {
     val style = MaterialTheme.typography.labelSmall.copy(
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
-    return VerticalIndicatorProperties(enabled = true, textStyle = style)
+    return VerticalIndicatorProperties(
+        enabled = true,
+        textStyle = style,
+        contentBuilder = { value -> value.toInt().toString() },
+    )
 }
 
 private const val DAYS_IN_WEEK = 7
 private const val MAX_TITLE_CHARS = 20
+private const val SUMMARY_VALUE_MAX_DIGITS = 4
 private const val ROW_HEIGHT_DP = 56
 private const val AXIS_HEIGHT_DP = 48
