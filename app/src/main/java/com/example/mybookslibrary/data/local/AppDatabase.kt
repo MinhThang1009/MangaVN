@@ -13,8 +13,8 @@ import com.example.mybookslibrary.data.local.dao.LibraryDao
 import com.example.mybookslibrary.data.local.dao.UserDao
 
 @Suppress("UnusedPrivateProperty")
-private const val PREVIOUS_DATABASE_VERSION = 4
-private const val CURRENT_DATABASE_VERSION = 5
+private const val PREVIOUS_DATABASE_VERSION = 5
+private const val CURRENT_DATABASE_VERSION = 6
 
 @Database(
     entities = [
@@ -56,7 +56,7 @@ abstract class AppDatabase : RoomDatabase() {
                             AppDatabase::class.java,
                             "mybooks_library.db",
                         )
-                        .addMigrations(migration3To4, migration4To5)
+                        .addMigrations(migration3To4, migration4To5, migration5To6)
                         // Không dùng fallbackToDestructiveMigration: thiếu migration khi bump version
                         // sẽ fail loud (giữ nguyên dữ liệu trên đĩa) thay vì xóa sạch thư viện người dùng.
                         .build()
@@ -99,6 +99,16 @@ abstract class AppDatabase : RoomDatabase() {
                 override fun migrate(db: SupportSQLiteDatabase) {
                     db.execSQL(
                         "ALTER TABLE `chapter_metadata` ADD COLUMN `translated_language` TEXT"
+                    )
+                }
+            }
+
+        @Suppress("MagicNumber")
+        val migration5To6 =
+            object : Migration(5, 6) {
+                override fun migrate(db: SupportSQLiteDatabase) {
+                    db.execSQL(
+                        "ALTER TABLE `library_items` ADD COLUMN `is_favorite` INTEGER NOT NULL DEFAULT 0"
                     )
                 }
             }

@@ -43,6 +43,8 @@ class AppDatabaseMigrationTest {
                 query("SELECT * FROM chapter_progress LIMIT 1").close()
                 query("SELECT * FROM download_queue LIMIT 1").close()
                 query("SELECT * FROM chapter_metadata LIMIT 1").close()
+                // Cột mới từ migration 5→6
+                query("SELECT is_favorite FROM library_items LIMIT 1").close()
             }
         } finally {
             db.close()

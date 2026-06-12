@@ -11,6 +11,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -22,7 +23,17 @@ class LibraryViewModel
         private val repository: LibraryRepository,
         @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     ) : ViewModel() {
-        val libraryItems: Flow<List<LibraryItemEntity>> = repository.observeLibraryItems()
+        private val _showFavoritesOnly = MutableStateFlow(false)
+        val showFavoritesOnly = _showFavoritesOnly.asStateFlow()
+
+        val libraryItems: Flow<List<LibraryItemEntity>> =
+            repository.observeLibraryItems().combine(_showFavoritesOnly) { items, favoritesOnly ->
+                if (favoritesOnly) items.filter { it.is_favorite } else items
+            }
+
+        fun setShowFavoritesOnly(favoritesOnly: Boolean) {
+            _showFavoritesOnly.value = favoritesOnly
+        }
 
         private val _isRefreshing = MutableStateFlow(false)
         val isRefreshing = _isRefreshing.asStateFlow()

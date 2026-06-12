@@ -67,6 +67,10 @@
     <string name="library_empty_subtitle">Start reading to build your collection</string>
     <string name="library_remove_bookmark">Remove bookmark</string>
     <string name="library_remove_bookmark_confirm">Remove "%1$s" from your library?</string>
+    <string name="library_filter_all">All</string>
+    <string name="library_filter_favorites">Favorites</string>
+    <string name="library_favorites_empty_title">No favorites yet</string>
+    <string name="library_favorites_empty_subtitle">Tap the heart on a manga to add it here</string>
 
     <!-- Library Status -->
     <string name="status_reading">Reading</string>
@@ -94,6 +98,8 @@
     <string name="cd_page_preview">Page Preview</string>
     <string name="cd_expand_chapters">Expand Chapters</string>
     <string name="cd_share">Share</string>
+    <string name="cd_favorite_add">Add to favorites</string>
+    <string name="cd_favorite_remove">Remove from favorites</string>
     <string name="filter_all_languages">All</string>
 
     <!-- Chapter formatting -->
@@ -308,6 +314,8 @@
     <string name="feedback_register_success">Registration successful!</string>
     <string name="feedback_bookmark_added">Added to library</string>
     <string name="feedback_bookmark_removed">Removed from library</string>
+    <string name="feedback_favorite_added">Added to favorites</string>
+    <string name="feedback_favorite_removed">Removed from favorites</string>
 
     <!-- Notifications -->
     <string name="notification_channel_name">Reading Reminders</string>

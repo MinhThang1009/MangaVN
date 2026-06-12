@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -33,7 +34,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.material3.Icon
 import com.composables.icons.lucide.BookOpen
+import com.composables.icons.lucide.Heart
 import com.composables.icons.lucide.Lucide
 import com.example.mybookslibrary.R
 import com.example.mybookslibrary.data.local.LibraryItemEntity
@@ -42,10 +45,12 @@ import com.example.mybookslibrary.ui.navigation.LocalBottomNavPadding
 import com.example.mybookslibrary.ui.navigation.LocalSnackbarHostState
 import com.example.mybookslibrary.ui.screens.components.AppButton
 import com.example.mybookslibrary.ui.screens.components.AppButtonStyle
+import com.example.mybookslibrary.ui.screens.components.AppFilterChip
 import com.example.mybookslibrary.ui.screens.components.EmptyState
 import com.example.mybookslibrary.ui.screens.components.MangaCoverCard
 import com.example.mybookslibrary.ui.screens.components.StatusChip
 import com.example.mybookslibrary.ui.theme.Dimens
+import com.example.mybookslibrary.ui.theme.statusColors
 import com.example.mybookslibrary.ui.util.appString
 import com.example.mybookslibrary.ui.viewmodel.LibraryViewModel
 import kotlinx.coroutines.launch
@@ -60,6 +65,7 @@ fun LibraryScreenContent(
 ) {
     val items by vm.libraryItems.collectAsStateWithLifecycle(initialValue = emptyList())
     val isRefreshing by vm.isRefreshing.collectAsStateWithLifecycle()
+    val showFavoritesOnly by vm.showFavoritesOnly.collectAsStateWithLifecycle()
     var pendingRemoval by remember { mutableStateOf<LibraryItemEntity?>(null) }
     val bottomNavPadding = LocalBottomNavPadding.current
     val snackbarHostState = LocalSnackbarHostState.current
@@ -79,7 +85,7 @@ fun LibraryScreenContent(
                     .padding(innerPadding)
                     .consumeWindowInsets(innerPadding),
         ) {
-            if (items.isEmpty()) {
+            if (items.isEmpty() && !showFavoritesOnly) {
                 EmptyState(
                     title = appString(R.string.library_empty_title),
                     subtitle = appString(R.string.library_empty_subtitle),
@@ -106,11 +112,36 @@ fun LibraryScreenContent(
                         )
                         Spacer(Modifier.height(Dimens.SpacingSm))
                     }
+                    item {
+                        Row(horizontalArrangement = Arrangement.spacedBy(Dimens.SpacingSm)) {
+                            AppFilterChip(
+                                label = appString(R.string.library_filter_all),
+                                selected = !showFavoritesOnly,
+                                onClick = { vm.setShowFavoritesOnly(false) },
+                            )
+                            AppFilterChip(
+                                label = appString(R.string.library_filter_favorites),
+                                selected = showFavoritesOnly,
+                                onClick = { vm.setShowFavoritesOnly(true) },
+                            )
+                        }
+                    }
+                    if (items.isEmpty()) {
+                        item {
+                            EmptyState(
+                                title = appString(R.string.library_favorites_empty_title),
+                                subtitle = appString(R.string.library_favorites_empty_subtitle),
+                                icon = Lucide.Heart,
+                                modifier = Modifier.fillMaxWidth().padding(top = Dimens.SpacingXxl),
+                            )
+                        }
+                    }
                     items(items, key = { it.manga_id }) { item ->
                         LibraryItemCard(
                             title = item.title,
                             coverUrl = item.cover_url,
                             status = item.status,
+                            isFavorite = item.is_favorite,
                             onClick = { onOpenDetail(item.manga_id) },
                             onLongClick = { pendingRemoval = item },
                         )
@@ -166,6 +197,7 @@ private fun LibraryItemCard(
     title: String,
     coverUrl: String,
     status: LibraryStatus,
+    isFavorite: Boolean,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
 ) {
@@ -194,7 +226,18 @@ private fun LibraryItemCard(
                     overflow = TextOverflow.Ellipsis,
                 )
                 Spacer(Modifier.height(Dimens.SpacingSm))
-                StatusChip(status)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    StatusChip(status)
+                    if (isFavorite) {
+                        Spacer(Modifier.width(Dimens.SpacingSm))
+                        Icon(
+                            Lucide.Heart,
+                            contentDescription = appString(R.string.status_favorite),
+                            tint = MaterialTheme.statusColors.warning,
+                            modifier = Modifier.size(Dimens.IconSm),
+                        )
+                    }
+                }
             }
         }
     }

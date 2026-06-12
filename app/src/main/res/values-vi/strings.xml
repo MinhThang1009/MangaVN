@@ -67,6 +67,10 @@
     <string name="library_empty_subtitle">Bắt đầu đọc để xây dựng bộ sưu tập</string>
     <string name="library_remove_bookmark">Xoá đánh dấu</string>
     <string name="library_remove_bookmark_confirm">Xoá "%1$s" khỏi thư viện?</string>
+    <string name="library_filter_all">Tất cả</string>
+    <string name="library_filter_favorites">Yêu thích</string>
+    <string name="library_favorites_empty_title">Chưa có truyện yêu thích</string>
+    <string name="library_favorites_empty_subtitle">Nhấn biểu tượng trái tim trên truyện để thêm vào đây</string>
 
     <!-- Trạng thái -->
     <string name="status_reading">Đang đọc</string>
@@ -94,6 +98,8 @@
     <string name="cd_page_preview">Xem trước trang truyện</string>
     <string name="cd_expand_chapters">Mở rộng danh sách chương</string>
     <string name="cd_share">Chia sẻ</string>
+    <string name="cd_favorite_add">Thêm vào yêu thích</string>
+    <string name="cd_favorite_remove">Bỏ yêu thích</string>
     <string name="filter_all_languages">Tất cả</string>
 
     <!-- Chapter -->
@@ -307,6 +313,8 @@
     <string name="feedback_register_success">Đăng ký thành công!</string>
     <string name="feedback_bookmark_added">Đã thêm vào thư viện</string>
     <string name="feedback_bookmark_removed">Đã xóa khỏi thư viện</string>
+    <string name="feedback_favorite_added">Đã thêm vào yêu thích</string>
+    <string name="feedback_favorite_removed">Đã bỏ yêu thích</string>
 
     <!-- Notifications -->
     <string name="notification_channel_name">Nhắc nhở đọc truyện</string>

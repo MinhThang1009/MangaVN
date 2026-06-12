@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import com.composables.icons.lucide.ArrowLeft
+import com.composables.icons.lucide.Heart
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Share2
 import com.example.mybookslibrary.R
@@ -42,6 +43,7 @@ import com.example.mybookslibrary.ui.screens.components.AppButtonStyle
 import com.example.mybookslibrary.ui.theme.Alphas
 import com.example.mybookslibrary.ui.theme.CoverShape
 import com.example.mybookslibrary.ui.theme.Dimens
+import com.example.mybookslibrary.ui.theme.statusColors
 import com.example.mybookslibrary.ui.util.appString
 
 @Composable
@@ -214,6 +216,45 @@ internal fun DetailShareButton(onShareClick: () -> Unit, modifier: Modifier = Mo
                 Lucide.Share2,
                 contentDescription = appString(R.string.cd_share),
                 tint = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.size(20.dp),
+            )
+        }
+    }
+}
+
+@Composable
+internal fun DetailFavoriteButton(
+    isFavorite: Boolean,
+    onToggleFavorite: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    IconButton(
+        onClick = onToggleFavorite,
+        modifier = modifier.statusBarsPadding().padding(Dimens.SpacingSm),
+    ) {
+        Box(
+            modifier =
+                Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.surface.copy(alpha = Alphas.EmphasisHigh)),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                Lucide.Heart,
+                contentDescription =
+                    if (isFavorite) {
+                        appString(R.string.cd_favorite_remove)
+                    } else {
+                        appString(R.string.cd_favorite_add)
+                    },
+                // Cùng màu semantic với StatusChip FAVORITE
+                tint =
+                    if (isFavorite) {
+                        MaterialTheme.statusColors.warning
+                    } else {
+                        MaterialTheme.colorScheme.onSurface
+                    },
                 modifier = Modifier.size(20.dp),
             )
         }

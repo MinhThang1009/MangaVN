@@ -1,9 +1,12 @@
+@file:Suppress("TooManyFunctions")
+
 package com.example.mybookslibrary.data.local.dao
 
 import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Upsert
 import com.example.mybookslibrary.data.local.LibraryItemEntity
+import com.example.mybookslibrary.data.local.LibraryStatus
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -35,6 +38,25 @@ interface LibraryDao {
         pageIndex: Int,
         updatedAt: Long,
     ): Int
+
+    /**
+     * Bật/tắt yêu thích cho một manga. Không dùng upsert REPLACE (tránh cascade-delete
+     * chapter_progress) và không bump updated_at (yêu thích không phải hành vi đọc).
+     *
+     * @return số row được update — 0 nghĩa là manga chưa có trong thư viện.
+     */
+    @Query("UPDATE library_items SET is_favorite = :isFavorite WHERE manga_id = :mangaId")
+    suspend fun updateFavorite(
+        mangaId: String,
+        isFavorite: Boolean,
+    ): Int
+
+    /** Cập nhật trạng thái đọc (READING/COMPLETED) — dùng cho auto-set khi đọc hết truyện. */
+    @Query("UPDATE library_items SET status = :status WHERE manga_id = :mangaId")
+    suspend fun updateStatus(
+        mangaId: String,
+        status: LibraryStatus,
+    )
 
     @Query("DELETE FROM library_items WHERE manga_id = :mangaId")
     suspend fun deleteByMangaId(mangaId: String)

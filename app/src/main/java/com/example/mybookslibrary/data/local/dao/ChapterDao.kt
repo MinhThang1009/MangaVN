@@ -122,6 +122,36 @@ abstract class ChapterDao {
         )
     }
 
+    /**
+     * Tổng số chương khả dụng của manga, gộp các bản dịch theo số chương
+     * (oneshot không có chapter_number thì tính theo chapter_id) — cho auto-COMPLETED.
+     */
+    @Query(
+        """
+        SELECT COUNT(DISTINCT COALESCE(chapter_number, chapter_id))
+        FROM chapter_metadata
+        WHERE manga_id = :mangaId AND is_unavailable = 0
+        """,
+    )
+    abstract suspend fun countAvailableChapterNumbers(mangaId: String): Int
+
+    /**
+     * Số chương CHƯA đọc xong: một số chương được tính là đã đọc khi có ít nhất
+     * một bản dịch COMPLETED — không bắt user đọc đủ mọi ngôn ngữ.
+     */
+    @Query(
+        """
+        SELECT COUNT(*) FROM (
+            SELECT MAX(CASE WHEN p.status = 'COMPLETED' THEN 1 ELSE 0 END) AS done
+            FROM chapter_metadata m
+            LEFT JOIN chapter_progress p ON p.chapter_id = m.chapter_id
+            WHERE m.manga_id = :mangaId AND m.is_unavailable = 0
+            GROUP BY COALESCE(m.chapter_number, m.chapter_id)
+        ) WHERE done = 0
+        """,
+    )
+    abstract suspend fun countUnfinishedChapterNumbers(mangaId: String): Int
+
     @Query("DELETE FROM chapter_progress WHERE manga_id = :mangaId")
     protected abstract suspend fun deleteProgressByMangaId(mangaId: String)
 

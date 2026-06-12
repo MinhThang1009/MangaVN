@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -69,6 +70,8 @@ fun MangaDetailScreen(
     val scope = rememberCoroutineScope()
     val bookmarkAddedMsg = appString(R.string.feedback_bookmark_added)
     val bookmarkRemovedMsg = appString(R.string.feedback_bookmark_removed)
+    val favoriteAddedMsg = appString(R.string.feedback_favorite_added)
+    val favoriteRemovedMsg = appString(R.string.feedback_favorite_removed)
 
     Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         LazyColumn(modifier = Modifier.fillMaxSize()) {
@@ -237,11 +240,26 @@ fun MangaDetailScreen(
             onBackClick = onBackClick,
             modifier = Modifier.align(Alignment.TopStart),
         )
-        if (onShareClick != null && detail != null) {
-            DetailShareButton(
-                onShareClick = { onShareClick(displayTitle) },
-                modifier = Modifier.align(Alignment.TopEnd),
-            )
+        if (detail != null) {
+            Row(modifier = Modifier.align(Alignment.TopEnd)) {
+                DetailFavoriteButton(
+                    isFavorite = uiState.isFavorite,
+                    onToggleFavorite = {
+                        val wasFavorite = uiState.isFavorite
+                        viewModel.toggleFavorite(displayTitle, displayCoverArt)
+                        scope.launch {
+                            snackbarHostState.showSnackbar(
+                                if (wasFavorite) favoriteRemovedMsg else favoriteAddedMsg,
+                            )
+                        }
+                    },
+                )
+                if (onShareClick != null) {
+                    DetailShareButton(
+                        onShareClick = { onShareClick(displayTitle) },
+                    )
+                }
+            }
         }
     }
 }
