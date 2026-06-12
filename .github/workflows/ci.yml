@@ -316,9 +316,10 @@ jobs:
   # Smoke check R8/ProGuard: release build phải compile + minify thành công.
   # Output không ai tiêu thụ (release ký thật nằm ở release.yml) — job này chỉ
   # gác cổng keep rules/reflection bị strip, chạy song song với build-test.
+  # Chỉ chạy trên PR: push main đã có release.yml build bản ký (smoke check tốt hơn).
   release-build-check:
     needs: [changes, wrapper-validation]
-    if: needs.changes.outputs.android == 'true'
+    if: github.event_name == 'pull_request' && needs.changes.outputs.android == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     defaults:
