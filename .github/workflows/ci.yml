@@ -111,6 +111,9 @@ jobs:
           # Mã hóa để cache được configuration-cache giữa các run (chứa dữ liệu nhạy
           # cảm nên setup-gradle yêu cầu key). Secret chưa tồn tại → input rỗng, action bỏ qua.
           cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
+          # Ghi cache cả từ PR branch: push liên tiếp trong cùng PR tái dùng
+          # task outputs (FROM-CACHE) thay vì build lại từ đầu (default chỉ ghi từ main).
+          cache-read-only: false
 
       - name: Create google-services.json
         env:
@@ -168,6 +171,9 @@ jobs:
           # Mã hóa để cache được configuration-cache giữa các run (chứa dữ liệu nhạy
           # cảm nên setup-gradle yêu cầu key). Secret chưa tồn tại → input rỗng, action bỏ qua.
           cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
+          # Ghi cache cả từ PR branch: push liên tiếp trong cùng PR tái dùng
+          # task outputs (FROM-CACHE) thay vì build lại từ đầu (default chỉ ghi từ main).
+          cache-read-only: false
 
       - name: Create google-services.json
         env:
@@ -335,6 +341,9 @@ jobs:
         uses: gradle/actions/setup-gradle@5e2ebd065dc2488b7a6ad670704656cbbe1e8f60 # v6
         with:
           cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
+          # Ghi cache cả từ PR branch: push liên tiếp trong cùng PR tái dùng
+          # task outputs (FROM-CACHE) thay vì build lại từ đầu (default chỉ ghi từ main).
+          cache-read-only: false
 
       - name: Create google-services.json
         env:
@@ -375,6 +384,9 @@ jobs:
           # Mã hóa để cache được configuration-cache giữa các run (chứa dữ liệu nhạy
           # cảm nên setup-gradle yêu cầu key). Secret chưa tồn tại → input rỗng, action bỏ qua.
           cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
+          # Ghi cache cả từ PR branch: push liên tiếp trong cùng PR tái dùng
+          # task outputs (FROM-CACHE) thay vì build lại từ đầu (default chỉ ghi từ main).
+          cache-read-only: false
 
       - name: Create google-services.json
         env:
@@ -525,6 +537,9 @@ jobs:
         uses: gradle/actions/setup-gradle@5e2ebd065dc2488b7a6ad670704656cbbe1e8f60 # v6
         with:
           cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
+          # Ghi cache cả từ PR branch: push liên tiếp trong cùng PR tái dùng
+          # task outputs (FROM-CACHE) thay vì build lại từ đầu (default chỉ ghi từ main).
+          cache-read-only: false
 
       - name: Create google-services.json
         env:
