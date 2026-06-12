@@ -39,6 +39,26 @@ class HorizontalPagerNavigationCoordinatorTest {
         }
 
     @Test
+    fun `repeated RTL right-zone taps keep moving to previous pages`() =
+        runTest {
+            val harness = CoordinatorHarness(this, initialPage = 6)
+
+            harness.coordinator.enqueue(ReaderTapAction.PREVIOUS_PAGE)
+            runCurrent()
+            assertEquals(AnimationRequest(page = 5, pendingTargetPage = 5), harness.requests.tryReceive().getOrNull())
+
+            harness.releaseAnimation()
+            runCurrent()
+            harness.coordinator.enqueue(ReaderTapAction.PREVIOUS_PAGE)
+            runCurrent()
+            assertEquals(AnimationRequest(page = 4, pendingTargetPage = 4), harness.requests.tryReceive().getOrNull())
+
+            harness.releaseAnimation()
+            runCurrent()
+            assertEquals(4, harness.currentPage)
+        }
+
+    @Test
     fun `reverse tap reduces queued forward destination by one page`() =
         runTest {
             val harness = CoordinatorHarness(this)
@@ -88,7 +108,7 @@ class HorizontalPagerNavigationCoordinatorTest {
             val coordinator =
                 HorizontalPagerNavigationCoordinator(
                     scope = this,
-                    currentPage = { currentPage },
+                    settledPage = { currentPage },
                     lastPageIndex = { 7 },
                     animateToPage = { nextPage, pendingTargetPage, isQueuedNavigation ->
                         requests.send(AnimationRequest(nextPage, pendingTargetPage, isQueuedNavigation))
@@ -190,7 +210,7 @@ class HorizontalPagerNavigationCoordinatorTest {
         val coordinator =
             HorizontalPagerNavigationCoordinator(
                 scope = scope,
-                currentPage = { currentPage },
+                settledPage = { currentPage },
                 lastPageIndex = { lastPageIndex },
                 animateToPage = { page, pendingTargetPage, isQueuedNavigation ->
                     requests.send(AnimationRequest(page, pendingTargetPage, isQueuedNavigation))

@@ -9,6 +9,7 @@ import coil3.decode.DataSource
 import coil3.request.ErrorResult
 import coil3.request.ImageRequest
 import coil3.request.SuccessResult
+import kotlinx.coroutines.awaitCancellation
 import org.robolectric.RuntimeEnvironment
 
 /**
@@ -50,6 +51,21 @@ object FakeImageLoader {
                                 request = chain.request,
                                 throwable = RuntimeException("fake load error"),
                             )
+                        },
+                    )
+                }.build()
+        }
+    }
+
+    fun installPending() {
+        val context = RuntimeEnvironment.getApplication()
+        SingletonImageLoader.setSafe {
+            ImageLoader
+                .Builder(context)
+                .components {
+                    add(
+                        coil3.intercept.Interceptor {
+                            awaitCancellation()
                         },
                     )
                 }.build()

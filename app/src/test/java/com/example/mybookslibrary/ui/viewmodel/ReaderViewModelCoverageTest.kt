@@ -1,6 +1,7 @@
 package com.example.mybookslibrary.ui.viewmodel
 
 import androidx.lifecycle.SavedStateHandle
+import com.example.mybookslibrary.data.local.UserPreferencesDataStore
 import com.example.mybookslibrary.domain.model.ReadingMode
 import com.example.mybookslibrary.domain.usecase.LoadReaderPagesUseCase
 import com.example.mybookslibrary.domain.usecase.SyncReadingProgressUseCase
@@ -35,12 +36,14 @@ class ReaderViewModelCoverageTest {
 
     private val loadReaderPagesUseCase = mockk<LoadReaderPagesUseCase>()
     private val syncReadingProgressUseCase = mockk<SyncReadingProgressUseCase>(relaxed = true)
+    private val userPreferencesDataStore = mockk<UserPreferencesDataStore>(relaxed = true)
 
     private fun build(
         chapterId: String = CHAPTER_ID,
         startPageIndex: Int = 0,
         chapterTitle: String = "Chapter 1",
     ): ReaderViewModel {
+        coEvery { userPreferencesDataStore.getReaderReadingMode() } returns ReadingMode.LTR
         val args =
             mutableMapOf<String, Any?>(
                 "mangaId" to MANGA_ID,
@@ -55,6 +58,7 @@ class ReaderViewModelCoverageTest {
             syncReadingProgressUseCase = syncReadingProgressUseCase,
             tapZoneEvaluator = TapZoneEvaluator(),
             pageFileBuilder = ReaderPageFileBuilder(),
+            userPreferencesDataStore = userPreferencesDataStore,
             ioDispatcher = mainDispatcherRule.dispatcher,
         )
     }
@@ -109,6 +113,21 @@ class ReaderViewModelCoverageTest {
             RuntimeEnvironment.getApplication().getString(com.example.mybookslibrary.R.string.error_load_pages),
             vm.state.value.error,
         )
+    }
+
+    @Test
+    fun retryLoadPages_loadsAgainAfterFailure() = runTest(mainDispatcherRule.dispatcher.scheduler) {
+        coEvery { loadReaderPagesUseCase(MANGA_ID, CHAPTER_ID) } returns
+            Result.failure(IllegalStateException("offline")) andThen
+            Result.success(listOf("page-0"))
+
+        val vm = build()
+        advanceUntilIdle()
+        vm.onEvent(ReaderEvent.RetryLoadPages)
+        advanceUntilIdle()
+
+        assertEquals(listOf("page-0"), vm.state.value.pages)
+        assertEquals(null, vm.state.value.error)
     }
 
     // ---- helper: build VM đã tải 8 trang network ----
@@ -373,6 +392,7 @@ class ReaderViewModelCoverageTest {
                 syncReadingProgressUseCase = syncReadingProgressUseCase,
                 tapZoneEvaluator = TapZoneEvaluator(),
                 pageFileBuilder = ReaderPageFileBuilder(),
+                userPreferencesDataStore = userPreferencesDataStore,
                 ioDispatcher = mainDispatcherRule.dispatcher,
             )
         advanceUntilIdle()

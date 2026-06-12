@@ -83,12 +83,12 @@ private fun rememberHorizontalNavigationController(pagerState: PagerState): Hori
         remember(pagerState, scope) {
             HorizontalPagerNavigationCoordinator(
                 scope = scope,
-                currentPage = { pagerState.currentPage },
+                settledPage = { pagerState.settledPage },
                 lastPageIndex = { pagerState.pageCount - 1 },
                 animateToPage = { nextPage, pendingTargetPage, isQueuedNavigation ->
                     val durationMillis =
                         horizontalPageAnimationDurationMillis(
-                            currentPage = pagerState.currentPage,
+                            currentPage = pagerState.settledPage,
                             nextPage = pendingTargetPage,
                             isQueuedNavigation = isQueuedNavigation,
                         )
@@ -141,6 +141,7 @@ private fun HorizontalReaderPager(
     modifier: Modifier = Modifier,
 ) {
     val viewConfiguration = LocalViewConfiguration.current
+    val latestReadingMode = rememberUpdatedState(readingMode)
     HorizontalPager(
         state = pagerState,
         modifier =
@@ -151,7 +152,7 @@ private fun HorizontalReaderPager(
                     val width =
                         pagerState.layoutInfo.viewportSize.width
                             .toFloat()
-                    evaluateHorizontalTap(offset.x, width, readingMode).isPageNavigation()
+                    evaluateHorizontalTap(offset.x, width, latestReadingMode.value).isPageNavigation()
                 },
                 onNavigationTap = { offset ->
                     queueShieldedNavigationTap(
@@ -159,7 +160,7 @@ private fun HorizontalReaderPager(
                         width =
                             pagerState.layoutInfo.viewportSize.width
                                 .toFloat(),
-                        readingMode = readingMode,
+                        readingMode = latestReadingMode.value,
                         pagerState = pagerState,
                         navigationController = navigationController,
                     )
@@ -171,24 +172,29 @@ private fun HorizontalReaderPager(
         key = { index -> pages.getOrNull(index) ?: "missing-page-$index" },
     ) { pageIndex ->
         pages.getOrNull(pageIndex)?.let { pageUrl ->
-            MangaPageItem(
-                imageUrl = pageUrl,
-                index = pageIndex,
-                onConfirmedTap = { x, _, width, _ ->
-                    handleConfirmedPageTap(
-                        x = x,
-                        width = width,
-                        readingMode = readingMode,
-                        pagerState = pagerState,
-                        navigationController = navigationController,
-                        onEvent = onEvent,
-                    )
-                },
-                onLongPress = { url, index ->
-                    onEvent(ReaderEvent.PageLongPressed(url, index))
-                },
-                modifier = Modifier.fillMaxSize(),
-            )
+            // Only the pager should be RTL. Page gestures must keep physical left/right coordinates
+            // so Telephoto taps and the pager animation shield evaluate the same tap zone.
+            CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+                MangaPageItem(
+                    imageUrl = pageUrl,
+                    index = pageIndex,
+                    onConfirmedTap = { x, _, width, _ ->
+                        handleConfirmedPageTap(
+                            x = x,
+                            width = width,
+                            readingMode = latestReadingMode.value,
+                            pagerState = pagerState,
+                            navigationController = navigationController,
+                            onEvent = onEvent,
+                        )
+                    },
+                    onLongPress = { url, index ->
+                        onEvent(ReaderEvent.PageLongPressed(url, index))
+                    },
+                    allowParentPageSwipe = true,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
         }
     }
 }
@@ -205,8 +211,9 @@ private fun queueShieldedNavigationTap(
         ReaderTapAction.PREVIOUS_PAGE,
         -> {
             Timber.v(
-                "Reader pager animation shield queued tap: action=%s current=%d settled=%d target=%d width=%.1f x=%.1f",
+                "Reader pager animation shield queued tap: action=%s mode=%s current=%d settled=%d target=%d width=%.1f x=%.1f",
                 action,
+                readingMode,
                 pagerState.currentPage,
                 pagerState.settledPage,
                 pagerState.targetPage,
@@ -234,8 +241,9 @@ private fun handleConfirmedPageTap(
         ReaderTapAction.PREVIOUS_PAGE,
         -> {
             Timber.v(
-                "Reader pager confirmed page tap: action=%s current=%d settled=%d target=%d active=%s width=%.1f x=%.1f",
+                "Reader pager confirmed page tap: action=%s mode=%s current=%d settled=%d target=%d active=%s width=%.1f x=%.1f",
                 action,
+                readingMode,
                 pagerState.currentPage,
                 pagerState.settledPage,
                 pagerState.targetPage,
