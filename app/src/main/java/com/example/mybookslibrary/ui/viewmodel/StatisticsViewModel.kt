@@ -57,7 +57,7 @@ class StatisticsViewModel
                     monthlyTrend = buildMonthlyTrend(recentProgress),
                     readingCount = libraryItems.count { it.status == LibraryStatus.READING },
                     completedCount = libraryItems.count { it.status == LibraryStatus.COMPLETED },
-                    favoriteCount = libraryItems.count { it.is_favorite && it.status != LibraryStatus.READING && it.status != LibraryStatus.COMPLETED },
+                    favoriteCount = libraryItems.count { it.status == LibraryStatus.FAVORITE },
                 )
             }.combine(chapterDao.observeTopReadManga()) { state, topManga ->
                 state.copy(topManga = topManga)

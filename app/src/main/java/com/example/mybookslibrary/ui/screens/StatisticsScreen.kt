@@ -117,12 +117,16 @@ fun StatisticsScreen(
                     inProgress = state.inProgressChapters,
                 )
             }
-            val hasActivity = state.weeklyActivity.any { it > 0 }
+            val hasWeeklyData = state.weeklyActivity.any { it > 0 }
+            val hasMonthlyData = state.monthlyTrend.any { it > 0 }
+            val hasActivity = hasWeeklyData || hasMonthlyData
             val hasLibrary = state.readingCount + state.completedCount + state.favoriteCount > 0
 
-            if (hasActivity) {
+            if (hasWeeklyData) {
                 item { SectionHeader(title = appString(R.string.stats_weekly_activity)) }
                 item { WeeklyColumnChart(activity = state.weeklyActivity) }
+            }
+            if (hasMonthlyData) {
                 item { SectionHeader(title = appString(R.string.stats_monthly_trend)) }
                 item { MonthlyLineChart(trend = state.monthlyTrend) }
             }
@@ -330,8 +334,9 @@ private fun LibraryPieChart(reading: Int, completed: Int, favorite: Int) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             if (total > 0) {
                 Box(contentAlignment = Alignment.Center) {
+                    val pieSize = if (isLandscape()) 140.dp else 180.dp
                     PieChart(
-                        modifier = Modifier.size(180.dp),
+                        modifier = Modifier.size(pieSize),
                         data = pieData,
                         onPieClick = { clicked ->
                             // Tap slice → popup label + số lượng giữa chart (tap lại để ẩn)
@@ -503,6 +508,6 @@ private fun themedVerticalIndicatorProperties(): VerticalIndicatorProperties {
 }
 
 private const val DAYS_IN_WEEK = 7
-private const val MAX_TITLE_CHARS = 12
+private const val MAX_TITLE_CHARS = 20
 private const val ROW_HEIGHT_DP = 56
 private const val AXIS_HEIGHT_DP = 48
