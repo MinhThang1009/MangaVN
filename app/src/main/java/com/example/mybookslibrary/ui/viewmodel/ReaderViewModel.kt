@@ -6,6 +6,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.example.mybookslibrary.R
+import com.example.mybookslibrary.data.local.dao.AdjacentChapter
+import com.example.mybookslibrary.data.local.dao.ChapterDao
 import com.example.mybookslibrary.di.IoDispatcher
 import com.example.mybookslibrary.domain.model.ReaderTapAction
 import com.example.mybookslibrary.domain.model.ReadingMode
@@ -35,6 +37,7 @@ constructor(
     savedStateHandle: SavedStateHandle,
     private val loadReaderPagesUseCase: LoadReaderPagesUseCase,
     private val syncReadingProgressUseCase: SyncReadingProgressUseCase,
+    private val chapterDao: ChapterDao,
     private val tapZoneEvaluator: TapZoneEvaluator,
     private val pageFileBuilder: ReaderPageFileBuilder,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
@@ -91,6 +94,7 @@ constructor(
                             it.copy(pages = urls, isLoading = false, error = null)
                         }
                     }
+                    loadAdjacentChapters()
                 }.onFailure { throwable ->
                     Timber.w(throwable, "loadChapterPages failed: chapterId=%s", chapterId)
                     _state.update {
@@ -117,6 +121,8 @@ constructor(
             is ReaderEvent.PageActionSelected -> handlePageActionSelected(event.action)
             is ReaderEvent.PageActionCompleted -> handlePageActionCompleted(event.action)
             is ReaderEvent.PageActionFailed -> handlePageActionFailed(event.action, event.message)
+            ReaderEvent.NavigatePrevChapter -> navigateToChapter(_state.value.prevChapterId, _state.value.prevChapterTitle)
+            ReaderEvent.NavigateNextChapter -> navigateToChapter(_state.value.nextChapterId, _state.value.nextChapterTitle)
         }
     }
 
@@ -129,6 +135,7 @@ constructor(
         if (oldMode == mode) return
         Timber.d("ReadingMode changed: %s -> %s", oldMode, mode)
         _state.update { it.copy(currentReadingMode = mode) }
+        _effects.tryEmit(ReaderUiEffect.ReadingModeChanged(mode))
     }
 
     private fun cycleReadingMode() {
@@ -240,6 +247,32 @@ constructor(
     private fun handlePageActionFailed(action: ReaderPageAction, message: String,) {
         Timber.d("handlePageActionFailed: action=%s message=%s", action, message)
         _effects.tryEmit(ReaderUiEffect.ShowPageActionResult(action = action, errorMessage = message))
+    }
+
+    private suspend fun loadAdjacentChapters() {
+        val prev = chapterDao.getPrevChapter(mangaId, chapterId)
+        val next = chapterDao.getNextChapter(mangaId, chapterId)
+        _state.update {
+            it.copy(
+                prevChapterId = prev?.chapterId,
+                prevChapterTitle = prev?.buildTitle(),
+                nextChapterId = next?.chapterId,
+                nextChapterTitle = next?.buildTitle(),
+            )
+        }
+        Timber.d("loadAdjacentChapters: prev=%s next=%s", prev?.chapterId, next?.chapterId)
+    }
+
+    private fun navigateToChapter(chapterId: String?, chapterTitle: String?) {
+        if (chapterId == null) return
+        flushProgress(null)
+        _effects.tryEmit(
+            ReaderUiEffect.NavigateToChapter(
+                mangaId = mangaId,
+                chapterId = chapterId,
+                chapterTitle = chapterTitle ?: "",
+            ),
+        )
     }
 
     private fun syncProgressToRoom(pageIndexOverride: Int? = null, force: Boolean = false,) {

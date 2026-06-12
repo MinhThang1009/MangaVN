@@ -155,6 +155,26 @@ abstract class ChapterDao {
     )
     abstract suspend fun countUnfinishedChapterNumbers(mangaId: String): Int
 
+    @Query(
+        """
+        SELECT chapter_id, chapter_number, volume FROM chapter_metadata
+        WHERE manga_id = :mangaId
+          AND feed_order < (SELECT feed_order FROM chapter_metadata WHERE chapter_id = :chapterId)
+        ORDER BY feed_order DESC LIMIT 1
+        """,
+    )
+    abstract suspend fun getPrevChapter(mangaId: String, chapterId: String): AdjacentChapter?
+
+    @Query(
+        """
+        SELECT chapter_id, chapter_number, volume FROM chapter_metadata
+        WHERE manga_id = :mangaId
+          AND feed_order > (SELECT feed_order FROM chapter_metadata WHERE chapter_id = :chapterId)
+        ORDER BY feed_order ASC LIMIT 1
+        """,
+    )
+    abstract suspend fun getNextChapter(mangaId: String, chapterId: String): AdjacentChapter?
+
     @Query("DELETE FROM chapter_progress WHERE manga_id = :mangaId")
     protected abstract suspend fun deleteProgressByMangaId(mangaId: String)
 
@@ -173,3 +193,15 @@ data class TopMangaCount(
     val title: String,
     val chapterCount: Int,
 )
+
+data class AdjacentChapter(
+    @androidx.room.ColumnInfo(name = "chapter_id") val chapterId: String,
+    @androidx.room.ColumnInfo(name = "chapter_number") val chapterNumber: String?,
+    @androidx.room.ColumnInfo(name = "volume") val volume: String?,
+) {
+    fun buildTitle(): String = buildString {
+        volume?.takeIf { it.isNotBlank() }?.let { append("Vol. $it ") }
+        chapterNumber?.takeIf { it.isNotBlank() }?.let { append("Ch. $it") }
+        if (isEmpty()) append("Oneshot")
+    }
+}

@@ -11,6 +11,10 @@ data class ReaderState(
     val error: String? = null,
     val currentReadingMode: ReadingMode = ReadingMode.LTR,
     val selectedPageActionTarget: ReaderPageActionTarget? = null,
+    val prevChapterId: String? = null,
+    val prevChapterTitle: String? = null,
+    val nextChapterId: String? = null,
+    val nextChapterTitle: String? = null,
 )
 
 data class ReaderPageActionTarget(

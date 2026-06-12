@@ -29,6 +29,8 @@ import androidx.compose.material3.Icon
 import com.composables.icons.lucide.ArrowLeft
 import com.composables.icons.lucide.BookOpen
 import com.composables.icons.lucide.BookOpenCheck
+import com.composables.icons.lucide.ChevronLeft
+import com.composables.icons.lucide.ChevronRight
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Scroll
 import androidx.compose.material3.IconButton
@@ -64,6 +66,8 @@ internal data class ReaderBottomBarState(
     val currentPage: Int,
     val totalPages: Int,
     val currentReadingMode: ReadingMode,
+    val hasPrevChapter: Boolean = false,
+    val hasNextChapter: Boolean = false,
 )
 
 @Composable
@@ -210,31 +214,11 @@ private fun ReaderBottomBarPreview() {
 @Composable
 internal fun BoxScope.ReaderBottomBar(
     isVisible: Boolean,
-    currentPage: Int,
-    totalPages: Int,
-    currentReadingMode: ReadingMode,
-    colors: ReaderBarColors = readerBarColors(),
-    onToggleReadingMode: () -> Unit,
-) {
-    ReaderBottomBar(
-        isVisible = isVisible,
-        state =
-            ReaderBottomBarState(
-                currentPage = currentPage,
-                totalPages = totalPages,
-                currentReadingMode = currentReadingMode,
-            ),
-        colors = colors,
-        onToggleReadingMode = onToggleReadingMode,
-    )
-}
-
-@Composable
-internal fun BoxScope.ReaderBottomBar(
-    isVisible: Boolean,
     state: ReaderBottomBarState,
     colors: ReaderBarColors = readerBarColors(),
     onToggleReadingMode: () -> Unit,
+    onPrevChapter: () -> Unit = {},
+    onNextChapter: () -> Unit = {},
 ) {
     val safeTotalPages = state.totalPages.coerceAtLeast(1)
     val displayPage = (state.currentPage + 1).coerceIn(1, safeTotalPages)
@@ -269,17 +253,22 @@ internal fun BoxScope.ReaderBottomBar(
                     .padding(horizontal = Dimens.ScreenPaddingCompact, vertical = Dimens.SpacingSm),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            IconButton(
+                onClick = onPrevChapter,
+                enabled = state.hasPrevChapter,
+            ) {
+                Icon(
+                    Lucide.ChevronLeft,
+                    contentDescription = appString(R.string.reader_prev_chapter),
+                    tint = if (state.hasPrevChapter) colors.content else colors.content.copy(alpha = Alphas.ContainerFaint),
+                    modifier = Modifier.size(Dimens.IconDefault),
+                )
+            }
             Text(
                 text = "$displayPage / $safeTotalPages",
                 style = MaterialTheme.typography.titleMedium,
                 color = colors.content,
                 modifier = Modifier.weight(1f),
-            )
-            Text(
-                text = appString(R.string.reader_pages_label),
-                style = MaterialTheme.typography.bodySmall,
-                color = colors.secondaryContent,
-                modifier = Modifier.padding(end = Dimens.SpacingSm),
             )
             IconButton(onClick = {
                 Timber.v("ReaderBottomBar toggle clicked: currentMode=%s", state.currentReadingMode)
@@ -293,6 +282,17 @@ internal fun BoxScope.ReaderBottomBar(
                             appString(nextReadingModeRes),
                         ),
                     tint = colors.content,
+                    modifier = Modifier.size(Dimens.IconDefault),
+                )
+            }
+            IconButton(
+                onClick = onNextChapter,
+                enabled = state.hasNextChapter,
+            ) {
+                Icon(
+                    Lucide.ChevronRight,
+                    contentDescription = appString(R.string.reader_next_chapter),
+                    tint = if (state.hasNextChapter) colors.content else colors.content.copy(alpha = Alphas.ContainerFaint),
                     modifier = Modifier.size(Dimens.IconDefault),
                 )
             }

@@ -35,6 +35,7 @@ class ReaderViewModelCoverageTest {
 
     private val loadReaderPagesUseCase = mockk<LoadReaderPagesUseCase>()
     private val syncReadingProgressUseCase = mockk<SyncReadingProgressUseCase>(relaxed = true)
+    private val chapterDao = mockk<com.example.mybookslibrary.data.local.dao.ChapterDao>(relaxed = true)
 
     private fun build(
         chapterId: String = CHAPTER_ID,
@@ -53,6 +54,7 @@ class ReaderViewModelCoverageTest {
             savedStateHandle = SavedStateHandle(args),
             loadReaderPagesUseCase = loadReaderPagesUseCase,
             syncReadingProgressUseCase = syncReadingProgressUseCase,
+            chapterDao = chapterDao,
             tapZoneEvaluator = TapZoneEvaluator(),
             pageFileBuilder = ReaderPageFileBuilder(),
             ioDispatcher = mainDispatcherRule.dispatcher,
@@ -371,6 +373,7 @@ class ReaderViewModelCoverageTest {
                 ),
                 loadReaderPagesUseCase = loadReaderPagesUseCase,
                 syncReadingProgressUseCase = syncReadingProgressUseCase,
+                chapterDao = chapterDao,
                 tapZoneEvaluator = TapZoneEvaluator(),
                 pageFileBuilder = ReaderPageFileBuilder(),
                 ioDispatcher = mainDispatcherRule.dispatcher,

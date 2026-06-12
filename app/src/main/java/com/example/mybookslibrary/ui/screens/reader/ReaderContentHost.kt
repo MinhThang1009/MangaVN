@@ -144,11 +144,13 @@ private fun BoxWithConstraintsScope.ReaderOverlayBars(
                 currentPage = state.lastReadPageIndex,
                 totalPages = state.pages.size,
                 currentReadingMode = state.currentReadingMode,
+                hasPrevChapter = state.prevChapterId != null,
+                hasNextChapter = state.nextChapterId != null,
             ),
         colors = readerBarColors,
-        onToggleReadingMode = {
-            onEvent(ReaderEvent.CycleReadingMode)
-        },
+        onToggleReadingMode = { onEvent(ReaderEvent.CycleReadingMode) },
+        onPrevChapter = { onEvent(ReaderEvent.NavigatePrevChapter) },
+        onNextChapter = { onEvent(ReaderEvent.NavigateNextChapter) },
     )
 }
 

@@ -108,9 +108,7 @@ class ReaderBarsTest {
             Box(Modifier.fillMaxSize()) {
                 ReaderBottomBar(
                     isVisible = true,
-                    currentPage = 4,
-                    totalPages = 20,
-                    currentReadingMode = ReadingMode.LTR,
+                    state = ReaderBottomBarState(currentPage = 4, totalPages = 20, currentReadingMode = ReadingMode.LTR),
                     onToggleReadingMode = {},
                 )
             }
@@ -118,7 +116,6 @@ class ReaderBarsTest {
 
         // page 4 (0-based) → display "5 / 20"
         composeRule.onNodeWithText("5 / 20").assertIsDisplayed()
-        composeRule.onNodeWithText("Pages").assertIsDisplayed()
     }
 
     @Test
@@ -127,15 +124,13 @@ class ReaderBarsTest {
             Box(Modifier.fillMaxSize()) {
                 ReaderBottomBar(
                     isVisible = false,
-                    currentPage = 0,
-                    totalPages = 10,
-                    currentReadingMode = ReadingMode.LTR,
+                    state = ReaderBottomBarState(currentPage = 0, totalPages = 10, currentReadingMode = ReadingMode.LTR),
                     onToggleReadingMode = {},
                 )
             }
         }
 
-        composeRule.onNodeWithText("Pages").assertDoesNotExist()
+        composeRule.onNodeWithText("1 / 10").assertDoesNotExist()
     }
 
     @Test
@@ -145,9 +140,7 @@ class ReaderBarsTest {
             Box(Modifier.fillMaxSize()) {
                 ReaderBottomBar(
                     isVisible = true,
-                    currentPage = 0,
-                    totalPages = 5,
-                    currentReadingMode = ReadingMode.VERTICAL,
+                    state = ReaderBottomBarState(currentPage = 0, totalPages = 5, currentReadingMode = ReadingMode.VERTICAL),
                     onToggleReadingMode = { toggled = true },
                 )
             }
@@ -177,16 +170,14 @@ class ReaderBarsTest {
             ) {
                 ReaderBottomBar(
                     isVisible = true,
-                    currentPage = 0,
-                    totalPages = 5,
-                    currentReadingMode = ReadingMode.LTR,
+                    state = ReaderBottomBarState(currentPage = 0, totalPages = 5, currentReadingMode = ReadingMode.LTR),
                     onToggleReadingMode = {},
                 )
             }
         }
 
-        composeRule.onNodeWithText("Pages").performTouchInput { click() }
-        composeRule.onNodeWithText("Pages").performTouchInput { doubleClick() }
+        composeRule.onNodeWithText("1 / 5").performTouchInput { click() }
+        composeRule.onNodeWithText("1 / 5").performTouchInput { doubleClick() }
 
         assertFalse(tappedBehind)
         assertFalse(doubleTappedBehind)
@@ -199,9 +190,7 @@ class ReaderBarsTest {
             Box(Modifier.fillMaxSize()) {
                 ReaderBottomBar(
                     isVisible = true,
-                    currentPage = -1,
-                    totalPages = 5,
-                    currentReadingMode = ReadingMode.LTR,
+                    state = ReaderBottomBarState(currentPage = -1, totalPages = 5, currentReadingMode = ReadingMode.LTR),
                     onToggleReadingMode = {},
                 )
             }
@@ -215,9 +204,7 @@ class ReaderBarsTest {
             Box(Modifier.fillMaxSize()) {
                 ReaderBottomBar(
                     isVisible = true,
-                    currentPage = 0,
-                    totalPages = 3,
-                    currentReadingMode = ReadingMode.RTL,
+                    state = ReaderBottomBarState(currentPage = 0, totalPages = 3, currentReadingMode = ReadingMode.RTL),
                     onToggleReadingMode = {},
                 )
             }
@@ -231,9 +218,7 @@ class ReaderBarsTest {
             Box(Modifier.fillMaxSize()) {
                 ReaderBottomBar(
                     isVisible = true,
-                    currentPage = 1,
-                    totalPages = 5,
-                    currentReadingMode = ReadingMode.VERTICAL,
+                    state = ReaderBottomBarState(currentPage = 1, totalPages = 5, currentReadingMode = ReadingMode.VERTICAL),
                     onToggleReadingMode = {},
                 )
             }

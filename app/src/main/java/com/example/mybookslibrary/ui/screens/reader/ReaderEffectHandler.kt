@@ -36,7 +36,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 
-private enum class ReaderToastType {
+private enum class ReaderErrorType {
     SaveFailed,
     ShareFailed,
 }
@@ -48,6 +48,7 @@ internal fun ReaderEffectHandler(
     currentReadingMode: ReadingMode,
     onEvent: (ReaderEvent) -> Unit,
     snackbarHostState: SnackbarHostState,
+    onNavigateToChapter: (mangaId: String, chapterId: String, chapterTitle: String) -> Unit = { _, _, _ -> },
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -56,21 +57,24 @@ internal fun ReaderEffectHandler(
     val savedToPicturesText = appString(R.string.reader_saved_to_pictures)
     val sharingText = appString(R.string.reader_sharing)
     val fallbackError = appString(R.string.error_unexpected)
+    val modeVerticalText = appString(R.string.reader_mode_vertical)
+    val modeLtrText = appString(R.string.reader_mode_ltr)
+    val modeRtlText = appString(R.string.reader_mode_rtl)
 
     var errorMessageEvent by remember { mutableStateOf<String?>(null) }
-    var errorToastType by remember { mutableStateOf(ReaderToastType.SaveFailed) }
+    var errorType by remember { mutableStateOf(ReaderErrorType.SaveFailed) }
 
     val saveFailedText = appString(R.string.reader_save_failed, errorMessageEvent ?: fallbackError)
     val shareFailedText = appString(R.string.reader_share_failed, errorMessageEvent ?: fallbackError)
 
-    LaunchedEffect(errorMessageEvent, errorToastType) {
+    LaunchedEffect(errorMessageEvent, errorType) {
         if (errorMessageEvent != null) {
-            val toastText =
-                when (errorToastType) {
-                    ReaderToastType.SaveFailed -> saveFailedText
-                    ReaderToastType.ShareFailed -> shareFailedText
+            val errorText =
+                when (errorType) {
+                    ReaderErrorType.SaveFailed -> saveFailedText
+                    ReaderErrorType.ShareFailed -> shareFailedText
                 }
-            snackbarHostState.showSnackbar(toastText)
+            snackbarHostState.showSnackbar(errorText)
             errorMessageEvent = null
         }
     }
@@ -178,6 +182,17 @@ internal fun ReaderEffectHandler(
                         }
                     }
                 }
+                is ReaderUiEffect.NavigateToChapter -> {
+                    onNavigateToChapter(effect.mangaId, effect.chapterId, effect.chapterTitle)
+                }
+                is ReaderUiEffect.ReadingModeChanged -> {
+                    val modeText = when (effect.mode) {
+                        ReadingMode.VERTICAL -> modeVerticalText
+                        ReadingMode.LTR -> modeLtrText
+                        ReadingMode.RTL -> modeRtlText
+                    }
+                    snackbarHostState.showSnackbar(modeText)
+                }
                 is ReaderUiEffect.ShowPageActionResult -> {
                     if (effect.errorMessage == null) {
                         val text =
@@ -188,12 +203,12 @@ internal fun ReaderEffectHandler(
                             }
                         snackbarHostState.showSnackbar(text)
                     } else {
-                        errorToastType =
+                        errorType =
                             when (effect.action) {
-                                ReaderPageAction.Share -> ReaderToastType.ShareFailed
+                                ReaderPageAction.Share -> ReaderErrorType.ShareFailed
                                 ReaderPageAction.QuickSave,
                                 ReaderPageAction.SaveAs,
-                                -> ReaderToastType.SaveFailed
+                                -> ReaderErrorType.SaveFailed
                             }
                         errorMessageEvent = effect.errorMessage
                     }

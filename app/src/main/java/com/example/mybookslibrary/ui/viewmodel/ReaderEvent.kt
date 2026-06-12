@@ -49,6 +49,10 @@ sealed interface ReaderEvent {
         val action: ReaderPageAction,
         val message: String,
     ) : ReaderEvent
+
+    data object NavigatePrevChapter : ReaderEvent
+
+    data object NavigateNextChapter : ReaderEvent
 }
 
 enum class ReaderPageAction {

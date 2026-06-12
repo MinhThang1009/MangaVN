@@ -41,6 +41,7 @@ class ReaderScreenTest {
 
     private val loadReaderPagesUseCase = mockk<LoadReaderPagesUseCase>()
     private val syncReadingProgressUseCase = mockk<SyncReadingProgressUseCase>(relaxed = true)
+    private val chapterDao = mockk<com.example.mybookslibrary.data.local.dao.ChapterDao>(relaxed = true)
 
     private fun viewModel(chapterId: String = "c1"): ReaderViewModel {
         coEvery { loadReaderPagesUseCase("m1", chapterId) } returns
@@ -58,6 +59,7 @@ class ReaderScreenTest {
             ),
             loadReaderPagesUseCase = loadReaderPagesUseCase,
             syncReadingProgressUseCase = syncReadingProgressUseCase,
+            chapterDao = chapterDao,
             tapZoneEvaluator = TapZoneEvaluator(),
             pageFileBuilder = ReaderPageFileBuilder(),
             ioDispatcher = UnconfinedTestDispatcher(),
@@ -88,6 +90,7 @@ class ReaderScreenTest {
                 ),
                 loadReaderPagesUseCase = loadReaderPagesUseCase,
                 syncReadingProgressUseCase = syncReadingProgressUseCase,
+                chapterDao = chapterDao,
                 tapZoneEvaluator = TapZoneEvaluator(),
                 pageFileBuilder = ReaderPageFileBuilder(),
                 ioDispatcher = UnconfinedTestDispatcher(),
@@ -118,6 +121,7 @@ class ReaderScreenTest {
                 ),
                 loadReaderPagesUseCase = loadReaderPagesUseCase,
                 syncReadingProgressUseCase = syncReadingProgressUseCase,
+                chapterDao = chapterDao,
                 tapZoneEvaluator = TapZoneEvaluator(),
                 pageFileBuilder = ReaderPageFileBuilder(),
                 ioDispatcher = UnconfinedTestDispatcher(),
