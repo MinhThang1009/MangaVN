@@ -40,8 +40,13 @@ fun LibraryScreen(onOpenDetail: (mangaId: String) -> Unit) {
 
 @Composable
 fun SettingScreen(
+    onBackClick: () -> Unit = {},
     onChangePasswordClick: () -> Unit = {},
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
-    SettingScreenContent(onChangePasswordClick = onChangePasswordClick, viewModel = viewModel)
+    SettingScreenContent(
+        onBackClick = onBackClick,
+        onChangePasswordClick = onChangePasswordClick,
+        viewModel = viewModel,
+    )
 }

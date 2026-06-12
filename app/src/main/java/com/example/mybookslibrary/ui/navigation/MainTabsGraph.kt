@@ -75,6 +75,7 @@ private fun NavGraphBuilder.settingTab(navController: NavHostController) {
         exitTransition = { fadeOut(tabTween()) },
     ) {
         SettingScreen(
+            onBackClick = { navController.popBackStack() },
             onChangePasswordClick = { navController.navigate(ChangePassword) },
         )
     }
