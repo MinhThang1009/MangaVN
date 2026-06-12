@@ -203,6 +203,39 @@ class ImageSaverTest {
         }
 
     @Test
+    fun localFileSource_supportsQuickSaveSaveAsAndShareWithoutNetwork() =
+        runTest {
+            val bytes = pngBytes()
+            val sourceFile = File(createTempDirectoryFile(), "offline page.png").apply { writeBytes(bytes) }
+            val source = sourceFile.toURI().toString()
+            val quickSaveUri = Uri.parse("content://media/external_primary/images/media/42")
+            val saveAsUri = Uri.parse("content://documents/page")
+            val quickSaveOutput = ByteArrayOutputStream()
+            val saveAsOutput = ByteArrayOutputStream()
+            val shareCacheDir = createTempDirectoryFile()
+            val sharedUri = Uri.parse("content://provider/shared/page.png")
+            mockkStatic(FileProvider::class)
+            every { contentResolver.insert(any(), any()) } returns quickSaveUri
+            every { contentResolver.openOutputStream(quickSaveUri) } returns quickSaveOutput
+            every { contentResolver.openOutputStream(saveAsUri) } returns saveAsOutput
+            every { contentResolver.update(quickSaveUri, any(), null, null) } returns 1
+            every { context.cacheDir } returns shareCacheDir
+            every { context.packageName } returns "com.example.mybookslibrary"
+            every {
+                FileProvider.getUriForFile(context, "com.example.mybookslibrary.provider", any())
+            } returns sharedUri
+
+            ImageSaver(context).quickSave(source, "page_01")
+            ImageSaver(context).saveToUri(source, saveAsUri)
+            val shareIntent = ImageSaver(context).shareImage(source, "page_01")
+
+            assertArrayEquals(bytes, quickSaveOutput.toByteArray())
+            assertArrayEquals(bytes, saveAsOutput.toByteArray())
+            assertEquals(sharedUri, shareIntent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM))
+            verify(exactly = 0) { okHttpClient.newCall(any()) }
+        }
+
+    @Test
     fun quickSave_and_shareImage_detectJpegFormat() =
         runTest {
             assertQuickSaveAndShareFormat(

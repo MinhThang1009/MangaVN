@@ -117,10 +117,12 @@
 
     <!-- Reader Screen -->
     <string name="reader_page_description">Reader page %1$d</string>
-    <string name="reader_pages_label">Pages</string>
     <string name="reader_mode_vertical">Vertical scroll</string>
     <string name="reader_mode_ltr">Horizontal (LTR)</string>
     <string name="reader_mode_rtl">Horizontal (RTL)</string>
+    <string name="reader_mode_label_vertical">Vertical</string>
+    <string name="reader_mode_label_ltr">LTR</string>
+    <string name="reader_mode_label_rtl">RTL</string>
     <string name="reader_switch_mode_action">Switch reading mode to %1$s</string>
     <string name="reader_prev_chapter">Previous chapter</string>
     <string name="reader_next_chapter">Next chapter</string>
@@ -182,6 +184,7 @@
 
     <!-- Reader Page Actions -->
     <string name="reader_tap_to_retry">Tap to retry</string>
+    <string name="reader_loading_page">Loading page %1$d</string>
     <string name="reader_loading_failed">Failed to load image</string>
     <string name="reader_action_quick_save">Quick Save</string>
     <string name="reader_action_save_as">Save As…</string>

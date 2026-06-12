@@ -13,7 +13,9 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.semantics.SemanticsActions
 import com.example.mybookslibrary.domain.model.ReadingMode
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -116,6 +118,7 @@ class ReaderBarsTest {
 
         // page 4 (0-based) → display "5 / 20"
         composeRule.onNodeWithText("5 / 20").assertIsDisplayed()
+        composeRule.onNodeWithText("LTR").assertIsDisplayed()
     }
 
     @Test
@@ -184,6 +187,36 @@ class ReaderBarsTest {
     }
 
     @Test
+    fun bottomBar_sliderSelectsPage() {
+        var selectedPage = -1
+        composeRule.setContent {
+            Box(Modifier.fillMaxSize()) {
+                ReaderBottomBar(
+                    isVisible = true,
+                    currentPage = 0,
+                    totalPages = 5,
+                    currentReadingMode = ReadingMode.LTR,
+                    onToggleReadingMode = {},
+                    onPageSelected = { selectedPage = it },
+                )
+            }
+        }
+
+        composeRule
+            .onNode(
+                matcher =
+                    androidx.compose.ui.test.SemanticsMatcher.keyIsDefined(
+                        androidx.compose.ui.semantics.SemanticsProperties.ProgressBarRangeInfo,
+                    ),
+            ).performSemanticsAction(SemanticsActions.SetProgress) { setProgress ->
+                setProgress(3f)
+            }
+        composeRule.waitForIdle()
+
+        assertTrue(selectedPage == 3)
+    }
+
+    @Test
     fun bottomBar_pageClamp_minAndMax() {
         // page=-1 → clamp → display "1 / 5"
         composeRule.setContent {
@@ -210,6 +243,7 @@ class ReaderBarsTest {
             }
         }
         composeRule.onNodeWithText("1 / 3").assertIsDisplayed()
+        composeRule.onNodeWithText("RTL").assertIsDisplayed()
     }
 
     @Test
@@ -224,5 +258,6 @@ class ReaderBarsTest {
             }
         }
         composeRule.onNodeWithText("2 / 5").assertIsDisplayed()
+        composeRule.onNodeWithText("Vertical").assertIsDisplayed()
     }
 }

@@ -117,10 +117,12 @@
 
     <!-- Reader -->
     <string name="reader_page_description">Trang %1$d</string>
-    <string name="reader_pages_label">Trang</string>
     <string name="reader_mode_vertical">Cuộn dọc</string>
     <string name="reader_mode_ltr">Ngang (LTR)</string>
     <string name="reader_mode_rtl">Ngang (RTL)</string>
+    <string name="reader_mode_label_vertical">Dọc</string>
+    <string name="reader_mode_label_ltr">LTR</string>
+    <string name="reader_mode_label_rtl">RTL</string>
     <string name="reader_switch_mode_action">Chuyển chế độ đọc sang %1$s</string>
     <string name="reader_prev_chapter">Chương trước</string>
     <string name="reader_next_chapter">Chương sau</string>
@@ -182,6 +184,7 @@
 
     <!-- Thao tác trang truyện -->
     <string name="reader_tap_to_retry">Chạm để thử lại</string>
+    <string name="reader_loading_page">Đang tải trang %1$d</string>
     <string name="reader_loading_failed">Không tải được ảnh</string>
     <string name="reader_action_quick_save">Lưu nhanh</string>
     <string name="reader_action_save_as">Lưu vào…</string>

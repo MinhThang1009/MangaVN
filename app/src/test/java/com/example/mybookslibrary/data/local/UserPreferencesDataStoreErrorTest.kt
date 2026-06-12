@@ -2,6 +2,7 @@ package com.example.mybookslibrary.data.local
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import com.example.mybookslibrary.domain.model.ReadingMode
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.runTest
@@ -36,5 +37,13 @@ class UserPreferencesDataStoreErrorTest {
             val quality = store.getReaderQuality()
 
             assertEquals("data", quality)
+        }
+
+    @Test
+    fun getReaderReadingMode_whenDataStoreThrowsIOException_returnsDefault() =
+        runTest {
+            val store = UserPreferencesDataStore(throwingDataStore)
+
+            assertEquals(ReadingMode.LTR, store.getReaderReadingMode())
         }
 }

@@ -1,12 +1,14 @@
 package com.example.mybookslibrary.ui.viewmodel
 
 import androidx.lifecycle.SavedStateHandle
+import com.example.mybookslibrary.data.local.UserPreferencesDataStore
 import com.example.mybookslibrary.domain.model.ReadingMode
 import com.example.mybookslibrary.domain.usecase.LoadReaderPagesUseCase
 import com.example.mybookslibrary.domain.usecase.SyncReadingProgressUseCase
 import com.example.mybookslibrary.domain.usecase.TapZoneEvaluator
 import com.example.mybookslibrary.test.MainDispatcherRule
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.first
@@ -24,6 +26,8 @@ import org.robolectric.RuntimeEnvironment
 class ReaderViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
+
+    private val userPreferencesDataStore = mockk<UserPreferencesDataStore>(relaxed = true)
 
     @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
     @Test
@@ -149,6 +153,27 @@ class ReaderViewModelTest {
 
     @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
     @Test
+    fun storedReadingMode_isLoadedIntoInitialState() = runTest(mainDispatcherRule.dispatcher.scheduler) {
+        val viewModel = createViewModel(startPageIndex = 0, storedReadingMode = ReadingMode.VERTICAL)
+        advanceUntilIdle()
+
+        assertEquals(ReadingMode.VERTICAL, viewModel.state.value.currentReadingMode)
+    }
+
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    @Test
+    fun changeReadingMode_isSavedToDataStore() = runTest(mainDispatcherRule.dispatcher.scheduler) {
+        val viewModel = createViewModel(startPageIndex = 0)
+        advanceUntilIdle()
+
+        viewModel.onEvent(ReaderEvent.ChangeReadingMode(ReadingMode.RTL))
+        advanceUntilIdle()
+
+        coVerify { userPreferencesDataStore.setReaderReadingMode(ReadingMode.RTL) }
+    }
+
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    @Test
     fun onEvent_atPageBoundary_doesNotMovePastAvailablePages() = runTest(mainDispatcherRule.dispatcher.scheduler) {
         val firstPageViewModel = createViewModel(startPageIndex = 0)
         advanceUntilIdle()
@@ -198,9 +223,13 @@ class ReaderViewModelTest {
         assertEquals("https://example.com/page-1.jpg", effect.await().target.pageUrl)
     }
 
-    private fun createViewModel(startPageIndex: Int?): ReaderViewModel {
+    private fun createViewModel(
+        startPageIndex: Int?,
+        storedReadingMode: ReadingMode = ReadingMode.LTR,
+    ): ReaderViewModel {
         val loadReaderPagesUseCase = mockk<LoadReaderPagesUseCase>()
         val syncReadingProgressUseCase = mockk<SyncReadingProgressUseCase>(relaxed = true)
+        coEvery { userPreferencesDataStore.getReaderReadingMode() } returns storedReadingMode
         coEvery { loadReaderPagesUseCase(MANGA_ID, CHAPTER_ID) } returns
             Result.success(
                 listOf("page-1", "page-2", "page-3", "page-4", "page-5", "page-6", "page-7", "page-8"),
@@ -226,6 +255,7 @@ class ReaderViewModelTest {
             chapterDao = chapterDao,
             tapZoneEvaluator = TapZoneEvaluator(),
             pageFileBuilder = ReaderPageFileBuilder(),
+            userPreferencesDataStore = userPreferencesDataStore,
             ioDispatcher = mainDispatcherRule.dispatcher,
         )
     }
