@@ -184,7 +184,7 @@ fun MangaReviewScreen(onBackClick: () -> Unit) {
                                                 MaterialTheme.colorScheme.onSurfaceVariant
                                                     .copy(alpha = Alphas.EmphasisFaint)
                                             },
-                                        modifier = Modifier.size(14.dp),
+                                        modifier = Modifier.size(Dimens.IconXs),
                                     )
                                 }
                             }
@@ -226,7 +226,7 @@ private fun RatingBarRow(stars: Int, progress: Float) {
             modifier =
                 Modifier
                     .weight(1f)
-                    .height(4.dp)
+                    .height(Dimens.SpacingXs)
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.outlineVariant),
         ) {
@@ -234,7 +234,7 @@ private fun RatingBarRow(stars: Int, progress: Float) {
                 modifier =
                     Modifier
                         .fillMaxWidth(progress)
-                        .height(4.dp)
+                        .height(Dimens.SpacingXs)
                         .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.tertiary),
             )

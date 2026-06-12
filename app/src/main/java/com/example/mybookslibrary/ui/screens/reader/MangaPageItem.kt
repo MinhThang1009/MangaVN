@@ -6,6 +6,7 @@
 
 package com.example.mybookslibrary.ui.screens.reader
 
+import com.example.mybookslibrary.ui.theme.Dimens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -194,15 +195,15 @@ private fun MangaPageRetryOverlay(onRetry: () -> Unit) {
                 imageVector = Lucide.ImageOff,
                 contentDescription = null,
                 tint = Color.White.copy(alpha = Alphas.EmphasisHigh),
-                modifier = Modifier.size(48.dp),
+                modifier = Modifier.size(Dimens.IconXl),
             )
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(Dimens.SpacingMd))
             Text(
                 text = appString(R.string.reader_loading_failed),
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color.White.copy(alpha = Alphas.EmphasisMedium),
             )
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.height(Dimens.SpacingXs))
             Button(onClick = onRetry) {
                 Text(
                     text = appString(R.string.reader_tap_to_retry),

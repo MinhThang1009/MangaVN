@@ -248,7 +248,7 @@ private fun ProfileMenuItem(
                 icon,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(24.dp),
+                modifier = Modifier.size(Dimens.IconDefault),
             )
             Spacer(Modifier.weight(1f).padding(start = Dimens.SpacingLg))
             Text(
@@ -261,7 +261,7 @@ private fun ProfileMenuItem(
                 Lucide.ChevronRight,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(20.dp),
+                modifier = Modifier.size(Dimens.IconMd),
             )
         }
     }

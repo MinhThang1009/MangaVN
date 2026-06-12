@@ -169,7 +169,7 @@ private fun ReviewCard(review: DummyReview, modifier: Modifier = Modifier, onCli
                         Lucide.Star,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.tertiary,
-                        modifier = Modifier.size(14.dp),
+                        modifier = Modifier.size(Dimens.IconXs),
                     )
                 }
             }

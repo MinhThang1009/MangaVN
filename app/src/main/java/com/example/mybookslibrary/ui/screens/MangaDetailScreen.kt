@@ -153,7 +153,7 @@ fun MangaDetailScreen(
                     expanded = chaptersExpanded,
                     modifier =
                     Modifier
-                        .padding(horizontal = 24.dp)
+                        .padding(horizontal = Dimens.SpacingXl)
                         .offset(y = DetailDimensions.ChaptersOffset)
                         .clickable { chaptersExpanded = !chaptersExpanded },
                 )

@@ -15,7 +15,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.example.mybookslibrary.ui.theme.Dimens
 import com.example.mybookslibrary.ui.theme.MyBooksLibraryTheme
 
@@ -32,7 +31,7 @@ fun StyledBadge(
     Box(
         modifier =
             modifier
-                .sizeIn(minWidth = 18.dp, minHeight = 18.dp)
+                .sizeIn(minWidth = Dimens.IconSm, minHeight = Dimens.IconSm)
                 .background(MaterialTheme.colorScheme.primary, CircleShape)
                 .padding(horizontal = Dimens.SpacingXs),
         contentAlignment = Alignment.Center,

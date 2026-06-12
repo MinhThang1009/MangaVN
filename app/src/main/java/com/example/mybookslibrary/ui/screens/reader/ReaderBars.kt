@@ -128,7 +128,7 @@ internal fun BoxScope.ReaderTopBar(
                 Box(
                     modifier =
                         Modifier
-                            .size(36.dp)
+                            .size(Dimens.ControlButton)
                             .clip(CircleShape)
                             .background(colors.controlContainer),
                     contentAlignment = Alignment.Center,
@@ -137,7 +137,7 @@ internal fun BoxScope.ReaderTopBar(
                         Lucide.ArrowLeft,
                         contentDescription = appString(R.string.cd_back),
                         tint = colors.content,
-                        modifier = Modifier.size(20.dp),
+                        modifier = Modifier.size(Dimens.IconMd),
                     )
                 }
             }

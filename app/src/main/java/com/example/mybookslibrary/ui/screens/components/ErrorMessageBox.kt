@@ -14,7 +14,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.CircleAlert
 import com.composables.icons.lucide.Lucide
 import com.example.mybookslibrary.ui.theme.Dimens
@@ -42,7 +41,7 @@ fun ErrorMessageBox(
         Icon(
             Lucide.CircleAlert,
             contentDescription = null,
-            modifier = Modifier.size(18.dp),
+            modifier = Modifier.size(Dimens.IconSm),
             tint = MaterialTheme.colorScheme.onErrorContainer,
         )
         Text(

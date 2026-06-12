@@ -122,9 +122,9 @@ fun ChapterRow(
                                 Lucide.Check,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(16.dp),
+                                modifier = Modifier.size(Dimens.SpacingLg),
                             )
-                            Spacer(Modifier.width(4.dp))
+                            Spacer(Modifier.width(Dimens.SpacingXs))
                             Text(
                                 appString(R.string.status_completed),
                                 style = MaterialTheme.typography.labelSmall,
@@ -138,7 +138,7 @@ fun ChapterRow(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = contentAlpha),
             )
-            Spacer(Modifier.width(8.dp))
+            Spacer(Modifier.width(Dimens.SpacingSm))
             ChapterDownloadIndicator(
                 state = chapter.downloadState,
                 onStartDownload = onStartDownload,
@@ -176,7 +176,7 @@ fun ChapterRow(
         modifier =
             Modifier
                 .fillMaxWidth()
-                .height(1.dp)
+                .height(Dimens.BorderThin)
                 .padding(horizontal = Dimens.ScreenPaddingCompact)
                 .background(MaterialTheme.colorScheme.outlineVariant),
     )
@@ -202,8 +202,8 @@ private fun ChapterDownloadIndicator(
         ChapterDownloadStatus.PENDING -> {
             IconButton(onClick = onCancelDownload) {
                 CircularProgressIndicator(
-                    modifier = Modifier.size(22.dp),
-                    strokeWidth = 2.dp,
+                    modifier = Modifier.size(Dimens.IconMd),
+                    strokeWidth = Dimens.StrokeLight,
                     color = tint,
                 )
             }
@@ -213,14 +213,14 @@ private fun ChapterDownloadIndicator(
                 Box(contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(
                         progress = { state.progressPercent.coerceIn(0, 100) / 100f },
-                        modifier = Modifier.size(24.dp),
-                        strokeWidth = 2.dp,
+                        modifier = Modifier.size(Dimens.IconDefault),
+                        strokeWidth = Dimens.StrokeLight,
                         color = tint,
                     )
                     Icon(
                         imageVector = Lucide.CircleStop,
                         contentDescription = appString(R.string.chapter_cancel_download),
-                        modifier = Modifier.size(14.dp),
+                        modifier = Modifier.size(Dimens.IconXs),
                         tint = tint,
                     )
                 }

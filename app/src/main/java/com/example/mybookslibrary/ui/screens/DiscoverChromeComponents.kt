@@ -22,7 +22,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 
-import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.BookOpen
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Menu
@@ -75,7 +74,7 @@ private fun BrandTitle() {
         Icon(
             Lucide.BookOpen,
             contentDescription = null,
-            modifier = Modifier.size(24.dp),
+            modifier = Modifier.size(Dimens.IconDefault),
             tint = MaterialTheme.colorScheme.primary,
         )
         Spacer(Modifier.width(Dimens.SpacingSm))
@@ -131,7 +130,7 @@ private fun DiscoverTopBarActions(onSearchClick: () -> Unit, onProfileClick: () 
         Box(
             modifier =
                 Modifier
-                    .size(32.dp)
+                    .size(Dimens.IconLg)
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.primary),
             contentAlignment = Alignment.Center,
@@ -140,7 +139,7 @@ private fun DiscoverTopBarActions(onSearchClick: () -> Unit, onProfileClick: () 
                 Lucide.User,
                 appString(R.string.cd_profile),
                 tint = MaterialTheme.colorScheme.onPrimary,
-                modifier = Modifier.size(18.dp),
+                modifier = Modifier.size(Dimens.IconSm),
             )
         }
     }

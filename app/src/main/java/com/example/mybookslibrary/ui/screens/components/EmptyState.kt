@@ -19,7 +19,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.BookOpen
 import com.composables.icons.lucide.Lucide
 import com.example.mybookslibrary.ui.theme.Alphas
@@ -49,7 +48,7 @@ fun EmptyState(
             Icon(
                 icon,
                 contentDescription = null,
-                modifier = Modifier.size(48.dp),
+                modifier = Modifier.size(Dimens.IconXl),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = Alphas.EmphasisMuted),
             )
             Spacer(Modifier.height(Dimens.SpacingLg))

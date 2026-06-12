@@ -15,7 +15,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Star
 import com.example.mybookslibrary.ui.theme.Alphas
@@ -43,7 +42,7 @@ fun RatingBadge(
         Icon(
             Lucide.Star,
             contentDescription = null,
-            modifier = Modifier.size(14.dp),
+            modifier = Modifier.size(Dimens.IconXs),
             tint = MaterialTheme.colorScheme.tertiary,
         )
         Text(
