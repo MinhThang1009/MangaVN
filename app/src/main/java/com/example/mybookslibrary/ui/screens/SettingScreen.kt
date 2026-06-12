@@ -299,7 +299,7 @@ private fun SettingsRow(
     ) {
         Column(Modifier.weight(1f)) {
             Text(title, style = MaterialTheme.typography.titleMedium, color = titleColor)
-            Spacer(Modifier.height(2.dp))
+            Spacer(Modifier.height(Dimens.SpacingXxs))
             Text(
                 text = subtitle,
                 style = MaterialTheme.typography.bodySmall,
@@ -314,7 +314,7 @@ private fun SettingsDivider() {
     Box(
         Modifier
             .fillMaxWidth()
-            .height(1.dp)
+            .height(Dimens.BorderThin)
             .padding(horizontal = Dimens.SpacingXl)
             .background(MaterialTheme.colorScheme.outlineVariant),
     )
@@ -361,7 +361,7 @@ private fun OpenLinksRow(context: android.content.Context) {
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurface,
             )
-            Spacer(Modifier.height(2.dp))
+            Spacer(Modifier.height(Dimens.SpacingXxs))
             Text(
                 appString(R.string.settings_open_links_subtitle),
                 style = MaterialTheme.typography.bodySmall,
@@ -378,7 +378,7 @@ private fun OpenLinksRow(context: android.content.Context) {
                 disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
             ),
             contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                horizontal = 16.dp, vertical = 8.dp,
+                horizontal = Dimens.SpacingLg, vertical = Dimens.SpacingSm,
             ),
         ) {
             Text(
