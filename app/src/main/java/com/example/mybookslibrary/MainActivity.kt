@@ -22,6 +22,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.mybookslibrary.data.local.UserPreferencesDataStore
+import com.example.mybookslibrary.data.repository.LibraryRepository
+import com.example.mybookslibrary.domain.model.AuthStatus
 import com.example.mybookslibrary.ui.navigation.MainNavHost
 import com.example.mybookslibrary.ui.theme.MyBooksLibraryTheme
 import com.example.mybookslibrary.ui.util.LocalAppLocale
@@ -32,7 +34,11 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    @Inject lateinit var preferencesDataStore: UserPreferencesDataStore
+    @Inject
+    lateinit var preferencesDataStore: UserPreferencesDataStore
+
+    @Inject
+    lateinit var libraryRepository: LibraryRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,8 +61,8 @@ class MainActivity : ComponentActivity() {
             val authSessionFlow =
                 remember(preferencesDataStore) {
                     preferencesDataStore
-                        .observeLoggedInUserId()
-                        .map { userId -> AuthSession.Ready(userId) }
+                        .observeAuthStatus()
+                        .map { status -> AuthSession.Ready(status) }
                 }
             val authSession by authSessionFlow.collectAsStateWithLifecycle(initialValue = AuthSession.Loading)
 
@@ -81,7 +87,20 @@ class MainActivity : ComponentActivity() {
                 MyBooksLibraryTheme(darkTheme = darkTheme) {
                     when (val session = authSession) {
                         AuthSession.Loading -> AuthLoadingScreen()
-                        is AuthSession.Ready -> MainNavHost(session.loggedInUserId, incomingMangaId)
+                        is AuthSession.Ready -> {
+                            LaunchedEffect(session.authStatus) {
+                                if (session.authStatus == AuthStatus.LOGGED_IN) {
+                                    kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                                        try {
+                                            libraryRepository.performSync()
+                                        } catch (e: Exception) {
+                                            timber.log.Timber.e(e, "Error syncing on app open or login")
+                                        }
+                                    }
+                                }
+                            }
+                            MainNavHost(session.authStatus, incomingMangaId)
+                        }
                     }
                 }
             }
@@ -107,7 +126,7 @@ private sealed interface AuthSession {
     data object Loading : AuthSession
 
     data class Ready(
-        val loggedInUserId: String?,
+        val authStatus: AuthStatus,
     ) : AuthSession
 }
 

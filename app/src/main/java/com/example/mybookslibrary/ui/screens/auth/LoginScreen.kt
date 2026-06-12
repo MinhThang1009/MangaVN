@@ -1,3 +1,5 @@
+@file:Suppress("ktlint")
+
 package com.example.mybookslibrary.ui.screens.auth
 
 import androidx.compose.foundation.layout.*
@@ -27,7 +29,7 @@ fun LoginScreen(
     onNavigateToRegister: () -> Unit,
     viewModel: AuthViewModel = hiltViewModel(),
 ) {
-    var username by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
 
@@ -65,11 +67,12 @@ fun LoginScreen(
             )
 
             OutlinedTextField(
-                value = username,
-                onValueChange = { username = it },
-                label = { Text(stringResource(R.string.auth_username)) },
+                value = email,
+                onValueChange = { email = it },
+                label = { Text(stringResource(R.string.auth_email)) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -101,7 +104,7 @@ fun LoginScreen(
             }
 
             Button(
-                onClick = { viewModel.login(username, password) },
+                onClick = { viewModel.login(email, password) },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = uiState !is AuthState.Loading,
             ) {
@@ -120,6 +123,16 @@ fun LoginScreen(
                 enabled = uiState !is AuthState.Loading,
             ) {
                 Text(stringResource(R.string.auth_google_signin))
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            TextButton(
+                onClick = { viewModel.continueAsGuest() },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = uiState !is AuthState.Loading,
+            ) {
+                Text(stringResource(R.string.auth_continue_guest))
             }
 
             Spacer(modifier = Modifier.height(32.dp))

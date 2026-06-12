@@ -5,7 +5,14 @@ import android.content.pm.ApplicationInfo
 import android.util.Log
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
+import androidx.work.Constraints
+import androidx.work.NetworkType
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.ExistingPeriodicWorkPolicy
 import coil3.SingletonImageLoader
+import com.example.mybookslibrary.data.remote.SyncWorker
+import java.util.concurrent.TimeUnit
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
@@ -34,6 +41,7 @@ class MyBooksLibraryApp :
                 .setWorkerFactory(workerFactory)
                 .build()
 
+    @android.annotation.SuppressLint("LogNotTimber")
     override fun onCreate() {
         super.onCreate()
         if ((applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0) {
@@ -87,10 +95,31 @@ class MyBooksLibraryApp :
         }
 
         Log.i(TAG, "App initialized")
+        setupSyncWorker()
+    }
+
+    private fun setupSyncWorker() {
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+
+        val syncWorkRequest = PeriodicWorkRequestBuilder<SyncWorker>(
+            SYNC_INTERVAL_MINUTES,
+            TimeUnit.MINUTES,
+        )
+            .setConstraints(constraints)
+            .build()
+
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+            "LibrarySyncWorker",
+            ExistingPeriodicWorkPolicy.KEEP,
+            syncWorkRequest
+        )
     }
 
     companion object {
         private const val TAG = "MyBooksLibraryApp"
+        private const val SYNC_INTERVAL_MINUTES = 15L
     }
 }
 

@@ -150,6 +150,12 @@ fun SettingScreenContent(modifier: Modifier = Modifier, viewModel: SettingsViewM
 
             item { SettingsSectionLabel(appString(R.string.settings_section_data)) }
             item {
+                val syncSub = when {
+                    uiState.isSyncing -> appString(R.string.settings_sync_syncing)
+                    uiState.syncSuccess == true -> appString(R.string.settings_sync_success)
+                    uiState.syncSuccess == false -> appString(R.string.settings_sync_failed)
+                    else -> appString(R.string.settings_sync_subtitle)
+                }
                 val backupSub =
                     when (val r = uiState.backupResult) {
                         is BackupRestoreResult.Success -> appString(R.string.settings_backup_success, r.count)
@@ -163,6 +169,10 @@ fun SettingScreenContent(modifier: Modifier = Modifier, viewModel: SettingsViewM
                         null -> appString(R.string.settings_restore_subtitle)
                     }
                 SettingsCard {
+                    SettingsRow(appString(R.string.settings_sync), syncSub) {
+                        if (!uiState.isSyncing) viewModel.forceSync()
+                    }
+                    SettingsDivider()
                     SettingsRow(appString(R.string.settings_backup), backupSub) {
                         backupLauncher.launch("kanso_library_backup.json")
                     }
@@ -184,6 +194,8 @@ fun SettingScreenContent(modifier: Modifier = Modifier, viewModel: SettingsViewM
 
             item { SettingsSectionLabel(appString(R.string.settings_section_account)) }
             item {
+                var showDeleteAccountDialog by remember { mutableStateOf(false) }
+
                 val signOutTitle =
                     if (uiState.signedOut) {
                         appString(R.string.settings_signed_out)
@@ -204,6 +216,41 @@ fun SettingScreenContent(modifier: Modifier = Modifier, viewModel: SettingsViewM
                         subtitle = signOutSub,
                         titleColor = MaterialTheme.colorScheme.tertiary,
                         onClick = viewModel::signOut,
+                    )
+                    SettingsDivider()
+                    SettingsRow(
+                        title = appString(R.string.settings_delete_account),
+                        subtitle = appString(R.string.settings_delete_account_subtitle),
+                        titleColor = MaterialTheme.colorScheme.error,
+                        onClick = { showDeleteAccountDialog = true },
+                    )
+                }
+
+                if (showDeleteAccountDialog) {
+                    androidx.compose.material3.AlertDialog(
+                        onDismissRequest = { showDeleteAccountDialog = false },
+                        title = { Text(appString(R.string.settings_delete_account)) },
+                        text = { Text(appString(R.string.settings_delete_account_desc)) },
+                        confirmButton = {
+                            androidx.compose.material3.TextButton(
+                                onClick = {
+                                    showDeleteAccountDialog = false
+                                    viewModel.deleteAccount()
+                                }
+                            ) {
+                                Text(
+                                    text = appString(R.string.settings_delete_account_confirm),
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            }
+                        },
+                        dismissButton = {
+                            androidx.compose.material3.TextButton(
+                                onClick = { showDeleteAccountDialog = false }
+                            ) {
+                                Text(appString(R.string.action_cancel))
+                            }
+                        }
                     )
                 }
             }

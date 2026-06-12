@@ -8,6 +8,7 @@ import coil3.ImageLoader
 import com.example.mybookslibrary.data.local.LibraryBackupItem
 import com.example.mybookslibrary.data.local.UserPreferencesDataStore
 import com.example.mybookslibrary.data.local.toBackupItem
+import com.example.mybookslibrary.data.repository.AuthRepository
 import com.example.mybookslibrary.data.repository.LibraryRepository
 import com.example.mybookslibrary.di.IoDispatcher
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -45,6 +46,8 @@ data class SettingsUiState(
     val signedOut: Boolean = false,
     val backupResult: BackupRestoreResult? = null,
     val restoreResult: BackupRestoreResult? = null,
+    val isSyncing: Boolean = false,
+    val syncSuccess: Boolean? = null,
 )
 
 @OptIn(coil3.annotation.ExperimentalCoilApi::class)
@@ -52,6 +55,7 @@ data class SettingsUiState(
 class SettingsViewModel
     @Inject
     constructor(
+        private val authRepository: AuthRepository,
         private val preferencesDataStore: UserPreferencesDataStore,
         private val libraryRepository: LibraryRepository,
         private val imageLoader: ImageLoader,
@@ -109,17 +113,50 @@ class SettingsViewModel
         fun signOut() {
             viewModelScope.launch(ioDispatcher) {
                 try {
-                    // Chỉ reset quality về mặc định, giữ nguyên language + theme
                     preferencesDataStore.setReaderQuality("data")
-                    preferencesDataStore.setLoggedInUserId(null)
+                    authRepository.signOut()
                     libraryRepository.clearAll()
                     _uiState.update { it.copy(signedOut = true, quality = "data") }
                 } catch (c: CancellationException) {
                     throw c
                 } catch (e: Exception) {
-                    // Tránh crash app do exception không bắt trong viewModelScope (Room/IO có thể ném)
-                    Timber.e(e, "signOut thất bại")
+                    Timber.e(e, "Sign out failed")
                     _uiState.update { it.copy(signedOut = false) }
+                }
+            }
+        }
+
+        fun forceSync() {
+            viewModelScope.launch(ioDispatcher) {
+                _uiState.update { it.copy(isSyncing = true, syncSuccess = null) }
+                try {
+                    libraryRepository.performSync()
+                    _uiState.update { it.copy(isSyncing = false, syncSuccess = true) }
+                } catch (e: Exception) {
+                    Timber.e(e, "Manual sync failed")
+                    _uiState.update { it.copy(isSyncing = false, syncSuccess = false) }
+                }
+            }
+        }
+
+        fun deleteAccount() {
+            viewModelScope.launch(ioDispatcher) {
+                try {
+                    // Xóa dữ liệu trên Firestore
+                    libraryRepository.clearAllRemote()
+                    
+                    // Xóa dữ liệu local
+                    preferencesDataStore.setReaderQuality("data")
+                    libraryRepository.clearAll()
+                    
+                    // Xóa tài khoản Firebase Auth
+                    authRepository.deleteAccount().getOrThrow()
+                    
+                    _uiState.update { it.copy(signedOut = true, quality = "data") }
+                } catch (c: CancellationException) {
+                    throw c
+                } catch (e: Exception) {
+                    Timber.e(e, "Error deleting account")
                 }
             }
         }

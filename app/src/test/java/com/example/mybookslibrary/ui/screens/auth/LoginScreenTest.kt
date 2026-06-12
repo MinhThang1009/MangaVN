@@ -10,6 +10,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import com.example.mybookslibrary.data.repository.AuthRepository
+import com.example.mybookslibrary.data.repository.LibraryRepository
 import com.example.mybookslibrary.ui.viewmodel.AuthViewModel
 import io.mockk.coEvery
 import io.mockk.mockk
@@ -33,8 +34,9 @@ class LoginScreenTest {
     val composeRule = createAndroidComposeRule<ComponentActivity>()
 
     private val authRepository = mockk<AuthRepository>(relaxed = true)
+    private val libraryRepository = mockk<LibraryRepository>(relaxed = true)
 
-    private fun viewModel() = AuthViewModel(authRepository)
+    private fun viewModel() = AuthViewModel(authRepository, libraryRepository)
 
     @Test
     fun rendersWelcomeTitleAndInputs() {
@@ -43,7 +45,7 @@ class LoginScreenTest {
         }
 
         composeRule.onNodeWithText("Welcome Back!").assertIsDisplayed()
-        composeRule.onNodeWithText("Username").assertIsDisplayed()
+        composeRule.onNodeWithText("Email").assertIsDisplayed()
         composeRule.onNodeWithText("Password").assertIsDisplayed()
     }
 
@@ -56,7 +58,7 @@ class LoginScreenTest {
         // Phân biệt nút "Login" với tiêu đề "Login" trên TopAppBar bằng hasClickAction.
         composeRule.onNode(hasText("Login") and hasClickAction()).performClick()
 
-        composeRule.onNodeWithText("Username and password cannot be empty").assertIsDisplayed()
+        composeRule.onNodeWithText("Email and password cannot be empty").assertIsDisplayed()
     }
 
     @Test
@@ -76,8 +78,9 @@ class LoginScreenTest {
         // AuthState.Success → LaunchedEffect gọi resetState() + onLoginSuccess()
         var successCalled = false
         val repo = mockk<AuthRepository>(relaxed = true)
-        coEvery { repo.login(any(), any()) } coAnswers { Result.success(Unit) }
-        val vm = AuthViewModel(repo)
+        coEvery { repo.signInWithEmail(any(), any()) } coAnswers
+            { Result.success(mockk<com.google.firebase.auth.FirebaseUser>(relaxed = true)) }
+        val vm = AuthViewModel(repo, libraryRepository)
         vm.login("user", "pass")
 
         composeRule.setContent {
@@ -91,16 +94,16 @@ class LoginScreenTest {
     fun loadingState_showsProgressInLoginButton() {
         // AuthState.Loading → CircularProgressIndicator thay vì Text "Login" trong nút
         val repo = mockk<AuthRepository>(relaxed = true)
-        coEvery { repo.login(any(), any()) } coAnswers {
+        coEvery { repo.signInWithEmail(any(), any()) } coAnswers {
             delay(Long.MAX_VALUE)
-            Result.success(Unit)
+            Result.success(mockk<com.google.firebase.auth.FirebaseUser>(relaxed = true))
         }
-        val vm = AuthViewModel(repo)
+        val vm = AuthViewModel(repo, libraryRepository)
 
         composeRule.setContent {
             LoginScreen(onLoginSuccess = {}, onNavigateToRegister = {}, viewModel = vm)
         }
-        composeRule.onNodeWithText("Username").performTextInput("user")
+        composeRule.onNodeWithText("Email").performTextInput("user")
         composeRule.onNodeWithText("Password").performTextInput("pass")
         composeRule.onNode(hasText("Login") and hasClickAction()).performClick()
         composeRule.waitForIdle()

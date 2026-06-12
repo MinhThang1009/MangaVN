@@ -71,11 +71,11 @@
     <string name="status_favorite">Favorite</string>
 
     <!-- Manga Detail Screen -->
-    <string name="detail_synopsis">Synopsis</string>
     <string name="detail_chapters">Chapters</string>
     <string name="detail_chapters_error">Couldn\'t load chapters</string>
     <string name="detail_chapters_empty">No chapters available</string>
     <string name="detail_read_now">READ NOW</string>
+    <string name="detail_continue_reading">CONTINUE READING</string>
     <string name="detail_loading">LOADING…</string>
     <string name="detail_in_library">IN LIBRARY</string>
     <string name="detail_add_to_library">ADD TO LIBRARY</string>
@@ -135,10 +135,19 @@
     <string name="settings_restore_subtitle">Import from a backup file</string>
     <string name="settings_restore_success">Restored %1$d items</string>
     <string name="settings_restore_failed">Restore failed: %1$s</string>
+    <string name="settings_sync">Cloud Sync</string>
+    <string name="settings_sync_subtitle">Tap to sync library with Firestore</string>
+    <string name="settings_sync_syncing">Syncing…</string>
+    <string name="settings_sync_success">Sync completed successfully</string>
+    <string name="settings_sync_failed">Sync failed</string>
     <string name="settings_sign_out">Sign Out</string>
     <string name="settings_signed_out">Signed Out</string>
     <string name="settings_sign_out_subtitle">Clear all local data</string>
     <string name="settings_signed_out_subtitle">All data cleared</string>
+    <string name="settings_delete_account">Delete Account</string>
+    <string name="settings_delete_account_subtitle">Permanently delete your account and data</string>
+    <string name="settings_delete_account_confirm">Delete my account</string>
+    <string name="settings_delete_account_desc">Are you sure you want to delete your account? This action cannot be undone and will erase all your library data from the cloud.</string>
     <string name="action_cancel">Cancel</string>
     <string name="settings_dark_mode">Theme</string>
     <string name="settings_theme_system">System</string>
@@ -169,9 +178,10 @@
     <!-- Auth screens -->
     <string name="auth_login_title">Login</string>
     <string name="auth_welcome_back">Welcome Back!</string>
-    <string name="auth_username">Username</string>
+    <string name="auth_email">Email</string>
     <string name="auth_password">Password</string>
     <string name="auth_login_button">Login</string>
+    <string name="auth_continue_guest">Continue as Guest</string>
     <string name="auth_google_signin">Sign in with Google</string>
     <string name="auth_no_account_register">Don\'t have an account? Register</string>
     <string name="auth_register_title">Register</string>
@@ -179,11 +189,8 @@
     <string name="auth_confirm_password">Confirm Password</string>
     <string name="auth_passwords_no_match">Passwords do not match</string>
     <string name="auth_have_account_login">Already have an account? Login</string>
-    <string name="auth_error_empty_fields">Username and password cannot be empty</string>
-    <string name="auth_error_login_failed">Login failed</string>
-    <string name="auth_error_register_failed">Registration failed</string>
-    <string name="auth_error_google_signin_failed">Google Sign-In failed</string>
-    <string name="auth_error_username_exists">Username already exists</string>
-    <string name="auth_error_invalid_credentials">Invalid username or password</string>
+    <string name="auth_error_empty_fields">Email and password cannot be empty</string>
+    <string name="auth_error_email_exists">Email already exists</string>
+    <string name="auth_error_invalid_credentials">Invalid email or password</string>
     <string name="auth_error_google_save_failed">Failed to save Google account</string>
 </resources>

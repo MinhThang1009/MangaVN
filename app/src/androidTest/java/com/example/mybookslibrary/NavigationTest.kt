@@ -6,6 +6,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.mybookslibrary.data.local.UserPreferencesDataStore
+import com.example.mybookslibrary.domain.model.AuthStatus
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import kotlinx.coroutines.runBlocking
@@ -77,7 +78,7 @@ class NavigationTest {
     @Test
     fun signOut_navigatesToLogin() {
         composeRule.waitForIdle()
-        runBlocking { preferencesDataStore.setLoggedInUserId(null) }
+        runBlocking { preferencesDataStore.updateAuthStatus(AuthStatus.LOGGED_OUT) }
         composeRule.waitForIdle()
     }
 
