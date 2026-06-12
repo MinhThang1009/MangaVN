@@ -267,6 +267,7 @@
     <string name="stats_total_chapters">Total chapters</string>
     <string name="stats_completed_chapters">Completed</string>
     <string name="stats_in_progress_chapters">In progress</string>
+    <string name="stats_chapters_read">Chapters read</string>
     <string name="stats_weekly_activity">Weekly activity</string>
     <string name="stats_monthly_trend">Monthly trend</string>
     <string name="stats_no_data">Start reading to see your stats here</string>

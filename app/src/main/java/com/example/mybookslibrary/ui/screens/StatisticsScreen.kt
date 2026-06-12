@@ -43,8 +43,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.composables.icons.lucide.ArrowLeft
+import com.composables.icons.lucide.ChartNoAxesColumn
 import com.composables.icons.lucide.Lucide
 import com.example.mybookslibrary.R
+import com.example.mybookslibrary.ui.screens.components.EmptyState
 import com.example.mybookslibrary.ui.screens.components.SectionHeader
 import com.example.mybookslibrary.ui.theme.Alphas
 import com.example.mybookslibrary.ui.theme.Dimens
@@ -111,25 +113,41 @@ fun StatisticsScreen(
                     inProgress = state.inProgressChapters,
                 )
             }
-            item { SectionHeader(title = appString(R.string.stats_weekly_activity)) }
-            item { WeeklyColumnChart(activity = state.weeklyActivity) }
-            item { SectionHeader(title = appString(R.string.stats_monthly_trend)) }
-            item { MonthlyLineChart(trend = state.monthlyTrend) }
-            item { SectionHeader(title = appString(R.string.stats_library_breakdown)) }
-            item {
-                LibraryPieChart(
-                    reading = state.readingCount,
-                    completed = state.completedCount,
-                    favorite = state.favoriteCount,
-                )
+            val hasActivity = state.weeklyActivity.any { it > 0 }
+            val hasLibrary = state.readingCount + state.completedCount + state.favoriteCount > 0
+
+            if (hasActivity) {
+                item { SectionHeader(title = appString(R.string.stats_weekly_activity)) }
+                item { WeeklyColumnChart(activity = state.weeklyActivity) }
+                item { SectionHeader(title = appString(R.string.stats_monthly_trend)) }
+                item { MonthlyLineChart(trend = state.monthlyTrend) }
             }
-            item { SectionHeader(title = appString(R.string.stats_status_comparison)) }
-            item {
-                StatusRowChart(
-                    reading = state.readingCount,
-                    completed = state.completedCount,
-                    favorite = state.favoriteCount,
-                )
+            if (hasLibrary) {
+                item { SectionHeader(title = appString(R.string.stats_library_breakdown)) }
+                item {
+                    LibraryPieChart(
+                        reading = state.readingCount,
+                        completed = state.completedCount,
+                        favorite = state.favoriteCount,
+                    )
+                }
+                item { SectionHeader(title = appString(R.string.stats_status_comparison)) }
+                item {
+                    StatusRowChart(
+                        reading = state.readingCount,
+                        completed = state.completedCount,
+                        favorite = state.favoriteCount,
+                    )
+                }
+            }
+            if (!hasActivity && !hasLibrary) {
+                item {
+                    EmptyState(
+                        title = appString(R.string.stats_no_data),
+                        icon = Lucide.ChartNoAxesColumn,
+                        modifier = Modifier.fillParentMaxHeight(0.5f),
+                    )
+                }
             }
         }
     }
@@ -182,7 +200,7 @@ private fun WeeklyColumnChart(activity: List<Int>) {
                 label = labels.getOrElse(index) { "" },
                 values = listOf(
                     Bars.Data(
-                        value = value.toDouble().coerceAtLeast(0.1),
+                        value = value.toDouble().coerceAtLeast(0.0),
                         color = Brush.verticalGradient(listOf(primary, primaryLight)),
                     ),
                 ),
@@ -202,7 +220,7 @@ private fun WeeklyColumnChart(activity: List<Int>) {
             ),
             gridProperties = themedGridProperties(),
             labelProperties = themedLabelProperties(),
-            labelHelperProperties = themedLabelHelperProperties(),
+            labelHelperProperties = LabelHelperProperties(enabled = false),
             indicatorProperties = themedIndicatorProperties(),
             animationSpec = spring(
                 dampingRatio = Spring.DampingRatioMediumBouncy,
@@ -215,7 +233,7 @@ private fun WeeklyColumnChart(activity: List<Int>) {
 @Composable
 private fun MonthlyLineChart(trend: List<Int>) {
     val primary = MaterialTheme.colorScheme.primary
-    val chaptersLabel = appString(R.string.stats_total_chapters)
+    val chaptersLabel = appString(R.string.stats_chapters_read)
 
     val lineData = remember(trend, chaptersLabel) {
         listOf(
@@ -253,27 +271,30 @@ private fun LibraryPieChart(reading: Int, completed: Int, favorite: Int) {
     val primaryColor = MaterialTheme.colorScheme.primary
     val secondaryColor = MaterialTheme.colorScheme.secondary
     val tertiaryColor = MaterialTheme.colorScheme.tertiary
+    val rl = appString(R.string.stats_reading)
+    val cl = appString(R.string.stats_completed)
+    val fl = appString(R.string.stats_favorite)
 
-    val pieData = remember(reading, completed, favorite) {
-        listOf(
-            Pie(
-                label = "Reading",
-                data = reading.toDouble().coerceAtLeast(0.01),
-                color = primaryColor,
-                selectedColor = primaryColor,
-            ),
-            Pie(
-                label = "Completed",
-                data = completed.toDouble().coerceAtLeast(0.01),
-                color = secondaryColor,
-                selectedColor = secondaryColor,
-            ),
-            Pie(
-                label = "Favorite",
-                data = favorite.toDouble().coerceAtLeast(0.01),
-                color = tertiaryColor,
-                selectedColor = tertiaryColor,
-            ),
+    val pieData = remember(reading, completed, favorite, rl, cl, fl) {
+        listOfNotNull(
+            if (reading >
+                0) {
+                    Pie(label = rl, data = reading.toDouble(), color = primaryColor, selectedColor = primaryColor)
+                } else {
+                    null
+                },
+            if (completed >
+                0) {
+                    Pie(label = cl, data = completed.toDouble(), color = secondaryColor, selectedColor = secondaryColor)
+                } else {
+                    null
+                },
+            if (favorite >
+                0) {
+                    Pie(label = fl, data = favorite.toDouble(), color = tertiaryColor, selectedColor = tertiaryColor)
+                } else {
+                    null
+                },
         )
     }
 
@@ -319,7 +340,7 @@ private fun StatusRowChart(reading: Int, completed: Int, favorite: Int) {
                 label = readingLabel,
                 values = listOf(
                     Bars.Data(
-                        value = reading.toDouble().coerceAtLeast(0.1),
+                        value = reading.toDouble().coerceAtLeast(0.0),
                         color = SolidColor(primaryColor),
                     ),
                 ),
@@ -328,7 +349,7 @@ private fun StatusRowChart(reading: Int, completed: Int, favorite: Int) {
                 label = completedLabel,
                 values = listOf(
                     Bars.Data(
-                        value = completed.toDouble().coerceAtLeast(0.1),
+                        value = completed.toDouble().coerceAtLeast(0.0),
                         color = SolidColor(secondaryColor),
                     ),
                 ),
@@ -337,7 +358,7 @@ private fun StatusRowChart(reading: Int, completed: Int, favorite: Int) {
                 label = favoriteLabel,
                 values = listOf(
                     Bars.Data(
-                        value = favorite.toDouble().coerceAtLeast(0.1),
+                        value = favorite.toDouble().coerceAtLeast(0.0),
                         color = SolidColor(tertiaryColor),
                     ),
                 ),
@@ -357,7 +378,7 @@ private fun StatusRowChart(reading: Int, completed: Int, favorite: Int) {
             ),
             gridProperties = themedGridProperties(),
             labelProperties = themedLabelProperties(),
-            labelHelperProperties = themedLabelHelperProperties(),
+            labelHelperProperties = LabelHelperProperties(enabled = false),
             indicatorProperties = themedVerticalIndicatorProperties(),
             animationSpec = spring(
                 dampingRatio = Spring.DampingRatioMediumBouncy,
@@ -386,7 +407,7 @@ private fun BreakdownLegend(items: List<LegendItem>) {
     Column(verticalArrangement = Arrangement.spacedBy(Dimens.SpacingSm)) {
         items.forEach { item ->
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(Modifier.size(12.dp).clip(CircleShape).background(item.color))
+                Box(Modifier.size(Dimens.SpacingMd).clip(CircleShape).background(item.color))
                 Spacer(Modifier.width(Dimens.SpacingSm))
                 Text(
                     item.label,
