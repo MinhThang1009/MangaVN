@@ -30,9 +30,8 @@ import com.composables.icons.lucide.Settings
 import com.composables.icons.lucide.User
 import com.example.mybookslibrary.R
 import com.example.mybookslibrary.ui.navigation.LucideSearchIcon
+import com.example.mybookslibrary.ui.screens.components.DiscoverSkeletonLoading
 import com.example.mybookslibrary.ui.screens.components.ErrorState
-import com.example.mybookslibrary.ui.screens.components.LoadingIndicator
-import com.example.mybookslibrary.ui.screens.components.LoadingSize
 import com.example.mybookslibrary.ui.screens.components.StyledDropdownMenu
 import com.example.mybookslibrary.ui.theme.Dimens
 import com.example.mybookslibrary.ui.util.appString
@@ -149,9 +148,7 @@ private fun DiscoverTopBarActions(onSearchClick: () -> Unit, onProfileClick: () 
 
 @Composable
 internal fun DiscoverLoadingState(modifier: Modifier = Modifier) {
-    Box(modifier, contentAlignment = Alignment.Center) {
-        LoadingIndicator(size = LoadingSize.Large)
-    }
+    DiscoverSkeletonLoading(modifier)
 }
 
 @Composable

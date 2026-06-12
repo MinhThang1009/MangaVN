@@ -39,8 +39,7 @@ import com.example.mybookslibrary.ui.navigation.LocalBottomNavPadding
 import com.example.mybookslibrary.ui.navigation.LucideSearchIcon
 import com.example.mybookslibrary.ui.screens.components.EmptyState
 import com.example.mybookslibrary.ui.screens.components.ErrorState
-import com.example.mybookslibrary.ui.screens.components.LoadingIndicator
-import com.example.mybookslibrary.ui.screens.components.LoadingSize
+import com.example.mybookslibrary.ui.screens.components.SearchSkeletonLoading
 import com.example.mybookslibrary.ui.screens.components.MangaCoverCard
 import com.example.mybookslibrary.ui.screens.components.StyledBadge
 import com.example.mybookslibrary.ui.theme.Dimens
@@ -129,9 +128,7 @@ fun SearchScreenContent(
 
             when {
                 uiState.isLoading -> {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        LoadingIndicator(size = LoadingSize.Large)
-                    }
+                    SearchSkeletonLoading(Modifier.fillMaxSize())
                 }
                 uiState.error != null -> {
                     ErrorState(
