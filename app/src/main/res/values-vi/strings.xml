@@ -68,6 +68,7 @@
     <string name="library_remove_bookmark">Xoá đánh dấu</string>
     <string name="library_remove_bookmark_confirm">Xoá "%1$s" khỏi thư viện?</string>
     <string name="library_filter_all">Tất cả</string>
+    <string name="filter_label_with_count">%1$s (%2$d)</string>
     <string name="library_filter_favorites">Yêu thích</string>
     <string name="library_favorites_empty_title">Chưa có truyện yêu thích</string>
     <string name="library_favorites_empty_subtitle">Nhấn biểu tượng trái tim trên truyện để thêm vào đây</string>

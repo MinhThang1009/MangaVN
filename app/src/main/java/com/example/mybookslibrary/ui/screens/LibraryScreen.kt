@@ -66,6 +66,9 @@ fun LibraryScreenContent(
     val items by vm.libraryItems.collectAsStateWithLifecycle(initialValue = emptyList())
     val isRefreshing by vm.isRefreshing.collectAsStateWithLifecycle()
     val showFavoritesOnly by vm.showFavoritesOnly.collectAsStateWithLifecycle()
+    val filterCounts by vm.filterCounts.collectAsStateWithLifecycle(
+        initialValue = com.example.mybookslibrary.ui.viewmodel.LibraryFilterCounts(),
+    )
     var pendingRemoval by remember { mutableStateOf<LibraryItemEntity?>(null) }
     val bottomNavPadding = LocalBottomNavPadding.current
     val snackbarHostState = LocalSnackbarHostState.current
@@ -115,12 +118,20 @@ fun LibraryScreenContent(
                     item {
                         Row(horizontalArrangement = Arrangement.spacedBy(Dimens.SpacingSm)) {
                             AppFilterChip(
-                                label = appString(R.string.library_filter_all),
+                                label = appString(
+                                    R.string.filter_label_with_count,
+                                    appString(R.string.library_filter_all),
+                                    filterCounts.all,
+                                ),
                                 selected = !showFavoritesOnly,
                                 onClick = { vm.setShowFavoritesOnly(false) },
                             )
                             AppFilterChip(
-                                label = appString(R.string.library_filter_favorites),
+                                label = appString(
+                                    R.string.filter_label_with_count,
+                                    appString(R.string.library_filter_favorites),
+                                    filterCounts.favorites,
+                                ),
                                 selected = showFavoritesOnly,
                                 onClick = { vm.setShowFavoritesOnly(true) },
                             )

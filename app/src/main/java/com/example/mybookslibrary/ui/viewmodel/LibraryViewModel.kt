@@ -12,8 +12,12 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+
+/** Số liệu hiển thị trên filter chip của Thư viện. */
+data class LibraryFilterCounts(val all: Int = 0, val favorites: Int = 0)
 
 // ViewModel cho LibraryScreen — observe danh sách manga đã lưu trong Room DB
 @HiltViewModel
@@ -29,6 +33,15 @@ class LibraryViewModel
         val libraryItems: Flow<List<LibraryItemEntity>> =
             repository.observeLibraryItems().combine(_showFavoritesOnly) { items, favoritesOnly ->
                 if (favoritesOnly) items.filter { it.is_favorite } else items
+            }
+
+        /** Số liệu cho filter chip — đếm trên list CHƯA filter để chip luôn đúng. */
+        val filterCounts: Flow<LibraryFilterCounts> =
+            repository.observeLibraryItems().map { items ->
+                LibraryFilterCounts(
+                    all = items.size,
+                    favorites = items.count { it.is_favorite },
+                )
             }
 
         fun setShowFavoritesOnly(favoritesOnly: Boolean) {
