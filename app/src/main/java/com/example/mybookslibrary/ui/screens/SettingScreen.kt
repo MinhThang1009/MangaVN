@@ -20,9 +20,16 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import com.composables.icons.lucide.ArrowLeft
+import com.composables.icons.lucide.Lucide
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -46,9 +53,11 @@ import com.example.mybookslibrary.util.isOpenLinksGranted
 import com.example.mybookslibrary.util.openAppLinkSettings
 
 @Suppress("unused", "CyclomaticComplexMethod", "LongMethod")
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingScreenContent(
     modifier: Modifier = Modifier,
+    onBackClick: () -> Unit = {},
     onChangePasswordClick: () -> Unit = {},
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
@@ -74,6 +83,19 @@ fun SettingScreenContent(
 
     Scaffold(
         modifier = modifier,
+        topBar = {
+            TopAppBar(
+                title = { Text(appString(R.string.settings_title)) },
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Icon(Lucide.ArrowLeft, contentDescription = appString(R.string.cd_back))
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                ),
+            )
+        },
         containerColor = MaterialTheme.colorScheme.background,
     ) { innerPadding ->
         Box(
@@ -90,15 +112,6 @@ fun SettingScreenContent(
                     bottom = bottomNavPadding + Dimens.SpacingLg,
                 ),
         ) {
-            item {
-                Text(
-                    appString(R.string.settings_title),
-                    style = MaterialTheme.typography.displayMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-                Spacer(Modifier.height(Dimens.SpacingXxl))
-            }
-
             item { SettingsSectionLabel(appString(R.string.settings_section_appearance)) }
             item {
                 val themeLabel =

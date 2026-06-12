@@ -8,6 +8,8 @@ import com.example.mybookslibrary.test.MainDispatcherRule
 import com.example.mybookslibrary.ui.util.UiText
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.just
+import io.mockk.Runs
 import io.mockk.mockk
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -232,6 +234,75 @@ class AuthViewModelTest {
             advanceUntilIdle()
 
             coVerify(exactly = 1) { repository.signInWithGoogle(context) }
+        }
+
+    @Test
+    fun changePassword_thanhCong() =
+        runTest(mainDispatcherRule.dispatcher.scheduler) {
+            coEvery { repository.changePassword(any(), any()) } returns Result.success(Unit)
+            val vm = viewModel()
+
+            vm.changePassword("OldPass@1", "NewPass@1", "NewPass@1")
+            advanceUntilIdle()
+
+            assertEquals(AuthState.Success, vm.uiState.value)
+        }
+
+    @Test
+    fun changePassword_matKhauTrung_baoLoi() =
+        runTest(mainDispatcherRule.dispatcher.scheduler) {
+            val vm = viewModel()
+
+            vm.changePassword("Same@123", "Same@123", "Same@123")
+            advanceUntilIdle()
+
+            assertEquals(AuthState.Error(UiText.Resource(R.string.auth_error_password_same_old)), vm.uiState.value)
+        }
+
+    @Test
+    fun changePassword_matKhauKhongKhop_baoLoi() =
+        runTest(mainDispatcherRule.dispatcher.scheduler) {
+            val vm = viewModel()
+
+            vm.changePassword("OldPass@1", "NewPass@1", "Different@1")
+            advanceUntilIdle()
+
+            assertEquals(AuthState.Error(UiText.Resource(R.string.auth_passwords_no_match)), vm.uiState.value)
+        }
+
+    @Test
+    fun changePassword_matKhauYeu_baoLoi() =
+        runTest(mainDispatcherRule.dispatcher.scheduler) {
+            val vm = viewModel()
+
+            vm.changePassword("OldPass@1", "weak", "weak")
+            advanceUntilIdle()
+
+            assertEquals(AuthState.Error(UiText.Resource(R.string.auth_error_password_weak)), vm.uiState.value)
+        }
+
+    @Test
+    fun changePassword_rong_baoLoi() =
+        runTest(mainDispatcherRule.dispatcher.scheduler) {
+            val vm = viewModel()
+
+            vm.changePassword("", "", "")
+            advanceUntilIdle()
+
+            assertEquals(AuthState.Error(UiText.Resource(R.string.auth_error_empty_fields)), vm.uiState.value)
+        }
+
+    @Test
+    fun continueAsGuest_goiRepository() =
+        runTest(mainDispatcherRule.dispatcher.scheduler) {
+            coEvery { repository.continueAsGuest() } just Runs
+            val vm = viewModel()
+
+            vm.continueAsGuest()
+            advanceUntilIdle()
+
+            assertEquals(AuthState.Success, vm.uiState.value)
+            coVerify { repository.continueAsGuest() }
         }
 
     @Test
