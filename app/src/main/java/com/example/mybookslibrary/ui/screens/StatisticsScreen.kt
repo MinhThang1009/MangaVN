@@ -394,21 +394,26 @@ private fun LibraryPieChart(reading: Int, completed: Int, favorite: Int) {
 private fun TopMangaRowChart(items: List<TopMangaCount>) {
     val primaryColor = MaterialTheme.colorScheme.primary
 
-    val rowData = remember(items) {
-        items.map { manga ->
+    val rowData = remember(items, primaryColor) {
+        items.mapIndexed { index, manga ->
             Bars(
                 label = manga.title.ellipsize(MAX_TITLE_CHARS),
                 values = listOf(
                     Bars.Data(
                         value = manga.chapterCount.toDouble(),
-                        color = SolidColor(primaryColor),
+                        // Phân cấp theo rank: top 1 đậm nhất, giảm dần độ đậm
+                        color = SolidColor(
+                            primaryColor.copy(
+                                alpha = 1f - index * RANK_ALPHA_STEP,
+                            ),
+                        ),
                     ),
                 ),
             )
         }
     }
 
-    // Cao theo số truyện (56dp/hàng) + 48dp cho trục X để bar/label không bị bóp
+    // Cao theo số truyện + trục X — hàng gọn để bar không cách xa nhau
     val rowChartHeight = (items.size * ROW_HEIGHT_DP + AXIS_HEIGHT_DP).dp
     ChartCard {
         RowChart(
@@ -556,5 +561,8 @@ private fun themedVerticalIndicatorProperties(): VerticalIndicatorProperties {
 private const val DAYS_IN_WEEK = 7
 private const val MAX_TITLE_CHARS = 20
 private const val SUMMARY_VALUE_MAX_DIGITS = 4
-private const val ROW_HEIGHT_DP = 56
+private const val ROW_HEIGHT_DP = 36
 private const val AXIS_HEIGHT_DP = 48
+
+/** Mỗi bậc rank giảm 15% độ đậm — top 1 đậm nhất (alpha 1.0 → 0.4 cho hạng 5). */
+private const val RANK_ALPHA_STEP = 0.15f

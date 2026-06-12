@@ -60,8 +60,17 @@ abstract class ChapterDao {
     @Query("SELECT COUNT(*) FROM chapter_progress")
     abstract fun observeTotalProgressCount(): Flow<Int>
 
-    /** Danh sách chapter progress trong 28 ngày gần nhất — cho Statistics chart. */
-    @Query("SELECT * FROM chapter_progress WHERE updated_at >= :cutoff ORDER BY updated_at DESC")
+    /**
+     * Chapter ĐÃ ĐỌC (READING/COMPLETED) trong 28 ngày gần nhất — cho Statistics chart.
+     * Loại UNREAD: "đánh dấu chưa đọc" cũng ghi row mới, không được tính là hoạt động đọc.
+     */
+    @Query(
+        """
+        SELECT * FROM chapter_progress
+        WHERE updated_at >= :cutoff AND status IN ('READING', 'COMPLETED')
+        ORDER BY updated_at DESC
+        """,
+    )
     abstract fun observeRecentProgress(cutoff: Long): Flow<List<ChapterProgressEntity>>
 
     /** Top truyện có nhiều chương đã đọc nhất — cho Statistics RowChart. */
