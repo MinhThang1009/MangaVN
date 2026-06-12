@@ -24,7 +24,9 @@ JAVA_HOME="C:/Program Files/Java/jdk-21.0.10" ./gradlew assembleDebug
 ```
 
 ## Coverage Thresholds
-- Overall + diff: **85%** (JaCoCo). Ceiling ~90% INSTRUCTION do Compose bytecode.
+- Combined (unit + emulator, JaCoCo): overall ≥ **75%**, changed-files ≥ **60%** — ratchet theo mức thật 2026-06-13 (75.54%), siết dần khi trả nợ `@Preview` cho các screen 0% coverage. Ngưỡng 85% cũ đặt từ khi codebase nhỏ, không còn đạt được sau redesign.
+- Per-package (unit, fail build): rules trong `app/build.gradle.kts` `jacocoCoverageVerification`.
+- Unit-only overall trên PR: chỉ informational (comment), không fail.
 - `MainNavGraph.kt` (62.77%) và `MainScreens.kt` (48.84%): Compose ceiling, không cố fix.
 
 ## Database (Room)
