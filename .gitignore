@@ -15,3 +15,6 @@ HANDOFF.md
 !/.idea/fileTemplates/
 
 **/google-services.json
+
+# Kotlin compiler error logs (sinh local khi compile lỗi)
+.kotlin/

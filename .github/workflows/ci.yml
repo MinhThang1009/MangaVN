@@ -49,7 +49,7 @@ jobs:
           git diff --name-only "$BASE" HEAD | tee /tmp/changed.txt
 
           # Những file này có thể ảnh hưởng compile/test/lint Android.
-          if grep -Eq '^(app/|gradle/|scripts/|build\.gradle\.kts$|settings\.gradle\.kts$|gradle\.properties$|gradlew$|\.github/workflows/ci\.yml$|\.github/workflows/coverage\.yml$)' /tmp/changed.txt; then
+          if grep -Eq '^(app/|gradle/|scripts/|build\.gradle\.kts$|settings\.gradle\.kts$|gradle\.properties$|gradlew$|\.github/workflows/ci\.yml$)' /tmp/changed.txt; then
             echo "android=true" >> "$GITHUB_OUTPUT"
           else
             echo "android=false" >> "$GITHUB_OUTPUT"
@@ -111,6 +111,9 @@ jobs:
           # Mã hóa để cache được configuration-cache giữa các run (chứa dữ liệu nhạy
           # cảm nên setup-gradle yêu cầu key). Secret chưa tồn tại → input rỗng, action bỏ qua.
           cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
+          # Ghi cache cả từ PR branch: push liên tiếp trong cùng PR tái dùng
+          # task outputs (FROM-CACHE) thay vì build lại từ đầu (default chỉ ghi từ main).
+          cache-read-only: false
 
       - name: Create google-services.json
         env:
@@ -168,6 +171,9 @@ jobs:
           # Mã hóa để cache được configuration-cache giữa các run (chứa dữ liệu nhạy
           # cảm nên setup-gradle yêu cầu key). Secret chưa tồn tại → input rỗng, action bỏ qua.
           cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
+          # Ghi cache cả từ PR branch: push liên tiếp trong cùng PR tái dùng
+          # task outputs (FROM-CACHE) thay vì build lại từ đầu (default chỉ ghi từ main).
+          cache-read-only: false
 
       - name: Create google-services.json
         env:
@@ -179,7 +185,9 @@ jobs:
             echo '{"project_info":{"project_number":"123456789","project_id":"mock-project-id","storage_bucket":"mock.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:123456789:android:123456789","android_client_info":{"package_name":"com.example.mybookslibrary"}},"oauth_client":[{"client_id":"123456789-test.apps.googleusercontent.com","client_type":3}],"api_key":[{"current_key":"mock-api-key"}],"services":{"appinvite_service":{"status":1,"other_platform_oauth_client":[{"client_id":"123456789-test.apps.googleusercontent.com","client_type":3}]}}}]}' > app/google-services.json
           fi
 
-      - name: Unit test + coverage + APK builds
+      # assembleRelease tách sang job release-build-check (chạy song song) để giảm
+      # wall-clock của job này — emulator-test phải đợi build-test xong.
+      - name: Unit test + coverage + debug APK
         env:
           RUN_SCREENSHOTS: ${{ needs.changes.outputs.ui }}
         run: |
@@ -192,7 +200,6 @@ jobs:
             :app:jacocoCoverageVerification \
             :app:jacocoTestReport \
             :app:assembleDebug \
-            :app:assembleRelease \
             --console=plain
 
       - name: Upload Roborazzi report
@@ -259,23 +266,15 @@ jobs:
           title: JVM Coverage (unit-only, informational — gate thật là Combined)
           update-comment: true
 
-      - name: APK size report
-        if: always()
-        run: |
-          APK=$(find app/build/outputs/apk/debug -name "*.apk" | head -1 || true)
-          if [ -z "$APK" ]; then
-            echo "Không tìm thấy debug APK, bỏ qua size report."
-            exit 0
-          fi
-          SIZE_BYTES=$(stat -c%s "$APK")
-          SIZE_MB=$(echo "scale=2; $SIZE_BYTES / 1048576" | bc)
-          echo "## APK Size" >> "$GITHUB_STEP_SUMMARY"
-          echo "| File | Size |" >> "$GITHUB_STEP_SUMMARY"
-          echo "|------|------|" >> "$GITHUB_STEP_SUMMARY"
-          echo "| \`$(basename "$APK")\` | ${SIZE_MB} MB (${SIZE_BYTES} bytes) |" >> "$GITHUB_STEP_SUMMARY"
-          if [ "$SIZE_BYTES" -gt 52428800 ]; then
-            echo "::warning::APK size ${SIZE_MB} MB vượt ngưỡng 50 MB"
-          fi
+      # Size report tuyệt đối đã bỏ — job size-diff (bên dưới) là nguồn duy nhất
+      # về APK size, dùng lại artifact này thay vì build lần 2.
+      - name: Upload debug APK (cho size-diff)
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: debug-apk
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: ignore
 
       # jacocoCoverageVerification đã chạy trong Gradle invocation ở trên — không gọi lại.
 
@@ -317,6 +316,48 @@ jobs:
         uses: gradle/actions/dependency-submission@5e2ebd065dc2488b7a6ad670704656cbbe1e8f60 # v6.1.1
         continue-on-error: true
 
+  # Smoke check R8/ProGuard: release build phải compile + minify thành công.
+  # Output không ai tiêu thụ (release ký thật nằm ở release.yml) — job này chỉ
+  # gác cổng keep rules/reflection bị strip, chạy song song với build-test.
+  # Chỉ chạy trên PR: push main đã có release.yml build bản ký (smoke check tốt hơn).
+  release-build-check:
+    needs: [changes, wrapper-validation]
+    if: github.event_name == 'pull_request' && needs.changes.outputs.android == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@5e2ebd065dc2488b7a6ad670704656cbbe1e8f60 # v6
+        with:
+          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
+          # Ghi cache cả từ PR branch: push liên tiếp trong cùng PR tái dùng
+          # task outputs (FROM-CACHE) thay vì build lại từ đầu (default chỉ ghi từ main).
+          cache-read-only: false
+
+      - name: Create google-services.json
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -n "$GOOGLE_SERVICES_JSON" ]; then
+            echo "$GOOGLE_SERVICES_JSON" > app/google-services.json
+          else
+            echo '{"project_info":{"project_number":"123456789","project_id":"mock-project-id","storage_bucket":"mock.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:123456789:android:123456789","android_client_info":{"package_name":"com.example.mybookslibrary"}},"oauth_client":[{"client_id":"123456789-test.apps.googleusercontent.com","client_type":3}],"api_key":[{"current_key":"mock-api-key"}],"services":{"appinvite_service":{"status":1,"other_platform_oauth_client":[{"client_id":"123456789-test.apps.googleusercontent.com","client_type":3}]}}}]}' > app/google-services.json
+          fi
+
+      - name: Build release (R8 smoke check)
+        run: ./gradlew :app:assembleRelease --console=plain
+
   emulator-test:
     needs: [changes, build-test]
     if: ${{ needs.changes.outputs.android == 'true' && (github.event_name == 'push' || needs.changes.outputs.emulator == 'true' || contains(github.event.pull_request.labels.*.name, 'run-emulator')) }}
@@ -343,6 +384,9 @@ jobs:
           # Mã hóa để cache được configuration-cache giữa các run (chứa dữ liệu nhạy
           # cảm nên setup-gradle yêu cầu key). Secret chưa tồn tại → input rỗng, action bỏ qua.
           cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
+          # Ghi cache cả từ PR branch: push liên tiếp trong cùng PR tái dùng
+          # task outputs (FROM-CACHE) thay vì build lại từ đầu (default chỉ ghi từ main).
+          cache-read-only: false
 
       - name: Create google-services.json
         env:
@@ -469,3 +513,121 @@ jobs:
           name: emulator-test-report
           path: app/build/reports/androidTests/
           if-no-files-found: ignore
+
+  # APK size diff — gộp từ apk-size-diff.yml: phía PR tái dùng artifact debug-apk
+  # của build-test (không build lần 2), chỉ build phía base.
+  size-diff-base:
+    needs: changes
+    if: github.event_name == 'pull_request' && needs.changes.outputs.android == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout base
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@5e2ebd065dc2488b7a6ad670704656cbbe1e8f60 # v6
+        with:
+          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
+          # Ghi cache cả từ PR branch: push liên tiếp trong cùng PR tái dùng
+          # task outputs (FROM-CACHE) thay vì build lại từ đầu (default chỉ ghi từ main).
+          cache-read-only: false
+
+      - name: Create google-services.json
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -n "$GOOGLE_SERVICES_JSON" ]; then
+            echo "$GOOGLE_SERVICES_JSON" > app/google-services.json
+          else
+            echo '{"project_info":{"project_number":"123456789","project_id":"mock-project-id","storage_bucket":"mock.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:123456789:android:123456789","android_client_info":{"package_name":"com.example.mybookslibrary"}},"oauth_client":[{"client_id":"123456789-test.apps.googleusercontent.com","client_type":3}],"api_key":[{"current_key":"mock-api-key"}],"services":{"appinvite_service":{"status":1,"other_platform_oauth_client":[{"client_id":"123456789-test.apps.googleusercontent.com","client_type":3}]}}}]}' > app/google-services.json
+          fi
+
+      - name: Build APK base
+        run: ./gradlew :app:assembleDebug --console=plain -q
+
+      - name: Upload base APK
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: base-apk
+          path: app/build/outputs/apk/debug/*.apk
+
+  size-diff:
+    needs: [changes, build-test, size-diff-base]
+    if: github.event_name == 'pull_request' && needs.changes.outputs.android == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: write
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Download PR APK (artifact từ build-test)
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1 (Node 24)
+        with:
+          name: debug-apk
+          path: pr-apk
+
+      - name: Download base APK
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1 (Node 24)
+        with:
+          name: base-apk
+          path: base-apk
+
+      - name: So sánh và comment
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          PR_APK=$(find pr-apk -name '*.apk' | head -1)
+          BASE_APK=$(find base-apk -name '*.apk' | head -1)
+          PR_SIZE=$(stat -c%s "$PR_APK")
+          BASE_SIZE=$(stat -c%s "$BASE_APK")
+          DELTA=$((PR_SIZE - BASE_SIZE))
+          PR_MB=$(echo "scale=2; $PR_SIZE / 1048576" | bc)
+          BASE_MB=$(echo "scale=2; $BASE_SIZE / 1048576" | bc)
+          DELTA_KB=$(echo "scale=1; $DELTA / 1024" | bc)
+          PCT=$(echo "scale=2; $DELTA * 100 / $BASE_SIZE" | bc)
+
+          WARN=""
+          if [ "$DELTA" -gt 1048576 ] || [ "$(echo "$PCT > 5" | bc)" -eq 1 ]; then
+            WARN="⚠️ **APK tăng đáng kể — kiểm tra dependency/resource mới có cần thiết không.**"
+          fi
+          # Ngưỡng tuyệt đối (chuyển từ step "APK size report" cũ trong build-test)
+          if [ "$PR_SIZE" -gt 52428800 ]; then
+            echo "::warning::APK size ${PR_MB} MB vượt ngưỡng 50 MB"
+          fi
+
+          MARKER="<!-- apk-size-diff -->"
+          BODY=$(cat <<BODY_EOF
+          $MARKER
+          ## 📦 APK size (debug)
+
+          | | Base | PR | Chênh lệch |
+          |---|---|---|---|
+          | Size | ${BASE_MB} MB | ${PR_MB} MB | ${DELTA_KB} KB (${PCT}%) |
+
+          $WARN
+          BODY_EOF
+          )
+
+          EXISTING_ID=$(gh api "repos/${{ github.repository }}/issues/$PR_NUMBER/comments" \
+            --jq ".[] | select(.body | startswith(\"$MARKER\")) | .id" | head -1)
+          if [ -n "$EXISTING_ID" ]; then
+            gh api -X PATCH "repos/${{ github.repository }}/issues/comments/$EXISTING_ID" -f body="$BODY" > /dev/null
+          else
+            gh pr comment "$PR_NUMBER" --repo "${{ github.repository }}" --body "$BODY"
+          fi
