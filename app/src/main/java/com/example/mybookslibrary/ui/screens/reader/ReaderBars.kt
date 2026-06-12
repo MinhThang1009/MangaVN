@@ -36,6 +36,8 @@ import androidx.compose.material3.Icon
 import com.composables.icons.lucide.ArrowLeft
 import com.composables.icons.lucide.BookOpen
 import com.composables.icons.lucide.BookOpenCheck
+import com.composables.icons.lucide.ChevronLeft
+import com.composables.icons.lucide.ChevronRight
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Scroll
 import androidx.compose.material3.IconButton
@@ -84,6 +86,8 @@ internal data class ReaderBottomBarState(
     val currentPage: Int,
     val totalPages: Int,
     val currentReadingMode: ReadingMode,
+    val hasPrevChapter: Boolean = false,
+    val hasNextChapter: Boolean = false,
 )
 
 @Composable
@@ -260,6 +264,8 @@ internal fun BoxScope.ReaderBottomBar(
     colors: ReaderBarColors = readerBarColors(),
     onToggleReadingMode: () -> Unit,
     onPageSelected: (Int) -> Unit = {},
+    onPrevChapter: () -> Unit = {},
+    onNextChapter: () -> Unit = {},
 ) {
     val safeTotalPages = state.totalPages.coerceAtLeast(1)
     val displayPage = (state.currentPage + 1).coerceIn(1, safeTotalPages)
@@ -315,6 +321,22 @@ internal fun BoxScope.ReaderBottomBar(
                     .padding(horizontal = Dimens.ScreenPaddingCompact, vertical = Dimens.SpacingSm),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            IconButton(
+                onClick = onPrevChapter,
+                enabled = state.hasPrevChapter,
+            ) {
+                Icon(
+                    Lucide.ChevronLeft,
+                    contentDescription = appString(R.string.reader_prev_chapter),
+                    tint =
+                        if (state.hasPrevChapter) {
+                            colors.content
+                        } else {
+                            colors.content.copy(alpha = Alphas.ContainerFaint)
+                        },
+                    modifier = Modifier.size(Dimens.IconDefault),
+                )
+            }
             Text(
                 text = "$displayPage / $safeTotalPages",
                 style = MaterialTheme.typography.titleMedium,
@@ -360,6 +382,22 @@ internal fun BoxScope.ReaderBottomBar(
                     text = appString(currentReadingModeLabelRes),
                     style = MaterialTheme.typography.labelLarge,
                     modifier = Modifier.padding(start = Dimens.SpacingSm),
+                )
+            }
+            IconButton(
+                onClick = onNextChapter,
+                enabled = state.hasNextChapter,
+            ) {
+                Icon(
+                    Lucide.ChevronRight,
+                    contentDescription = appString(R.string.reader_next_chapter),
+                    tint =
+                        if (state.hasNextChapter) {
+                            colors.content
+                        } else {
+                            colors.content.copy(alpha = Alphas.ContainerFaint)
+                        },
+                    modifier = Modifier.size(Dimens.IconDefault),
                 )
             }
         }

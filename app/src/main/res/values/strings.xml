@@ -68,6 +68,13 @@
     <string name="library_remove_bookmark">Remove bookmark</string>
     <string name="library_remove_bookmark_confirm">Remove "%1$s" from your library?</string>
     <string name="library_filter_all">All</string>
+    <string name="filter_label_with_count">%1$s (%2$d)</string>
+    <string name="library_filter_reading">Reading</string>
+    <string name="library_filter_completed">Completed</string>
+    <string name="library_sort_recent">Recently updated</string>
+    <string name="library_sort_title">Title A-Z</string>
+    <string name="library_search_hint">Search your library…</string>
+    <string name="cd_sort">Sort</string>
     <string name="library_filter_favorites">Favorites</string>
     <string name="library_favorites_empty_title">No favorites yet</string>
     <string name="library_favorites_empty_subtitle">Tap the heart on a manga to add it here</string>
@@ -84,7 +91,7 @@
     <string name="detail_read_now">READ NOW</string>
     <string name="detail_continue_reading">CONTINUE READING</string>
     <string name="detail_loading">LOADING…</string>
-    <string name="detail_in_library">IN LIBRARY</string>
+    <string name="detail_in_library">REMOVE FROM LIBRARY</string>
     <string name="detail_add_to_library">ADD TO LIBRARY</string>
     <string name="detail_pages_suffix">%1$dp</string>
     <string name="detail_error">Couldn\'t load manga details</string>
@@ -124,6 +131,8 @@
     <string name="reader_mode_label_ltr">LTR</string>
     <string name="reader_mode_label_rtl">RTL</string>
     <string name="reader_switch_mode_action">Switch reading mode to %1$s</string>
+    <string name="reader_prev_chapter">Previous chapter</string>
+    <string name="reader_next_chapter">Next chapter</string>
 
     <!-- Settings Screen -->
     <string name="settings_title">Settings</string>
@@ -306,7 +315,7 @@
     <string name="stats_weekly_activity">Weekly activity</string>
     <string name="stats_monthly_trend">Monthly trend</string>
     <string name="stats_no_data">Start reading to see your stats here</string>
-    <string name="stats_library_breakdown">Titles by status</string>
+    <string name="stats_library_breakdown">Library breakdown</string>
     <string name="stats_top_manga">Most read titles</string>
     <string name="stats_reading">Reading</string>
     <string name="stats_completed">Completed</string>

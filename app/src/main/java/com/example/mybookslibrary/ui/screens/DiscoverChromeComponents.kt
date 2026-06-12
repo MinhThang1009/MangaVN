@@ -27,6 +27,7 @@ import androidx.compose.ui.draw.clip
 
 import com.composables.icons.lucide.BookOpen
 import com.composables.icons.lucide.Clock
+import com.composables.icons.lucide.Download
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Menu
 import com.composables.icons.lucide.Settings
@@ -44,9 +45,9 @@ import com.example.mybookslibrary.ui.util.appString
 @Composable
 internal fun EditorialTopBar(
     onSearchClick: () -> Unit = {},
-    onLibraryClick: () -> Unit = {},
     onProfileClick: () -> Unit = {},
     onHistoryClick: () -> Unit = {},
+    onDownloadsClick: () -> Unit = {},
     onSettingsClick: () -> Unit = {},
 ) {
     val menuExpanded = remember { mutableStateOf(false) }
@@ -57,8 +58,8 @@ internal fun EditorialTopBar(
             DiscoverNavigationMenu(
                 expanded = menuExpanded.value,
                 onExpandedChange = { menuExpanded.value = it },
-                onLibraryClick = onLibraryClick,
                 onHistoryClick = onHistoryClick,
+                onDownloadsClick = onDownloadsClick,
                 onSettingsClick = onSettingsClick,
             )
         },
@@ -98,8 +99,8 @@ private fun BrandTitle() {
 private fun DiscoverNavigationMenu(
     expanded: Boolean,
     onExpandedChange: (Boolean) -> Unit,
-    onLibraryClick: () -> Unit,
     onHistoryClick: () -> Unit,
+    onDownloadsClick: () -> Unit,
     onSettingsClick: () -> Unit,
 ) {
     Box {
@@ -111,19 +112,19 @@ private fun DiscoverNavigationMenu(
             onDismissRequest = { onExpandedChange(false) },
         ) {
             DiscoverMenuItem(
-                label = appString(R.string.nav_library),
-                icon = Lucide.BookOpen,
-                onClick = {
-                    onExpandedChange(false)
-                    onLibraryClick()
-                },
-            )
-            DiscoverMenuItem(
                 label = appString(R.string.reading_history_title),
                 icon = Lucide.Clock,
                 onClick = {
                     onExpandedChange(false)
                     onHistoryClick()
+                },
+            )
+            DiscoverMenuItem(
+                label = appString(R.string.profile_downloads),
+                icon = Lucide.Download,
+                onClick = {
+                    onExpandedChange(false)
+                    onDownloadsClick()
                 },
             )
             DiscoverMenuItem(

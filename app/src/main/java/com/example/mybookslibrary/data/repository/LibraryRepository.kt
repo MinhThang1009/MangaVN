@@ -91,8 +91,9 @@ class LibraryRepository(
         coverUrl: String,
         isFavorite: Boolean,
     ) {
+        val now = System.currentTimeMillis()
         database.withTransaction {
-            val updatedRows = libraryDao.updateFavorite(mangaId, isFavorite)
+            val updatedRows = libraryDao.updateFavorite(mangaId, isFavorite, now)
             if (updatedRows == 0 && isFavorite) {
                 libraryDao.upsert(
                     LibraryItemEntity(
@@ -100,10 +101,13 @@ class LibraryRepository(
                         title = title,
                         cover_url = coverUrl,
                         is_favorite = true,
+                        updated_at = now,
                     ),
                 )
             }
         }
+        val item = libraryDao.getByMangaId(mangaId)
+        if (item != null) trySyncItem(item)
     }
 
     /** Xóa toàn bộ thư viện. Gọi khi sign out. */
@@ -204,6 +208,8 @@ class LibraryRepository(
             )
             recomputeLibraryStatus(mangaId)
         }
+        val item = libraryDao.getByMangaId(mangaId)
+        if (item != null) trySyncItem(item)
     }
 
     /**
@@ -237,6 +243,8 @@ class LibraryRepository(
             )
             recomputeLibraryStatus(mangaId)
         }
+        val item = libraryDao.getByMangaId(mangaId)
+        if (item != null) trySyncItem(item)
     }
 
     /**
@@ -276,18 +284,8 @@ class LibraryRepository(
         val user = authRepository.getCurrentUser() ?: return
         externalScope.launch {
             try {
-                val firestoreItem = FirestoreLibraryItem(
-                    mangaId = item.manga_id,
-                    title = item.title,
-                    coverUrl = item.cover_url,
-                    status = item.status.name,
-                    addedAt = item.updated_at,
-                    lastReadAt = item.updated_at,
-                    lastChapterId = item.last_read_chapter_id,
-                    updatedAt = item.updated_at
-                )
-                firestoreDataSource.saveItem(user.uid, firestoreItem)
-                libraryDao.markSynced(item.manga_id)
+                firestoreDataSource.saveItem(user.uid, item.toFirestore())
+                libraryDao.markSynced(item.manga_id, item.updated_at)
             } catch (e: Exception) {
                 Timber.e(e, "Error syncing Firestore item")
             }
@@ -322,7 +320,7 @@ class LibraryRepository(
                     chapterDao.deleteLibraryItemAndProgress(item.manga_id)
                 } else {
                     firestoreDataSource.saveItem(userId, item.toFirestore())
-                    libraryDao.markSynced(item.manga_id)
+                    libraryDao.markSynced(item.manga_id, item.updated_at)
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Error during uploading pending item ${item.manga_id}")
@@ -389,9 +387,11 @@ class LibraryRepository(
             title = title,
             coverUrl = cover_url,
             status = status.name,
-            addedAt = updated_at,
+            isFavorite = is_favorite,
+            addedAt = added_at,
             lastReadAt = updated_at,
             lastChapterId = last_read_chapter_id,
+            lastReadPageIndex = last_read_page_index,
             updatedAt = updated_at,
         )
 
@@ -402,8 +402,10 @@ class LibraryRepository(
             cover_url = coverUrl ?: "",
             status = LibraryStatus.entries.firstOrNull { it.name == status } ?: LibraryStatus.READING,
             last_read_chapter_id = lastChapterId,
-            last_read_page_index = 0,
+            last_read_page_index = lastReadPageIndex,
+            added_at = if (addedAt > 0) addedAt else updatedAt,
             updated_at = updatedAt,
+            is_favorite = isFavorite,
             syncStatus = SyncStatus.SYNCED,
         )
 
@@ -413,7 +415,9 @@ class LibraryRepository(
             cover_url = coverUrl ?: "",
             status = LibraryStatus.entries.firstOrNull { it.name == status } ?: LibraryStatus.READING,
             last_read_chapter_id = lastChapterId,
+            last_read_page_index = lastReadPageIndex,
             updated_at = updatedAt,
+            is_favorite = isFavorite,
             syncStatus = SyncStatus.SYNCED,
         )
 

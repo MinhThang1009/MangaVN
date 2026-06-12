@@ -52,13 +52,26 @@ abstract class ChapterDao {
     @Query("SELECT COUNT(*) FROM chapter_progress WHERE status = 'COMPLETED'")
     abstract fun observeCompletedChapterCount(): Flow<Int>
 
+    /** Đếm chapter đang đọc dở — cho Statistics. */
+    @Query("SELECT COUNT(*) FROM chapter_progress WHERE status = 'READING'")
+    abstract fun observeReadingChapterCount(): Flow<Int>
+
     /** Tổng số chapter đã có progress — cho Statistics. */
     @Query("SELECT COUNT(*) FROM chapter_progress")
     abstract fun observeTotalProgressCount(): Flow<Int>
 
-    /** Danh sách chapter progress gần nhất — cho Statistics chart (30 ngày). */
-    @Query("SELECT * FROM chapter_progress ORDER BY updated_at DESC LIMIT 200")
-    abstract fun observeRecentProgress(): Flow<List<ChapterProgressEntity>>
+    /**
+     * Chapter ĐÃ ĐỌC (READING/COMPLETED) trong 28 ngày gần nhất — cho Statistics chart.
+     * Loại UNREAD: "đánh dấu chưa đọc" cũng ghi row mới, không được tính là hoạt động đọc.
+     */
+    @Query(
+        """
+        SELECT * FROM chapter_progress
+        WHERE updated_at >= :cutoff AND status IN ('READING', 'COMPLETED')
+        ORDER BY updated_at DESC
+        """,
+    )
+    abstract fun observeRecentProgress(cutoff: Long): Flow<List<ChapterProgressEntity>>
 
     /** Top truyện có nhiều chương đã đọc nhất — cho Statistics RowChart. */
     @Query(
@@ -66,6 +79,7 @@ abstract class ChapterDao {
         SELECT li.title AS title, COUNT(cp.chapter_id) AS chapterCount
         FROM chapter_progress cp
         INNER JOIN library_items li ON li.manga_id = cp.manga_id
+        WHERE li.sync_status != 'PENDING_DELETE'
         GROUP BY cp.manga_id
         ORDER BY chapterCount DESC
         LIMIT 5
@@ -155,6 +169,26 @@ abstract class ChapterDao {
     )
     abstract suspend fun countUnfinishedChapterNumbers(mangaId: String): Int
 
+    @Query(
+        """
+        SELECT chapter_id, chapter_number, volume FROM chapter_metadata
+        WHERE manga_id = :mangaId
+          AND feed_order < (SELECT feed_order FROM chapter_metadata WHERE chapter_id = :chapterId)
+        ORDER BY feed_order DESC LIMIT 1
+        """,
+    )
+    abstract suspend fun getPrevChapter(mangaId: String, chapterId: String): AdjacentChapter?
+
+    @Query(
+        """
+        SELECT chapter_id, chapter_number, volume FROM chapter_metadata
+        WHERE manga_id = :mangaId
+          AND feed_order > (SELECT feed_order FROM chapter_metadata WHERE chapter_id = :chapterId)
+        ORDER BY feed_order ASC LIMIT 1
+        """,
+    )
+    abstract suspend fun getNextChapter(mangaId: String, chapterId: String): AdjacentChapter?
+
     @Query("DELETE FROM chapter_progress WHERE manga_id = :mangaId")
     protected abstract suspend fun deleteProgressByMangaId(mangaId: String)
 
@@ -173,3 +207,15 @@ data class TopMangaCount(
     val title: String,
     val chapterCount: Int,
 )
+
+data class AdjacentChapter(
+    @androidx.room.ColumnInfo(name = "chapter_id") val chapterId: String,
+    @androidx.room.ColumnInfo(name = "chapter_number") val chapterNumber: String?,
+    @androidx.room.ColumnInfo(name = "volume") val volume: String?,
+) {
+    fun buildTitle(): String = buildString {
+        volume?.takeIf { it.isNotBlank() }?.let { append("Vol. $it ") }
+        chapterNumber?.takeIf { it.isNotBlank() }?.let { append("Ch. $it") }
+        if (isEmpty()) append("Oneshot")
+    }
+}
