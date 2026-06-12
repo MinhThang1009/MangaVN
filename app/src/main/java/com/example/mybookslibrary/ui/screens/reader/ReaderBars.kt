@@ -18,6 +18,7 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -25,6 +26,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import com.composables.icons.lucide.ArrowLeft
 import com.composables.icons.lucide.BookOpen
@@ -34,6 +36,7 @@ import com.composables.icons.lucide.Scroll
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -244,13 +247,18 @@ internal fun BoxScope.ReaderBottomBar(
             ReadingMode.LTR -> R.string.reader_mode_rtl
             ReadingMode.RTL -> R.string.reader_mode_vertical
         }
+    val currentReadingModeLabelRes =
+        when (state.currentReadingMode) {
+            ReadingMode.VERTICAL -> R.string.reader_mode_label_vertical
+            ReadingMode.LTR -> R.string.reader_mode_label_ltr
+            ReadingMode.RTL -> R.string.reader_mode_label_rtl
+        }
 
-    // Icon and content description cycle: VERTICAL → LTR → RTL
     val modeIcon =
         when (state.currentReadingMode) {
-            ReadingMode.VERTICAL -> Lucide.BookOpen
-            ReadingMode.LTR -> Lucide.BookOpenCheck
-            ReadingMode.RTL -> Lucide.Scroll
+            ReadingMode.VERTICAL -> Lucide.Scroll
+            ReadingMode.LTR -> Lucide.BookOpen
+            ReadingMode.RTL -> Lucide.BookOpenCheck
         }
 
     AnimatedVisibility(
@@ -273,18 +281,22 @@ internal fun BoxScope.ReaderBottomBar(
                 text = "$displayPage / $safeTotalPages",
                 style = MaterialTheme.typography.titleMedium,
                 color = colors.content,
-                modifier = Modifier.weight(1f),
             )
             Text(
                 text = appString(R.string.reader_pages_label),
                 style = MaterialTheme.typography.bodySmall,
                 color = colors.secondaryContent,
-                modifier = Modifier.padding(end = Dimens.SpacingSm),
+                modifier = Modifier.padding(start = Dimens.SpacingXs),
             )
-            IconButton(onClick = {
-                Timber.v("ReaderBottomBar toggle clicked: currentMode=%s", state.currentReadingMode)
-                onToggleReadingMode()
-            }) {
+            Spacer(modifier = Modifier.weight(1f))
+            TextButton(
+                onClick = {
+                    Timber.v("ReaderBottomBar toggle clicked: currentMode=%s", state.currentReadingMode)
+                    onToggleReadingMode()
+                },
+                colors = ButtonDefaults.textButtonColors(contentColor = colors.content),
+                contentPadding = ButtonDefaults.TextButtonContentPadding,
+            ) {
                 Icon(
                     imageVector = modeIcon,
                     contentDescription =
@@ -294,6 +306,11 @@ internal fun BoxScope.ReaderBottomBar(
                         ),
                     tint = colors.content,
                     modifier = Modifier.size(Dimens.IconDefault),
+                )
+                Text(
+                    text = appString(currentReadingModeLabelRes),
+                    style = MaterialTheme.typography.labelLarge,
+                    modifier = Modifier.padding(start = Dimens.SpacingSm),
                 )
             }
         }

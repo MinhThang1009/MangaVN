@@ -121,6 +121,9 @@
     <string name="reader_mode_vertical">Cuộn dọc</string>
     <string name="reader_mode_ltr">Ngang (LTR)</string>
     <string name="reader_mode_rtl">Ngang (RTL)</string>
+    <string name="reader_mode_label_vertical">Dọc</string>
+    <string name="reader_mode_label_ltr">LTR</string>
+    <string name="reader_mode_label_rtl">RTL</string>
     <string name="reader_switch_mode_action">Chuyển chế độ đọc sang %1$s</string>
 
     <!-- Cài đặt -->

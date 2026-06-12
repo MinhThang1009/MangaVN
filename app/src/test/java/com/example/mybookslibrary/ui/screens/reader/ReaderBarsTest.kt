@@ -119,6 +119,7 @@ class ReaderBarsTest {
         // page 4 (0-based) → display "5 / 20"
         composeRule.onNodeWithText("5 / 20").assertIsDisplayed()
         composeRule.onNodeWithText("Pages").assertIsDisplayed()
+        composeRule.onNodeWithText("LTR").assertIsDisplayed()
     }
 
     @Test
@@ -223,6 +224,7 @@ class ReaderBarsTest {
             }
         }
         composeRule.onNodeWithText("1 / 3").assertIsDisplayed()
+        composeRule.onNodeWithText("RTL").assertIsDisplayed()
     }
 
     @Test
@@ -239,5 +241,6 @@ class ReaderBarsTest {
             }
         }
         composeRule.onNodeWithText("2 / 5").assertIsDisplayed()
+        composeRule.onNodeWithText("Vertical").assertIsDisplayed()
     }
 }
