@@ -10,6 +10,7 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import com.example.mybookslibrary.ui.util.FakeImageLoader
+import me.saket.telephoto.zoomable.EnabledZoomGestures
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -98,6 +99,21 @@ class MangaPageItemTest {
             )
         }
         composeRule.waitForIdle()
+    }
+
+    @Test
+    fun parentPageSwipe_atBaseZoom_disablesSingleFingerImagePan() {
+        assertEquals(EnabledZoomGestures.ZoomOnly, mangaPageGestures(allowParentPageSwipe = true, zoomFraction = null))
+        assertEquals(EnabledZoomGestures.ZoomOnly, mangaPageGestures(allowParentPageSwipe = true, zoomFraction = 0f))
+    }
+
+    @Test
+    fun parentPageSwipe_whenZoomed_keepsImagePanEnabled() {
+        assertEquals(
+            EnabledZoomGestures.ZoomAndPan,
+            mangaPageGestures(allowParentPageSwipe = true, zoomFraction = 0.01f),
+        )
+        assertEquals(EnabledZoomGestures.ZoomAndPan, mangaPageGestures(allowParentPageSwipe = false, zoomFraction = 0f))
     }
 
     @Test

@@ -191,6 +191,7 @@ private fun HorizontalReaderPager(
                     onLongPress = { url, index ->
                         onEvent(ReaderEvent.PageLongPressed(url, index))
                     },
+                    allowParentPageSwipe = true,
                     modifier = Modifier.fillMaxSize(),
                 )
             }
