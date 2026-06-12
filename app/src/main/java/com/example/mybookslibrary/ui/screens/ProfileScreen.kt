@@ -150,7 +150,7 @@ private fun ProfileHeader(
     ) {
         Box(
             modifier = Modifier
-                .size(80.dp)
+                .size(Dimens.AvatarMd)
                 .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.primaryContainer),
             contentAlignment = Alignment.Center,
@@ -172,7 +172,7 @@ private fun ProfileHeader(
                 Icon(
                     Lucide.User,
                     contentDescription = null,
-                    modifier = Modifier.size(40.dp),
+                    modifier = Modifier.size(Dimens.AvatarSm),
                     tint = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
             }

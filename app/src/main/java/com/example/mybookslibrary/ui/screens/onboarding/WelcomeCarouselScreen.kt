@@ -103,7 +103,7 @@ fun WelcomeCarouselScreen(
                     contentDescription = null,
                     modifier =
                         Modifier
-                            .size(96.dp)
+                            .size(Dimens.IconHero)
                             .graphicsLayer { translationY = -parallaxTranslation },
                     tint = MaterialTheme.colorScheme.primary,
                 )

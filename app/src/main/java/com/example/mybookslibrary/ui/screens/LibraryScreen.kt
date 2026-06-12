@@ -31,7 +31,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.composables.icons.lucide.BookOpen
@@ -173,7 +172,7 @@ private fun LibraryItemCard(
     Card(
         modifier = Modifier.fillMaxWidth().combinedClickable(onClick = onClick, onLongClick = onLongClick),
         shape = MaterialTheme.shapes.large,
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = Dimens.BorderThin),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
     ) {
         Row(
@@ -183,7 +182,7 @@ private fun LibraryItemCard(
             MangaCoverCard(
                 coverUrl = coverUrl,
                 contentDescription = title,
-                width = 60.dp,
+                width = Dimens.CoverThumb,
             )
             Spacer(Modifier.width(Dimens.SpacingLg))
             Column(Modifier.weight(1f)) {

@@ -39,7 +39,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.composables.icons.lucide.ArrowLeft
@@ -121,7 +120,7 @@ fun EditProfileScreen(
 
                 Box(
                     modifier = Modifier
-                        .size(100.dp)
+                        .size(Dimens.AvatarLg)
                         .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.primaryContainer)
                         .clickable { avatarPicker.launch("image/*") },
@@ -138,14 +137,14 @@ fun EditProfileScreen(
                         Icon(
                             Lucide.User,
                             contentDescription = null,
-                            modifier = Modifier.size(48.dp),
+                            modifier = Modifier.size(Dimens.IconXl),
                             tint = MaterialTheme.colorScheme.onPrimaryContainer,
                         )
                     }
                     Box(
                         modifier = Modifier
                             .align(Alignment.BottomEnd)
-                            .size(32.dp)
+                            .size(Dimens.IconLg)
                             .clip(CircleShape)
                             .background(MaterialTheme.colorScheme.primary),
                         contentAlignment = Alignment.Center,
@@ -154,7 +153,7 @@ fun EditProfileScreen(
                             Lucide.Camera,
                             contentDescription = appString(R.string.profile_change_avatar),
                             tint = MaterialTheme.colorScheme.onPrimary,
-                            modifier = Modifier.size(16.dp),
+                            modifier = Modifier.size(Dimens.SpacingLg),
                         )
                     }
                 }

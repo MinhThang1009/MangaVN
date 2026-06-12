@@ -28,7 +28,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.composables.icons.lucide.ArrowLeft
@@ -107,7 +106,7 @@ private fun ReadingHistoryCard(
     Card(
         modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
         shape = MaterialTheme.shapes.large,
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = Dimens.BorderThin),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
     ) {
         Row(
@@ -117,7 +116,7 @@ private fun ReadingHistoryCard(
             MangaCoverCard(
                 coverUrl = item.cover_url,
                 contentDescription = item.title,
-                width = 60.dp,
+                width = Dimens.CoverThumb,
             )
             Spacer(Modifier.width(Dimens.SpacingLg))
             Column(Modifier.weight(1f)) {

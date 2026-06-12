@@ -38,7 +38,6 @@ import com.example.mybookslibrary.ui.util.appString
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.composables.icons.lucide.BookOpen
 import com.composables.icons.lucide.Eye
@@ -103,7 +102,7 @@ fun LoginScreen(
             Icon(
                 Lucide.BookOpen,
                 contentDescription = null,
-                modifier = Modifier.size(56.dp),
+                modifier = Modifier.size(Dimens.IconXxl),
                 tint = MaterialTheme.colorScheme.primary,
             )
             Spacer(Modifier.height(Dimens.SpacingLg))
