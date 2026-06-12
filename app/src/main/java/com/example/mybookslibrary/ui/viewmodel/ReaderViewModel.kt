@@ -140,8 +140,10 @@ constructor(
             is ReaderEvent.PageActionSelected -> handlePageActionSelected(event.action)
             is ReaderEvent.PageActionCompleted -> handlePageActionCompleted(event.action)
             is ReaderEvent.PageActionFailed -> handlePageActionFailed(event.action, event.message)
-            ReaderEvent.NavigatePrevChapter -> navigateToChapter(_state.value.prevChapterId, _state.value.prevChapterTitle)
-            ReaderEvent.NavigateNextChapter -> navigateToChapter(_state.value.nextChapterId, _state.value.nextChapterTitle)
+            ReaderEvent.NavigatePrevChapter ->
+                navigateToChapter(_state.value.prevChapterId, _state.value.prevChapterTitle)
+            ReaderEvent.NavigateNextChapter ->
+                navigateToChapter(_state.value.nextChapterId, _state.value.nextChapterTitle)
         }
     }
 
