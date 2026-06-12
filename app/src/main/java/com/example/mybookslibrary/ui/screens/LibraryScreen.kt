@@ -1,7 +1,9 @@
 package com.example.mybookslibrary.ui.screens
 
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -34,10 +36,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import com.composables.icons.lucide.ArrowUpDown
 import com.composables.icons.lucide.BookOpen
 import com.composables.icons.lucide.Heart
 import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.Search
 import com.example.mybookslibrary.R
 import com.example.mybookslibrary.data.local.LibraryItemEntity
 import com.example.mybookslibrary.data.local.LibraryStatus
@@ -49,9 +57,13 @@ import com.example.mybookslibrary.ui.screens.components.AppFilterChip
 import com.example.mybookslibrary.ui.screens.components.EmptyState
 import com.example.mybookslibrary.ui.screens.components.MangaCoverCard
 import com.example.mybookslibrary.ui.screens.components.StatusChip
+import com.example.mybookslibrary.ui.screens.components.StyledDropdownMenu
 import com.example.mybookslibrary.ui.theme.Dimens
 import com.example.mybookslibrary.ui.theme.statusColors
 import com.example.mybookslibrary.ui.util.appString
+import com.example.mybookslibrary.ui.viewmodel.LibraryFilter
+import com.example.mybookslibrary.ui.viewmodel.LibraryFilterCounts
+import com.example.mybookslibrary.ui.viewmodel.LibrarySort
 import com.example.mybookslibrary.ui.viewmodel.LibraryViewModel
 import kotlinx.coroutines.launch
 
@@ -65,9 +77,11 @@ fun LibraryScreenContent(
 ) {
     val items by vm.libraryItems.collectAsStateWithLifecycle(initialValue = emptyList())
     val isRefreshing by vm.isRefreshing.collectAsStateWithLifecycle()
-    val showFavoritesOnly by vm.showFavoritesOnly.collectAsStateWithLifecycle()
+    val filter by vm.filter.collectAsStateWithLifecycle()
+    val sort by vm.sort.collectAsStateWithLifecycle()
+    val searchQuery by vm.searchQuery.collectAsStateWithLifecycle()
     val filterCounts by vm.filterCounts.collectAsStateWithLifecycle(
-        initialValue = com.example.mybookslibrary.ui.viewmodel.LibraryFilterCounts(),
+        initialValue = LibraryFilterCounts(),
     )
     var pendingRemoval by remember { mutableStateOf<LibraryItemEntity?>(null) }
     val bottomNavPadding = LocalBottomNavPadding.current
@@ -88,7 +102,7 @@ fun LibraryScreenContent(
                     .padding(innerPadding)
                     .consumeWindowInsets(innerPadding),
         ) {
-            if (items.isEmpty() && !showFavoritesOnly) {
+            if (filterCounts.all == 0) {
                 EmptyState(
                     title = appString(R.string.library_empty_title),
                     subtitle = appString(R.string.library_empty_subtitle),
@@ -116,35 +130,36 @@ fun LibraryScreenContent(
                         Spacer(Modifier.height(Dimens.SpacingSm))
                     }
                     item {
-                        Row(horizontalArrangement = Arrangement.spacedBy(Dimens.SpacingSm)) {
-                            AppFilterChip(
-                                label = appString(
-                                    R.string.filter_label_with_count,
-                                    appString(R.string.library_filter_all),
-                                    filterCounts.all,
-                                ),
-                                selected = !showFavoritesOnly,
-                                onClick = { vm.setShowFavoritesOnly(false) },
-                            )
-                            AppFilterChip(
-                                label = appString(
-                                    R.string.filter_label_with_count,
-                                    appString(R.string.library_filter_favorites),
-                                    filterCounts.favorites,
-                                ),
-                                selected = showFavoritesOnly,
-                                onClick = { vm.setShowFavoritesOnly(true) },
-                            )
-                        }
+                        LibrarySearchSortRow(
+                            searchQuery = searchQuery,
+                            sort = sort,
+                            onSearchChange = vm::setSearchQuery,
+                            onSortChange = vm::setSort,
+                        )
+                    }
+                    item {
+                        LibraryFilterChips(
+                            filter = filter,
+                            counts = filterCounts,
+                            onFilterChange = vm::setFilter,
+                        )
                     }
                     if (items.isEmpty()) {
                         item {
-                            EmptyState(
-                                title = appString(R.string.library_favorites_empty_title),
-                                subtitle = appString(R.string.library_favorites_empty_subtitle),
-                                icon = Lucide.Heart,
-                                modifier = Modifier.fillMaxWidth().padding(top = Dimens.SpacingXxl),
-                            )
+                            if (filter == LibraryFilter.FAVORITES && searchQuery.isBlank()) {
+                                EmptyState(
+                                    title = appString(R.string.library_favorites_empty_title),
+                                    subtitle = appString(R.string.library_favorites_empty_subtitle),
+                                    icon = Lucide.Heart,
+                                    modifier = Modifier.fillMaxWidth().padding(top = Dimens.SpacingXxl),
+                                )
+                            } else {
+                                EmptyState(
+                                    title = appString(R.string.search_no_results_filter),
+                                    icon = Lucide.BookOpen,
+                                    modifier = Modifier.fillMaxWidth().padding(top = Dimens.SpacingXxl),
+                                )
+                            }
                         }
                     }
                     items(items, key = { it.manga_id }) { item ->
@@ -252,4 +267,133 @@ private fun LibraryItemCard(
             }
         }
     }
+}
+
+@Composable
+private fun LibrarySearchSortRow(
+    searchQuery: String,
+    sort: LibrarySort,
+    onSearchChange: (String) -> Unit,
+    onSortChange: (LibrarySort) -> Unit,
+) {
+    var sortMenuExpanded by remember { mutableStateOf(false) }
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(Dimens.SpacingSm),
+    ) {
+        OutlinedTextField(
+            value = searchQuery,
+            onValueChange = onSearchChange,
+            modifier = Modifier.weight(1f),
+            placeholder = { Text(appString(R.string.library_search_hint)) },
+            leadingIcon = {
+                Icon(
+                    Lucide.Search,
+                    contentDescription = null,
+                    modifier = Modifier.size(Dimens.IconSm),
+                )
+            },
+            singleLine = true,
+            shape = MaterialTheme.shapes.large,
+        )
+        Box {
+            IconButton(onClick = { sortMenuExpanded = true }) {
+                Icon(
+                    Lucide.ArrowUpDown,
+                    contentDescription = appString(R.string.cd_sort),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            StyledDropdownMenu(
+                expanded = sortMenuExpanded,
+                onDismissRequest = { sortMenuExpanded = false },
+            ) {
+                LibrarySortMenuItem(
+                    label = appString(R.string.library_sort_recent),
+                    selected = sort == LibrarySort.RECENT,
+                    onClick = {
+                        sortMenuExpanded = false
+                        onSortChange(LibrarySort.RECENT)
+                    },
+                )
+                LibrarySortMenuItem(
+                    label = appString(R.string.library_sort_title),
+                    selected = sort == LibrarySort.TITLE,
+                    onClick = {
+                        sortMenuExpanded = false
+                        onSortChange(LibrarySort.TITLE)
+                    },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun LibrarySortMenuItem(label: String, selected: Boolean, onClick: () -> Unit) {
+    DropdownMenuItem(
+        text = {
+            Text(
+                label,
+                style = MaterialTheme.typography.bodyLarge,
+                color = if (selected) {
+                    MaterialTheme.colorScheme.primary
+                } else {
+                    MaterialTheme.colorScheme.onSurface
+                },
+            )
+        },
+        onClick = onClick,
+    )
+}
+
+@Composable
+private fun LibraryFilterChips(
+    filter: LibraryFilter,
+    counts: LibraryFilterCounts,
+    onFilterChange: (LibraryFilter) -> Unit,
+) {
+    Row(
+        modifier = Modifier.horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(Dimens.SpacingSm),
+    ) {
+        LibraryFilterChip(
+            labelRes = R.string.library_filter_all,
+            count = counts.all,
+            selected = filter == LibraryFilter.ALL,
+            onClick = { onFilterChange(LibraryFilter.ALL) },
+        )
+        LibraryFilterChip(
+            labelRes = R.string.library_filter_reading,
+            count = counts.reading,
+            selected = filter == LibraryFilter.READING,
+            onClick = { onFilterChange(LibraryFilter.READING) },
+        )
+        LibraryFilterChip(
+            labelRes = R.string.library_filter_completed,
+            count = counts.completed,
+            selected = filter == LibraryFilter.COMPLETED,
+            onClick = { onFilterChange(LibraryFilter.COMPLETED) },
+        )
+        LibraryFilterChip(
+            labelRes = R.string.library_filter_favorites,
+            count = counts.favorites,
+            selected = filter == LibraryFilter.FAVORITES,
+            onClick = { onFilterChange(LibraryFilter.FAVORITES) },
+        )
+    }
+}
+
+@Composable
+private fun LibraryFilterChip(
+    labelRes: Int,
+    count: Int,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    AppFilterChip(
+        label = appString(R.string.filter_label_with_count, appString(labelRes), count),
+        selected = selected,
+        onClick = onClick,
+    )
 }

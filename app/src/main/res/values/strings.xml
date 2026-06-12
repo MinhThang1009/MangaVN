@@ -69,6 +69,12 @@
     <string name="library_remove_bookmark_confirm">Remove "%1$s" from your library?</string>
     <string name="library_filter_all">All</string>
     <string name="filter_label_with_count">%1$s (%2$d)</string>
+    <string name="library_filter_reading">Reading</string>
+    <string name="library_filter_completed">Completed</string>
+    <string name="library_sort_recent">Recently updated</string>
+    <string name="library_sort_title">Title A-Z</string>
+    <string name="library_search_hint">Search your library…</string>
+    <string name="cd_sort">Sort</string>
     <string name="library_filter_favorites">Favorites</string>
     <string name="library_favorites_empty_title">No favorites yet</string>
     <string name="library_favorites_empty_subtitle">Tap the heart on a manga to add it here</string>

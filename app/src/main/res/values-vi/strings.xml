@@ -69,13 +69,19 @@
     <string name="library_remove_bookmark_confirm">Xoá "%1$s" khỏi thư viện?</string>
     <string name="library_filter_all">Tất cả</string>
     <string name="filter_label_with_count">%1$s (%2$d)</string>
+    <string name="library_filter_reading">Đang đọc</string>
+    <string name="library_filter_completed">Hoàn thành</string>
+    <string name="library_sort_recent">Mới cập nhật</string>
+    <string name="library_sort_title">Tên A-Z</string>
+    <string name="library_search_hint">Tìm trong thư viện…</string>
+    <string name="cd_sort">Sắp xếp</string>
     <string name="library_filter_favorites">Yêu thích</string>
     <string name="library_favorites_empty_title">Chưa có truyện yêu thích</string>
     <string name="library_favorites_empty_subtitle">Nhấn biểu tượng trái tim trên truyện để thêm vào đây</string>
 
     <!-- Trạng thái -->
     <string name="status_reading">Đang đọc</string>
-    <string name="status_completed">Đã đọc</string>
+    <string name="status_completed">Hoàn thành</string>
     <string name="status_favorite">Yêu thích</string>
 
     <!-- Chi tiết manga -->
