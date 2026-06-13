@@ -165,6 +165,7 @@
     <string name="reader_transition_no_next">This is the latest chapter</string>
     <string name="reader_gap_warning_one">Missing Ch. %1$d (not available)</string>
     <string name="reader_gap_warning_range">Missing Ch. %1$d–%2$d (not available)</string>
+    <string name="cd_reader_page_indicator">Page %1$d of %2$d</string>
 
     <!-- Settings Screen -->
     <string name="settings_title">Settings</string>
