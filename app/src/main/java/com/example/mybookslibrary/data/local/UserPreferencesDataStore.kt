@@ -115,6 +115,8 @@ class UserPreferencesDataStore(
     /** Giữ màn hình sáng khi đọc (mặc định tắt). */
     fun observeReaderKeepScreenOn(): Flow<Boolean> = safeData.map { it[READER_KEEP_SCREEN_ON] ?: false }
 
+    suspend fun getReaderKeepScreenOn(): Boolean = safeData.first()[READER_KEEP_SCREEN_ON] ?: false
+
     suspend fun setReaderKeepScreenOn(enabled: Boolean) {
         dataStore.edit { it[READER_KEEP_SCREEN_ON] = enabled }
     }
