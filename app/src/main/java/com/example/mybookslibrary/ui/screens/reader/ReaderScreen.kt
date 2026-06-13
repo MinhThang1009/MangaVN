@@ -11,7 +11,6 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -121,18 +120,14 @@ fun ReaderScreen(
 
     Box(modifier = modifier) {
         readerHintDone?.let { hintDone ->
-            // The first-install hint owns the full-screen pointer stream. Recreate reader content
-            // after it is dismissed so Telephoto and Pager start with fresh gesture detectors.
-            key(hintDone) {
-                ReaderContentHost(
-                    state = state,
-                    listState = listState,
-                    pagerState = pagerState,
-                    readerBarColors = readerBarColors,
-                    onBackClick = onBackClick,
-                    onEvent = onEvent,
-                )
-            }
+            ReaderContentHost(
+                state = state,
+                listState = listState,
+                pagerState = pagerState,
+                readerBarColors = readerBarColors,
+                onBackClick = onBackClick,
+                onEvent = onEvent,
+            )
             ReaderSpotlightOverlay(
                 visible = !hintDone && state.pages.isNotEmpty(),
                 onDismiss = {
