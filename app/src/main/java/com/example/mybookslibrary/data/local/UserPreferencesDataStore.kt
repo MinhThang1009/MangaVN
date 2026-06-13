@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -41,6 +42,8 @@ class UserPreferencesDataStore(
         private val THEME_MODE = stringPreferencesKey("theme_mode")
         private val DOWNLOAD_ONLY_ON_WIFI = booleanPreferencesKey("download_only_on_wifi")
         private val AUTO_DOWNLOAD_NEXT = booleanPreferencesKey("auto_download_next")
+        private val DELETE_AFTER_READ = booleanPreferencesKey("delete_after_read")
+        private val DELETE_AFTER_READ_KEEP = intPreferencesKey("delete_after_read_keep")
         private val NEW_CHAPTER_NOTIFICATIONS = booleanPreferencesKey("new_chapter_notifications")
         private val NEW_CHAPTER_SEEN_MAP = stringPreferencesKey("new_chapter_seen_map")
         private val PREFERRED_CHAPTER_LANGUAGE = stringPreferencesKey("preferred_chapter_language")
@@ -60,6 +63,9 @@ class UserPreferencesDataStore(
         private const val DEFAULT_BRIGHTNESS = 1.0f
         private const val DEFAULT_READER_BACKGROUND = "BLACK"
         private const val DEFAULT_DOWNLOAD_ONLY_ON_WIFI = true
+        private const val DEFAULT_DELETE_AFTER_READ_KEEP = 2
+        private const val KEEP_MIN = 1
+        private const val KEEP_MAX = 5
     }
 
     // Đọc prefs an toàn: file prefs hỏng (IOException) thì trả prefs rỗng thay vì ném,
@@ -238,6 +244,26 @@ class UserPreferencesDataStore(
 
     suspend fun setAutoDownloadNext(enabled: Boolean) {
         dataStore.edit { it[AUTO_DOWNLOAD_NEXT] = enabled }
+    }
+
+    // Tự xóa download chương đã đọc xong, giữ N chương mới nhất (mặc định tắt — destructive, opt-in).
+    fun observeDeleteAfterRead(): Flow<Boolean> = safeData.map { it[DELETE_AFTER_READ] ?: false }
+
+    suspend fun getDeleteAfterRead(): Boolean = safeData.first()[DELETE_AFTER_READ] ?: false
+
+    suspend fun setDeleteAfterRead(enabled: Boolean) {
+        dataStore.edit { it[DELETE_AFTER_READ] = enabled }
+    }
+
+    // Số chương đã đọc gần nhất giữ lại offline (1..5, mặc định 2).
+    fun observeDeleteAfterReadKeep(): Flow<Int> =
+        safeData.map { (it[DELETE_AFTER_READ_KEEP] ?: DEFAULT_DELETE_AFTER_READ_KEEP).coerceIn(KEEP_MIN, KEEP_MAX) }
+
+    suspend fun getDeleteAfterReadKeep(): Int =
+        (safeData.first()[DELETE_AFTER_READ_KEEP] ?: DEFAULT_DELETE_AFTER_READ_KEEP).coerceIn(KEEP_MIN, KEEP_MAX)
+
+    suspend fun setDeleteAfterReadKeep(keep: Int) {
+        dataStore.edit { it[DELETE_AFTER_READ_KEEP] = keep.coerceIn(KEEP_MIN, KEEP_MAX) }
     }
 
     // ─── Thông báo chương mới ──────────────────────────────────────
