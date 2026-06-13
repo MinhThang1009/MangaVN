@@ -109,7 +109,6 @@ fun MainNavHost(
     val coachMarkState = rememberCoachMarkState()
     val snackbarHostState = remember { SnackbarHostState() }
     val isReturningUser = remember { onboardingWelcomeDone }
-    val showTour = authStatus != AuthStatus.LOGGED_OUT && !inAppTourDone
 
     var navBarVisible by remember { mutableStateOf(true) }
     val navBarScrollConnection = remember {
@@ -162,12 +161,26 @@ fun MainNavHost(
     // Rail CHỈ cho tablet (sw ≥ 600dp); phone landscape vẫn dùng bottom bar
     val useRail = showNav && com.example.mybookslibrary.ui.util.isTablet()
 
+    // Tour chỉ chạy khi navbar đang hiển thị — nếu không, target tab không bao giờ được
+    // đo (onGloballyPositioned không chạy) → overlay vô hình nhưng inAppTourDone chưa set
+    // → tour "kẹt" (vd vào thẳng MangaDetail qua deep-link ngay sau khi đăng nhập).
+    val showTour = authStatus != AuthStatus.LOGGED_OUT && !inAppTourDone && showNav
+
     // KHÔNG dùng saveState/restoreState: secondary screen (Setting, History…) nằm trong
     // saved stack sẽ bị restore lại khi bấm tab → navbar nhìn như không phản ứng.
     val navBarCallback: (BottomNavDestination) -> Unit = { destination ->
         navController.navigate(destination.destination) {
             popUpTo(navController.graph.findStartDestination().id)
             launchSingleTop = true
+        }
+    }
+
+    // Tour: đồng bộ tab nền với step đang highlight (Discover→Search→Library→Settings)
+    // để người dùng thấy đúng màn tương ứng, không kẹt ở Discover suốt 4 bước.
+    LaunchedEffect(coachMarkState.currentStep, showTour) {
+        if (showTour) {
+            val tabIndex = coachMarkState.currentStep.coerceIn(0, bottomDestinations.lastIndex)
+            navBarCallback(bottomDestinations[tabIndex])
         }
     }
 
@@ -275,7 +288,13 @@ fun MainNavHost(
                 CoachMarkStep("tab_library", R.string.tour_step3_title, R.string.tour_step3_body),
                 CoachMarkStep("tab_settings", R.string.tour_step4_title, R.string.tour_step4_body),
             ),
-        onDismiss = onTourDone,
+        onDismiss = {
+            // Tour xong/skip: reset step để lần sau mở lại từ đầu, và đưa user về Discover
+            // (tránh bị bỏ lại ở tab Settings — tab cuối của tour).
+            coachMarkState.reset()
+            navBarCallback(BottomNavDestination.DiscoverTab)
+            onTourDone()
+        },
     )
 }
 
