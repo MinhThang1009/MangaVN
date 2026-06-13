@@ -109,7 +109,7 @@ fun SettingScreenContent(
                     start = Dimens.ScreenPaddingCompact,
                     end = Dimens.ScreenPaddingCompact,
                     top = Dimens.SpacingLg,
-                    bottom = bottomNavPadding + Dimens.SpacingLg,
+                    bottom = Dimens.SpacingLg,
                 ),
         ) {
             item { SettingsSectionLabel(appString(R.string.settings_section_appearance)) }
