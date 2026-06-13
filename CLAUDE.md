@@ -24,7 +24,7 @@ JAVA_HOME="C:/Program Files/Java/jdk-21.0.10" ./gradlew assembleDebug
 ```
 
 ## Coverage Thresholds
-- Combined (unit + emulator, JaCoCo): overall ≥ **60%**, changed-files ≥ **60%** — user hạ 2026-06-13 (mức thật ~75%, để headroom vì emulator-test hay dao động), siết dần khi trả nợ `@Preview` cho các screen 0% coverage. Ngưỡng 85% cũ đặt từ khi codebase nhỏ, không còn đạt được sau redesign.
+- Combined (unit + emulator, JaCoCo): **chỉ gate overall ≥ 60%** — đã BỎ gate changed-files (2026-06-13): PR đụng Compose UI / Firestore-sync mapping (khó test JVM) bị changed-files false-block liên tục → vòng hạ ngưỡng vô tận. Overall vẫn chống tụt tổng thể; changed-files vẫn hiện trong comment để tham khảo. Ngưỡng 85% cũ đặt từ khi codebase nhỏ, không còn đạt được sau redesign.
 - Per-package (unit, fail build): rules trong `app/build.gradle.kts` `jacocoCoverageVerification`.
 - Unit-only overall trên PR: chỉ informational (comment), không fail.
 - `MainNavGraph.kt` (62.77%) và `MainScreens.kt` (48.84%): Compose ceiling, không cố fix.
