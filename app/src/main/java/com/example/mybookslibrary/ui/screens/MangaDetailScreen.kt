@@ -146,7 +146,12 @@ fun MangaDetailScreen(
                 }
             }
             item {
-                CustomerReviewsSection(onReviewClick = { onReviewClick(mangaId) })
+                CustomerReviewsSection(
+                    reviews = uiState.topReviews,
+                    averageRating = uiState.reviewAverage,
+                    reviewCount = uiState.reviewCount,
+                    onReviewClick = { onReviewClick(mangaId) },
+                )
             }
             if (uiState.detailError != null && detail == null) {
                 item {

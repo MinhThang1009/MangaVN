@@ -13,6 +13,7 @@ import com.example.mybookslibrary.data.download.OfflineDownloadManager
 import com.example.mybookslibrary.data.local.LibraryItemEntity
 import com.example.mybookslibrary.data.repository.LibraryRepository
 import com.example.mybookslibrary.data.repository.MangaRepository
+import com.example.mybookslibrary.data.repository.ReviewRepository
 import com.example.mybookslibrary.domain.usecase.ChapterListResult
 import com.example.mybookslibrary.domain.model.ChapterReadingStatus
 import com.example.mybookslibrary.domain.model.ChapterWithProgressModel
@@ -85,6 +86,7 @@ class MangaDetailScreenTest {
             getChapterListWithProgressUseCase = useCase,
             offlineDownloadManager = downloadManager,
             userPreferencesDataStore = userPreferencesDataStore,
+            reviewRepository = reviewRepositoryStub(),
             ioDispatcher = UnconfinedTestDispatcher(),
         )
     }
@@ -288,4 +290,10 @@ class MangaDetailScreenTest {
         lastReadPage = 0,
         totalPages = 20,
     )
+
+    private fun reviewRepositoryStub(): ReviewRepository {
+        val repo = mockk<ReviewRepository>(relaxed = true)
+        coEvery { repo.getReviews(any()) } returns emptyList()
+        return repo
+    }
 }

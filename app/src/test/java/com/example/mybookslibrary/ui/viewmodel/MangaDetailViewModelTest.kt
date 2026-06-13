@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import com.example.mybookslibrary.data.download.OfflineDownloadManager
 import com.example.mybookslibrary.data.repository.LibraryRepository
 import com.example.mybookslibrary.data.repository.MangaRepository
+import com.example.mybookslibrary.data.repository.ReviewRepository
 import com.example.mybookslibrary.domain.usecase.GetChapterListWithProgressUseCase
 import com.example.mybookslibrary.domain.usecase.ChapterListResult
 import com.example.mybookslibrary.data.local.UserPreferencesDataStore
@@ -102,6 +103,7 @@ class MangaDetailViewModelTest {
             getChapterListWithProgressUseCase = getChapterListWithProgressUseCase,
             offlineDownloadManager = manager,
             userPreferencesDataStore = userPreferencesDataStore,
+            reviewRepository = reviewRepositoryStub(),
             ioDispatcher = mainDispatcherRule.dispatcher,
         )
     }
@@ -124,5 +126,11 @@ class MangaDetailViewModelTest {
     private companion object {
         const val MANGA_ID = "manga-1"
         const val CHAPTER_ID = "chapter-1"
+    }
+
+    private fun reviewRepositoryStub(): ReviewRepository {
+        val repo = mockk<ReviewRepository>(relaxed = true)
+        coEvery { repo.getReviews(any()) } returns emptyList()
+        return repo
     }
 }

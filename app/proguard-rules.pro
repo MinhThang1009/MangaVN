@@ -16,3 +16,10 @@
 # ẩn tên file gốc (chỉ còn "SourceFile:line") — đủ debug với mapping.txt.
 -keepattributes SourceFile,LineNumberTable
 -renamesourcefileattribute SourceFile
+
+# Firestore deserialize POJO bằng reflection trên TÊN field/getter (toObject/toObjects).
+# R8 rename field HOẶC getter -> map sai -> data rỗng + rules check field-name fail
+# (vỡ im lặng trên bản release ký; debug không minify nên không lộ).
+# Giữ NGUYÊN cả class (field + getter + no-arg constructor) cho mọi model Firestore —
+# theo khuyến nghị Firebase docs cho POJO. Chỉ ~3 class nhỏ, ảnh hưởng size không đáng kể.
+-keep class com.example.mybookslibrary.data.remote.models.** { *; }
