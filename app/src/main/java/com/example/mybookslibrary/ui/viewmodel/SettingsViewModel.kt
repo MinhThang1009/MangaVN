@@ -53,6 +53,7 @@ data class SettingsUiState(
     val volumeKeyNav: Boolean = false,
     val autoAdvance: Boolean = false,
     val autoDownloadNext: Boolean = false,
+    val newChapterNotifications: Boolean = false,
 )
 
 @OptIn(coil3.annotation.ExperimentalCoilApi::class)
@@ -80,6 +81,7 @@ class SettingsViewModel
                 val volumeKeyNav = preferencesDataStore.getReaderVolumeKeyNav()
                 val autoAdvance = preferencesDataStore.getReaderAutoAdvance()
                 val autoDownloadNext = preferencesDataStore.getAutoDownloadNext()
+                val newChapterNotifications = preferencesDataStore.getNewChapterNotifications()
                 _uiState.update {
                     it.copy(
                         quality = q,
@@ -90,6 +92,7 @@ class SettingsViewModel
                         volumeKeyNav = volumeKeyNav,
                         autoAdvance = autoAdvance,
                         autoDownloadNext = autoDownloadNext,
+                        newChapterNotifications = newChapterNotifications,
                     )
                 }
             }
@@ -132,6 +135,14 @@ class SettingsViewModel
                 val newValue = !_uiState.value.autoDownloadNext
                 preferencesDataStore.setAutoDownloadNext(newValue)
                 _uiState.update { it.copy(autoDownloadNext = newValue) }
+            }
+        }
+
+        fun toggleNewChapterNotifications() {
+            viewModelScope.launch(ioDispatcher) {
+                val newValue = !_uiState.value.newChapterNotifications
+                preferencesDataStore.setNewChapterNotifications(newValue)
+                _uiState.update { it.copy(newChapterNotifications = newValue) }
             }
         }
 
