@@ -41,6 +41,7 @@ class SettingsViewModelTest {
         keepScreenOn: Boolean = false,
         volumeKeyNav: Boolean = false,
         autoAdvance: Boolean = false,
+        skipReadChapters: Boolean = false,
         autoDownloadNext: Boolean = false,
         newChapterNotifications: Boolean = false,
         deleteAfterRead: Boolean = false,
@@ -52,6 +53,7 @@ class SettingsViewModelTest {
         coEvery { prefs.getReaderKeepScreenOn() } returns keepScreenOn
         coEvery { prefs.getReaderVolumeKeyNav() } returns volumeKeyNav
         coEvery { prefs.getReaderAutoAdvance() } returns autoAdvance
+        coEvery { prefs.getSkipReadChapters() } returns skipReadChapters
         coEvery { prefs.getAutoDownloadNext() } returns autoDownloadNext
         coEvery { prefs.getNewChapterNotifications() } returns newChapterNotifications
         coEvery { prefs.getDeleteAfterRead() } returns deleteAfterRead
@@ -178,6 +180,20 @@ class SettingsViewModelTest {
 
             assertTrue(vm.uiState.value.newChapterNotifications)
             coVerify { prefs.setNewChapterNotifications(true) }
+        }
+
+    @Test
+    fun toggleSkipReadChapters_doiVaLuu() =
+        runTest(mainDispatcherRule.dispatcher.scheduler) {
+            stubDefaults(skipReadChapters = false)
+            val vm = viewModel()
+            advanceUntilIdle()
+
+            vm.toggleSkipReadChapters()
+            advanceUntilIdle()
+
+            assertTrue(vm.uiState.value.skipReadChapters)
+            coVerify { prefs.setSkipReadChapters(true) }
         }
 
     @Test

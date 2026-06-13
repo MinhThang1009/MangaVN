@@ -17,6 +17,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -42,6 +43,7 @@ class ReaderViewModelTest {
     private val offlineDownloadRepository = mockk<OfflineDownloadRepository>(relaxed = true)
     private val downloadedChapterCache = mockk<DownloadedChapterCache>(relaxed = true)
     private val chapterDao = mockk<com.example.mybookslibrary.data.local.dao.ChapterDao>(relaxed = true)
+    private val loadReaderPagesUseCase = mockk<LoadReaderPagesUseCase>()
 
     @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
     @Test
@@ -453,6 +455,43 @@ class ReaderViewModelTest {
 
     @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
     @Test
+    fun skipReadOn_resolvesNextChapterToNextUnread() =
+        runTest(mainDispatcherRule.dispatcher.scheduler) {
+            stubReaderPrefs()
+            coEvery { userPreferencesDataStore.getSkipReadChapters() } returns true
+            coEvery { chapterDao.getNextUnreadChapter(MANGA_ID, CHAPTER_ID) } returns
+                AdjacentChapter(chapterId = "unread-9", chapterNumber = "9", volume = null)
+            val viewModel = createViewModel(startPageIndex = 0, nextChapter = NEXT_CHAPTER)
+            advanceUntilIdle()
+
+            // Skip-read bật → nextChapterId = chương chưa đọc (không phải chương feed liền kề).
+            assertEquals("unread-9", viewModel.state.value.nextChapterId)
+            coVerify { chapterDao.getNextUnreadChapter(MANGA_ID, CHAPTER_ID) }
+        }
+
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    @Test
+    fun chapterGap_emitsShowGapWarning() =
+        runTest(mainDispatcherRule.dispatcher.scheduler) {
+            stubReaderPrefs()
+            val viewModel = createViewModel(startPageIndex = 0)
+            // Stub SAU createViewModel để thắng default any()->null của getPrevChapter.
+            coEvery { chapterDao.getPrevChapter(MANGA_ID, CHAPTER_ID) } returns
+                AdjacentChapter(chapterId = "prev-5", chapterNumber = "5", volume = null)
+            coEvery { chapterDao.getChapterNumber(CHAPTER_ID) } returns "8"
+            // UNDISPATCHED → collector subscribe đồng bộ NGAY (trước advanceUntilIdle chạy init+emit).
+            val gap = async(start = CoroutineStart.UNDISPATCHED) {
+                viewModel.effects.first { it is ReaderUiEffect.ShowGapWarning } as ReaderUiEffect.ShowGapWarning
+            }
+            advanceUntilIdle()
+
+            // Chương hiện tại Ch.8, liền trước Ch.5 → thiếu Ch.6–7.
+            assertEquals(6, gap.await().gapStart)
+            assertEquals(7, gap.await().gapEnd)
+        }
+
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    @Test
     fun completedChapter_withDeleteAfterRead_deletesOldKeepingN() =
         runTest(mainDispatcherRule.dispatcher.scheduler) {
             stubReaderPrefs()
@@ -541,7 +580,6 @@ class ReaderViewModelTest {
         storedReadingMode: ReadingMode = ReadingMode.LTR,
         nextChapter: AdjacentChapter? = null,
     ): ReaderViewModel {
-        val loadReaderPagesUseCase = mockk<LoadReaderPagesUseCase>()
         val syncReadingProgressUseCase = mockk<SyncReadingProgressUseCase>(relaxed = true)
         val imageLoader = mockk<ImageLoader>(relaxed = true)
         coEvery { userPreferencesDataStore.getReaderReadingMode() } returns storedReadingMode
