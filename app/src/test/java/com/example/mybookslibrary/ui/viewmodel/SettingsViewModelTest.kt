@@ -43,6 +43,8 @@ class SettingsViewModelTest {
         autoAdvance: Boolean = false,
         autoDownloadNext: Boolean = false,
         newChapterNotifications: Boolean = false,
+        deleteAfterRead: Boolean = false,
+        deleteAfterReadKeep: Int = 2,
     ) {
         coEvery { prefs.getReaderQuality() } returns quality
         coEvery { prefs.getThemeMode() } returns theme
@@ -52,6 +54,8 @@ class SettingsViewModelTest {
         coEvery { prefs.getReaderAutoAdvance() } returns autoAdvance
         coEvery { prefs.getAutoDownloadNext() } returns autoDownloadNext
         coEvery { prefs.getNewChapterNotifications() } returns newChapterNotifications
+        coEvery { prefs.getDeleteAfterRead() } returns deleteAfterRead
+        coEvery { prefs.getDeleteAfterReadKeep() } returns deleteAfterReadKeep
     }
 
     private fun viewModel() =
@@ -174,6 +178,34 @@ class SettingsViewModelTest {
 
             assertTrue(vm.uiState.value.newChapterNotifications)
             coVerify { prefs.setNewChapterNotifications(true) }
+        }
+
+    @Test
+    fun toggleDeleteAfterRead_doiVaLuu() =
+        runTest(mainDispatcherRule.dispatcher.scheduler) {
+            stubDefaults(deleteAfterRead = false)
+            val vm = viewModel()
+            advanceUntilIdle()
+
+            vm.toggleDeleteAfterRead()
+            advanceUntilIdle()
+
+            assertTrue(vm.uiState.value.deleteAfterRead)
+            coVerify { prefs.setDeleteAfterRead(true) }
+        }
+
+    @Test
+    fun setDeleteAfterReadKeep_luuGiaTri() =
+        runTest(mainDispatcherRule.dispatcher.scheduler) {
+            stubDefaults(deleteAfterReadKeep = 2)
+            val vm = viewModel()
+            advanceUntilIdle()
+
+            vm.setDeleteAfterReadKeep(3)
+            advanceUntilIdle()
+
+            assertEquals(3, vm.uiState.value.deleteAfterReadKeep)
+            coVerify { prefs.setDeleteAfterReadKeep(3) }
         }
 
     @Test
