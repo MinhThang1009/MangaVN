@@ -31,15 +31,21 @@ class DownloadNotifier
             indeterminate: Boolean,
         ): ForegroundInfo {
             ensureNotificationChannel()
-            val content = if (indeterminate) "Preparing download" else "$progressPercent%"
+            val content =
+                if (indeterminate) {
+                    context.getString(R.string.notification_download_preparing)
+                } else {
+                    "$progressPercent%"
+                }
             val notification =
                 NotificationCompat
-                    .Builder(context, NOTIFICATION_CHANNEL_ID)
+                    .Builder(context, DOWNLOAD_PROGRESS_CHANNEL_ID)
                     .setSmallIcon(R.drawable.ic_stat_name)
-                    .setContentTitle("Downloading chapter")
+                    .setContentTitle(context.getString(R.string.notification_download_in_progress))
                     .setContentText(content)
                     .setOngoing(true)
                     .setOnlyAlertOnce(true)
+                    .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
                     .setProgress(
                         PROGRESS_MAX,
                         progressPercent.coerceIn(PROGRESS_MIN, PROGRESS_MAX),
@@ -57,14 +63,30 @@ class DownloadNotifier
         @ExcludeFromGeneratedCoverage // NotificationManager Android glue
         private fun ensureNotificationChannel() {
             val manager = context.getSystemService(NotificationManager::class.java)
-            val existing = manager.getNotificationChannel(NOTIFICATION_CHANNEL_ID)
-            if (existing != null) return
+            manager.createNotificationChannels(
+                listOf(
+                    NotificationChannel(
+                        DOWNLOAD_PROGRESS_CHANNEL_ID,
+                        context.getString(R.string.notification_download_progress_channel_name),
+                        NotificationManager.IMPORTANCE_LOW,
+                    ),
+                    NotificationChannel(
+                        DOWNLOAD_RESULT_CHANNEL_ID,
+                        context.getString(R.string.notification_download_result_channel_name),
+                        NotificationManager.IMPORTANCE_DEFAULT,
+                    ),
+                ),
+            )
+        }
 
+        @ExcludeFromGeneratedCoverage // NotificationManager Android glue
+        private fun ensureDownloadResultChannel() {
+            val manager = context.getSystemService(NotificationManager::class.java)
             manager.createNotificationChannel(
                 NotificationChannel(
-                    NOTIFICATION_CHANNEL_ID,
-                    "Offline downloads",
-                    NotificationManager.IMPORTANCE_LOW,
+                    DOWNLOAD_RESULT_CHANNEL_ID,
+                    context.getString(R.string.notification_download_result_channel_name),
+                    NotificationManager.IMPORTANCE_DEFAULT,
                 ),
             )
         }
@@ -74,7 +96,7 @@ class DownloadNotifier
             chapterId: String,
             success: Boolean,
         ) {
-            ensureNotificationChannel()
+            ensureDownloadResultChannel()
             // Text qua resources (i18n) + generic — không expose exception message nội bộ
             val title =
                 context.getString(
@@ -82,7 +104,7 @@ class DownloadNotifier
                 )
             val notification =
                 NotificationCompat
-                    .Builder(context, NOTIFICATION_CHANNEL_ID)
+                    .Builder(context, DOWNLOAD_RESULT_CHANNEL_ID)
                     .setSmallIcon(R.drawable.ic_stat_name)
                     .setContentTitle(title)
                     .setAutoCancel(true)
@@ -108,7 +130,11 @@ class DownloadNotifier
             FINISHED_NOTIFICATION_ID_BASE + (chapterId.hashCode().absoluteValue % NOTIFICATION_ID_RANGE)
 
         private companion object {
-            const val NOTIFICATION_CHANNEL_ID = "offline_downloads"
+            // Keep the existing ID so installed users retain their progress-channel preferences.
+            const val DOWNLOAD_PROGRESS_CHANNEL_ID = "offline_downloads"
+
+            // A separate ID is required because Android doesn't allow raising an existing channel's importance.
+            const val DOWNLOAD_RESULT_CHANNEL_ID = "offline_download_results"
             const val NOTIFICATION_ID_BASE = 41_000
             const val FINISHED_NOTIFICATION_ID_BASE = 42_000
             const val NOTIFICATION_ID_RANGE = 1_000

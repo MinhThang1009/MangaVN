@@ -56,11 +56,13 @@ class DownloadNotifierTest {
     }
 
     @Test
-    fun createForegroundInfo_createsNotificationChannel() {
+    fun createForegroundInfo_createsLowImportanceProgressChannel() {
         notifier.createForegroundInfo("chapter-1", progressPercent = 0, indeterminate = true)
 
-        val manager = context.getSystemService(NotificationManager::class.java)
-        assertNotNull(manager.getNotificationChannel("offline_downloads"))
+        val channel = context.getSystemService(NotificationManager::class.java)
+            .getNotificationChannel("offline_downloads")
+        assertNotNull(channel)
+        assertEquals(NotificationManager.IMPORTANCE_LOW, channel.importance)
     }
 
     @Test
@@ -70,6 +72,11 @@ class DownloadNotifierTest {
         val manager = context.getSystemService(NotificationManager::class.java)
         val posted = manager.activeNotifications.single()
         assertTrue(posted.id in 42_000 until 43_000)
+        assertEquals("offline_download_results", posted.notification.channelId)
+        assertEquals(
+            NotificationManager.IMPORTANCE_DEFAULT,
+            manager.getNotificationChannel("offline_download_results").importance,
+        )
     }
 
     @Test
