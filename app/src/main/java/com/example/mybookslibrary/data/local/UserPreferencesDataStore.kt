@@ -38,6 +38,8 @@ class UserPreferencesDataStore(
         private val THEME_MODE = stringPreferencesKey("theme_mode")
         private val DOWNLOAD_ONLY_ON_WIFI = booleanPreferencesKey("download_only_on_wifi")
         private val AUTO_DOWNLOAD_NEXT = booleanPreferencesKey("auto_download_next")
+        private val NEW_CHAPTER_NOTIFICATIONS = booleanPreferencesKey("new_chapter_notifications")
+        private val NEW_CHAPTER_SEEN_MAP = stringPreferencesKey("new_chapter_seen_map")
         private val PREFERRED_CHAPTER_LANGUAGE = stringPreferencesKey("preferred_chapter_language")
         private val ONBOARDING_WELCOME_DONE = booleanPreferencesKey("onboarding_welcome_done")
         private val READER_HINT_DONE = booleanPreferencesKey("reader_hint_done")
@@ -203,6 +205,24 @@ class UserPreferencesDataStore(
 
     suspend fun setAutoDownloadNext(enabled: Boolean) {
         dataStore.edit { it[AUTO_DOWNLOAD_NEXT] = enabled }
+    }
+
+    // ─── Thông báo chương mới ──────────────────────────────────────
+
+    // Bật thông báo khi truyện trong thư viện có chương mới (mặc định tắt — opt-in, tốn pin/mạng).
+    fun observeNewChapterNotifications(): Flow<Boolean> = safeData.map { it[NEW_CHAPTER_NOTIFICATIONS] ?: false }
+
+    suspend fun getNewChapterNotifications(): Boolean = safeData.first()[NEW_CHAPTER_NOTIFICATIONS] ?: false
+
+    suspend fun setNewChapterNotifications(enabled: Boolean) {
+        dataStore.edit { it[NEW_CHAPTER_NOTIFICATIONS] = enabled }
+    }
+
+    // Marker JSON Map<mangaId, latestChapterId> đã thấy — device-local, worker tự parse bằng Json.
+    suspend fun getNewChapterSeenMapRaw(): String = safeData.first()[NEW_CHAPTER_SEEN_MAP] ?: ""
+
+    suspend fun setNewChapterSeenMapRaw(raw: String) {
+        dataStore.edit { it[NEW_CHAPTER_SEEN_MAP] = raw }
     }
 
     // ─── Clear ─────────────────────────────────────────────────────

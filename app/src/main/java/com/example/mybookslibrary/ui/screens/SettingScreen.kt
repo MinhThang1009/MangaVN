@@ -156,6 +156,12 @@ fun SettingScreenContent(
                     if (uiState.autoAdvance) appString(R.string.settings_on) else appString(R.string.settings_off)
                 val autoDownloadNextLabel =
                     if (uiState.autoDownloadNext) appString(R.string.settings_on) else appString(R.string.settings_off)
+                val newChapterNotificationsLabel =
+                    if (uiState.newChapterNotifications) {
+                        appString(R.string.settings_on)
+                    } else {
+                        appString(R.string.settings_off)
+                    }
                 SettingsCard {
                     SettingsRow(appString(R.string.settings_image_quality), qualityLabel) { viewModel.toggleQuality() }
                     SettingsDivider()
@@ -173,6 +179,10 @@ fun SettingScreenContent(
                     SettingsDivider()
                     SettingsRow(appString(R.string.settings_auto_download_next), autoDownloadNextLabel) {
                         viewModel.toggleAutoDownloadNext()
+                    }
+                    SettingsDivider()
+                    SettingsRow(appString(R.string.settings_new_chapter_notifications), newChapterNotificationsLabel) {
+                        viewModel.toggleNewChapterNotifications()
                     }
                 }
                 Spacer(Modifier.height(Dimens.SpacingXl))

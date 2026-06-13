@@ -33,6 +33,7 @@ class SettingsViewModelTest {
     private val authRepository = mockk<com.example.mybookslibrary.data.repository.AuthRepository>(relaxed = true)
     private val imageLoader = mockk<ImageLoader>(relaxed = true)
 
+    @Suppress("LongParameterList") // helper test gom nhiều pref mặc định — dễ đọc hơn là tách nhỏ
     private fun stubDefaults(
         quality: String = "data",
         theme: String = "system",
@@ -41,6 +42,7 @@ class SettingsViewModelTest {
         volumeKeyNav: Boolean = false,
         autoAdvance: Boolean = false,
         autoDownloadNext: Boolean = false,
+        newChapterNotifications: Boolean = false,
     ) {
         coEvery { prefs.getReaderQuality() } returns quality
         coEvery { prefs.getThemeMode() } returns theme
@@ -49,6 +51,7 @@ class SettingsViewModelTest {
         coEvery { prefs.getReaderVolumeKeyNav() } returns volumeKeyNav
         coEvery { prefs.getReaderAutoAdvance() } returns autoAdvance
         coEvery { prefs.getAutoDownloadNext() } returns autoDownloadNext
+        coEvery { prefs.getNewChapterNotifications() } returns newChapterNotifications
     }
 
     private fun viewModel() =
@@ -157,6 +160,20 @@ class SettingsViewModelTest {
 
             assertTrue(vm.uiState.value.autoDownloadNext)
             coVerify { prefs.setAutoDownloadNext(true) }
+        }
+
+    @Test
+    fun toggleNewChapterNotifications_doiVaLuu() =
+        runTest(mainDispatcherRule.dispatcher.scheduler) {
+            stubDefaults(newChapterNotifications = false)
+            val vm = viewModel()
+            advanceUntilIdle()
+
+            vm.toggleNewChapterNotifications()
+            advanceUntilIdle()
+
+            assertTrue(vm.uiState.value.newChapterNotifications)
+            coVerify { prefs.setNewChapterNotifications(true) }
         }
 
     @Test
