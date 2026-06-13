@@ -37,6 +37,11 @@ class CoachMarkState {
         }
     }
 
+    /** Reset về bước đầu — gọi khi tour kết thúc để lần mở lại bắt đầu từ step 0. */
+    fun reset() {
+        currentStep = 0
+    }
+
     fun getTargetRect(key: String): Rect? = targets[key]
 
     fun getTargetCenter(key: String): Offset? {
