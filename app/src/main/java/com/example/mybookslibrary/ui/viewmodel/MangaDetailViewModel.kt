@@ -5,8 +5,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.example.mybookslibrary.data.download.OfflineDownloadManager
+import com.example.mybookslibrary.data.remote.models.FirestoreReview
 import com.example.mybookslibrary.data.repository.LibraryRepository
 import com.example.mybookslibrary.data.repository.MangaRepository
+import com.example.mybookslibrary.data.repository.ReviewRepository
 import com.example.mybookslibrary.di.IoDispatcher
 import com.example.mybookslibrary.data.local.UserPreferencesDataStore
 import com.example.mybookslibrary.domain.model.ChapterWithProgressModel
@@ -23,6 +25,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
+import kotlin.math.roundToInt
 
 data class MangaDetailUiState(
     val mangaDetail: MangaModel? = null,
@@ -38,6 +41,11 @@ data class MangaDetailUiState(
     val isLoadingFirstChapterPages: Boolean = false,
     val firstChapterPagesError: String? = null,
     val lastReadChapterId: String? = null,
+    /** Tối đa 3 review mới nhất cho section Customer Reviews. */
+    val topReviews: List<FirestoreReview> = emptyList(),
+    /** Điểm TB (1 chữ số thập phân) trên tập review đã fetch; null khi chưa có review. */
+    val reviewAverage: Double? = null,
+    val reviewCount: Int = 0,
 )
 
 @HiltViewModel
@@ -50,6 +58,7 @@ class MangaDetailViewModel
         private val getChapterListWithProgressUseCase: GetChapterListWithProgressUseCase,
         private val offlineDownloadManager: OfflineDownloadManager,
         private val userPreferencesDataStore: UserPreferencesDataStore,
+        private val reviewRepository: ReviewRepository,
         @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     ) : ViewModel() {
         private val mangaId: String = savedStateHandle.toRoute<MangaDetail>().mangaId
@@ -61,6 +70,29 @@ class MangaDetailViewModel
             loadMangaDetail()
             observeChapters()
             checkLibraryStatus()
+            loadTopReviews()
+        }
+
+        /** Top 3 review mới nhất + điểm TB cho section Customer Reviews — lỗi thì giữ rỗng (im lặng). */
+        private fun loadTopReviews() {
+            if (mangaId.isBlank()) return
+            launchSafe {
+                val reviews = reviewRepository.getReviews(mangaId)
+                val average =
+                    if (reviews.isEmpty()) {
+                        null
+                    } else {
+                        (reviews.sumOf { it.rating }.toDouble() / reviews.size * AVERAGE_ROUND_FACTOR)
+                            .roundToInt() / AVERAGE_ROUND_FACTOR
+                    }
+                _uiState.update {
+                    it.copy(
+                        topReviews = reviews.take(TOP_REVIEWS_COUNT),
+                        reviewAverage = average,
+                        reviewCount = reviews.size,
+                    )
+                }
+            }
         }
 
         // Chạy tác vụ Room/IO trong viewModelScope có bắt lỗi, tránh crash app do exception không xử lý.
@@ -245,5 +277,10 @@ class MangaDetailViewModel
             launchSafe {
                 offlineDownloadManager.deleteDownload(mangaId, chapterId)
             }
+        }
+
+        companion object {
+            private const val TOP_REVIEWS_COUNT = 3
+            private const val AVERAGE_ROUND_FACTOR = 10.0
         }
     }

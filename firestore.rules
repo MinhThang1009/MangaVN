@@ -1,0 +1,46 @@
+rules_version = '2';
+
+// Firestore Security Rules cho MangaVN.
+// Deploy: Firebase Console -> Firestore Database -> Rules -> paste toàn bộ file -> Publish.
+// File này được version-control trong repo — sửa rules thì sửa ở đây trước rồi paste lại.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===== Dữ liệu cá nhân (library + reading progress sync) =====
+    // Chỉ chính chủ đọc/ghi — giữ nguyên hành vi sync hiện có.
+    match /users/{userId}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // ===== Review + rating manga =====
+    // Đọc công khai (guest xem được review); ghi chỉ chính chủ doc (doc ID = uid tác giả)
+    // kèm validate server-side — client có thể bị bypass nên KHÔNG tin client validation.
+    match /manga_reviews/{mangaId}/reviews/{authorUid} {
+      allow read: if true;
+
+      allow create, update: if request.auth != null
+        && request.auth.uid == authorUid
+        && request.resource.data.rating is int
+        && request.resource.data.rating >= 1
+        && request.resource.data.rating <= 5
+        && request.resource.data.title is string
+        && request.resource.data.title.size() <= 100
+        && request.resource.data.body is string
+        && request.resource.data.body.size() <= 2000
+        && request.resource.data.authorName is string
+        && request.resource.data.authorName.size() <= 100
+        && request.resource.data.createdAt is int
+        && request.resource.data.createdAt > 0
+        && request.resource.data.updatedAt is int
+        && request.resource.data.updatedAt >= request.resource.data.createdAt;
+
+      allow delete: if request.auth != null && request.auth.uid == authorUid;
+    }
+
+    // ===== Mặc định: chặn mọi đường còn lại =====
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

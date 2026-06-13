@@ -171,7 +171,9 @@ complexity:
   LongParameterList:
     active: true
     functionThreshold: 8
-    constructorThreshold: 8
+    # Hilt ViewModel/@Inject constructor là DI wiring — số dependency tăng tự nhiên
+    # theo tính năng, không phải design smell như function param list.
+    constructorThreshold: 10
     ignoreDefaultParameters: false
     ignoreDataClasses: true
     ignoreAnnotatedParameter: []

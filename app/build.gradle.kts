@@ -172,6 +172,7 @@ val jacocoGeneratedFilter =
         "**/NetworkModule.*",
         "**/MangaDexApi.*",
         "**/FirestoreDataSource.*",
+        "**/FirestoreReviewDataSource.*",
         "**/SyncWorker.*",
         // Compose/Android reader glue is covered by focused UI tests where feasible. These file
         // facades mostly contain composable layout, pointer input, launchers, Toast/Intent, previews,

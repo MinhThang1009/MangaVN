@@ -39,9 +39,14 @@ import com.composables.icons.lucide.ChevronUp
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Star
 import com.example.mybookslibrary.R
+import com.example.mybookslibrary.data.remote.models.FirestoreReview
+import com.example.mybookslibrary.ui.screens.components.RatingBadge
+import com.example.mybookslibrary.ui.theme.Alphas
 import com.example.mybookslibrary.ui.theme.Dimens
 import com.example.mybookslibrary.ui.theme.Elevations
 import com.example.mybookslibrary.ui.util.appString
+import java.text.DateFormat
+import java.util.Date
 import androidx.compose.material3.Icon as M3Icon
 
 @Composable
@@ -112,36 +117,67 @@ internal fun FirstChapterPreviewSection(pageUrls: List<String>) {
 }
 
 @Composable
-internal fun CustomerReviewsSection(onReviewClick: () -> Unit) {
+internal fun CustomerReviewsSection(
+    reviews: List<FirestoreReview>,
+    averageRating: Double?,
+    reviewCount: Int,
+    onReviewClick: () -> Unit,
+) {
     Spacer(Modifier.height(40.dp).offset(y = DetailDimensions.SynopsisOffset))
     Column(modifier = Modifier.fillMaxWidth().offset(y = DetailDimensions.SynopsisOffset)) {
-        Text(
-            appString(R.string.detail_customer_reviews),
-            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-            color = MaterialTheme.colorScheme.onSurface,
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .padding(horizontal = Dimens.ScreenPaddingCompact)
                 .clickable(onClick = onReviewClick),
-        )
-        Spacer(Modifier.height(Dimens.SpacingLg))
-        LazyRow(
-            contentPadding = PaddingValues(horizontal = Dimens.ScreenPaddingCompact),
-            horizontalArrangement = Arrangement.spacedBy(Dimens.SpacingLg),
-            modifier = Modifier.fillMaxWidth(),
         ) {
-            items(dummyReviews) { review ->
-                ReviewCard(
-                    review = review,
-                    modifier = Modifier.fillParentMaxWidth(REVIEW_CARD_WIDTH_FRACTION),
-                    onClick = onReviewClick,
+            Text(
+                appString(R.string.detail_customer_reviews),
+                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            if (averageRating != null && reviewCount > 0) {
+                Spacer(Modifier.width(Dimens.SpacingSm))
+                RatingBadge(rating = averageRating.toString())
+                Spacer(Modifier.width(Dimens.SpacingSm))
+                Text(
+                    appString(R.string.review_ratings_count, reviewCount),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+            }
+        }
+        Spacer(Modifier.height(Dimens.SpacingLg))
+        if (reviews.isEmpty()) {
+            // Chưa có review — mời user viết đầu tiên (tap đi tới màn review)
+            Text(
+                appString(R.string.review_empty_subtitle),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier
+                    .padding(horizontal = Dimens.ScreenPaddingCompact)
+                    .clickable(onClick = onReviewClick),
+            )
+        } else {
+            LazyRow(
+                contentPadding = PaddingValues(horizontal = Dimens.ScreenPaddingCompact),
+                horizontalArrangement = Arrangement.spacedBy(Dimens.SpacingLg),
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                items(reviews, key = { it.authorUid }) { review ->
+                    ReviewCard(
+                        review = review,
+                        modifier = Modifier.fillParentMaxWidth(REVIEW_CARD_WIDTH_FRACTION),
+                        onClick = onReviewClick,
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-private fun ReviewCard(review: DummyReview, modifier: Modifier = Modifier, onClick: () -> Unit) {
+private fun ReviewCard(review: FirestoreReview, modifier: Modifier = Modifier, onClick: () -> Unit) {
     Card(
         shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(
@@ -151,25 +187,37 @@ private fun ReviewCard(review: DummyReview, modifier: Modifier = Modifier, onCli
     ) {
         Column(modifier = Modifier.padding(Dimens.SpacingLg).fillMaxWidth()) {
             Row(verticalAlignment = Alignment.CenterVertically) {
+                // Title optional — blank thì hiện tên tác giả thay vì text sai ngữ nghĩa
                 Text(
-                    review.title,
+                    review.title.ifBlank { review.authorName.ifBlank { appString(R.string.review_anonymous) } },
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f),
                 )
-                Spacer(Modifier.weight(1f))
+                Spacer(Modifier.width(Dimens.SpacingSm))
+                val dateText = remember(review.createdAt) {
+                    DateFormat.getDateInstance().format(Date(review.createdAt))
+                }
                 Text(
-                    review.date,
+                    dateText,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
             Spacer(Modifier.height(Dimens.SpacingXs))
             Row {
-                repeat(REVIEW_STAR_COUNT) {
+                repeat(REVIEW_STAR_COUNT) { index ->
                     M3Icon(
                         Lucide.Star,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.tertiary,
+                        tint =
+                            if (index < review.rating) {
+                                MaterialTheme.colorScheme.tertiary
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = Alphas.EmphasisFaint)
+                            },
                         modifier = Modifier.size(Dimens.IconXs),
                     )
                 }
@@ -179,10 +227,12 @@ private fun ReviewCard(review: DummyReview, modifier: Modifier = Modifier, onCli
                 review.body,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface,
+                maxLines = REVIEW_BODY_MAX_LINES,
+                overflow = TextOverflow.Ellipsis,
             )
             Spacer(Modifier.height(Dimens.SpacingSm))
             Text(
-                review.username,
+                review.authorName.ifBlank { appString(R.string.review_anonymous) },
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -223,29 +273,6 @@ internal fun DetailMessage(message: String) {
     )
 }
 
-data class DummyReview(val title: String, val body: String, val date: String, val username: String)
-
-private val dummyReviews =
-    listOf(
-        DummyReview(
-            "Great read",
-            "I couldn't put this down. The story is engaging and the art is fantastic.",
-            "Oct 12, 2025",
-            "User123",
-        ),
-        DummyReview(
-            "A masterpiece",
-            "Truly one of the best mangas I've read in a long time. Highly recommend it to anyone.",
-            "Nov 05, 2025",
-            "MangaFan99",
-        ),
-        DummyReview(
-            "Stunning visuals",
-            "The attention to detail in every panel is just breathtaking.",
-            "Dec 20, 2025",
-            "ArtLover",
-        ),
-    )
-
 private const val REVIEW_CARD_WIDTH_FRACTION = 0.85f
 private const val REVIEW_STAR_COUNT = 5
+private const val REVIEW_BODY_MAX_LINES = 3
