@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onRoot
+import com.example.mybookslibrary.data.remote.models.FirestoreReview
 import com.example.mybookslibrary.ui.theme.MyBooksLibraryTheme
 import com.example.mybookslibrary.ui.util.FakeImageLoader
 import com.github.takahirom.roborazzi.captureRoboImage
@@ -51,7 +52,21 @@ class MangaDetailSectionsScreenshotTest {
                         description = "Một bộ manga kinh điển về hành trình trưởng thành của kiếm sĩ trẻ.",
                     )
                     FirstChapterPreviewSection(pageUrls = listOf("", "", ""))
-                    CustomerReviewsSection(onReviewClick = {})
+                    CustomerReviewsSection(
+                        reviews = listOf(
+                            FirestoreReview(
+                                authorUid = "u1",
+                                rating = 4,
+                                title = "Great read",
+                                body = "Engaging story and fantastic art.",
+                                authorName = "User456",
+                                createdAt = 1_750_000_000_000,
+                            ),
+                        ),
+                        averageRating = 4.0,
+                        reviewCount = 1,
+                        onReviewClick = {},
+                    )
                 }
             }
         }
