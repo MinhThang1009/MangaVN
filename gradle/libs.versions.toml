@@ -33,7 +33,7 @@ work = "2.11.2"
 composeIconsLucide = "1.1.0"
 
 # Charts (ComposeCharts — animated, gradient, multiplatform; verify 0.2.5 trên Maven Central 2026-06)
-composeCharts = "0.2.5"
+composeCharts = "1.0.0"
 
 # Network & Imaging
 retrofit = "3.0.0"
