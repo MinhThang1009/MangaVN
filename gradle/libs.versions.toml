@@ -1,6 +1,6 @@
 [versions]
 # Build & Kotlin
-agp = "9.2.1"
+agp = "9.3.1"
 kotlin = "2.3.21"
 ksp = "2.3.10"
 kotlinxSerialization = "1.10.0"
