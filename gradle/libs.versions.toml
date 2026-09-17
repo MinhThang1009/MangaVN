@@ -44,7 +44,7 @@ timber = "5.0.1"
 
 # Google & Firebase
 googleServicesPlugin = "4.5.0"
-firebaseBom = "34.18.0"
+firebaseBom = "34.19.0"
 
 # Testing
 junit = "4.13.2"
