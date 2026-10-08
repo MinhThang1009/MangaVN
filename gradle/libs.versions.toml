@@ -14,7 +14,7 @@ appcompat = "1.8.0"
 # Compose
 composeBom = "2026.09.00"
 materialIconsCore = "1.7.8"
-navigationCompose = "2.10.0"
+navigationCompose = "2.10.2"
 
 # Architecture Components
 room = "2.8.5"
