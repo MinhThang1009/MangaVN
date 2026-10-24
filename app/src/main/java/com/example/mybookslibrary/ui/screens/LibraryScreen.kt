@@ -117,7 +117,7 @@ fun LibraryScreenContent(
                             start = Dimens.ScreenPaddingCompact,
                             end = Dimens.ScreenPaddingCompact,
                             top = Dimens.SpacingLg,
-                            bottom = bottomNavPadding + Dimens.SpacingLg,
+                            bottom = Dimens.SpacingLg,
                         ),
                     verticalArrangement = Arrangement.spacedBy(Dimens.SpacingMd),
                 ) {

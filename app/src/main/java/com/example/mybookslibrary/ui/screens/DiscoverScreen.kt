@@ -19,6 +19,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.mybookslibrary.domain.model.MangaModel
 import com.example.mybookslibrary.ui.navigation.LocalBottomNavPadding
 import com.example.mybookslibrary.ui.viewmodel.DiscoverViewModel
+import androidx.compose.ui.unit.dp
 
 @Suppress("unused", "LongMethod", "LongParameterList")
 @Composable
@@ -78,7 +79,7 @@ fun DiscoverScreenContent(
                 else ->
                     DiscoverContentList(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(bottom = bottomNavPadding + Dimens.SpacingLg),
+                    contentPadding = PaddingValues(bottom = Dimens.SpacingLg),
                     continueReading = continueReading,
                     onContinueReadingClick = { item ->
                         onMangaClick(
