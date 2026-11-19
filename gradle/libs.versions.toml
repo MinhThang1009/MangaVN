@@ -2,7 +2,7 @@
 # Build & Kotlin
 agp = "9.5.1"
 kotlin = "2.3.21"
-ksp = "2.3.13"
+ksp = "2.3.14"
 kotlinxSerialization = "1.10.0"
 
 # AndroidX & Core
